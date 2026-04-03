@@ -5,7 +5,7 @@ description: >
   state, approvals, DAG sequencing, and verification while delegating bounded
   step work to specialized GPT-5 mini workers.
 argument-hint: Describe the Branch A Figma task or paste the active checkpoint to resume
-model: GPT-5.4
+model: GPT-5.4 mini
 tools:
   - read
   - search
@@ -48,6 +48,21 @@ approved spec explicitly permits a controlled wrapper.
 4. Precise agent routing
 5. Speed
 </priority_order>
+
+<figma_mcp_rules>
+CRITICAL — Figma data must always come from the MCP, never from the web tool.
+
+1. When a Figma URL is provided, parse it into two identifiers:
+   - `fileKey`: the path segment after `/design/` and before the next `/`
+     Example: `https://www.figma.com/design/Rm9u0p7hbN87OQDkSCAACc/...` → `Rm9u0p7hbN87OQDkSCAACc`
+   - `nodeId`: the `node-id` query parameter value, with every `-` converted to `:`
+     Example: `?node-id=15-36` → `15:36`
+2. Call `mcp_figma_get_design_context` with the extracted `fileKey` and `nodeId`.
+3. NEVER use the `web` tool to fetch a `figma.com` URL. The web tool cannot access Figma designs.
+4. The MCP returns generated React/HTML code and a screenshot. Parse `data-node-id` attributes
+   from the code to recover node structure when raw JSON is not present.
+5. If the MCP call fails, halt and record the blocker. Do not fall back to the web tool.
+</figma_mcp_rules>
 
 <operating_rules>
 1. Treat the workflow as executable law. Do not merge, rename, skip, or reorder steps.

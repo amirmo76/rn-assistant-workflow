@@ -108,9 +108,15 @@ Use these exact agent names when the workflow says to spawn a worker:
 **Process:**
 
 1. Parse the Figma URL, target name, and user prompt.
-2. Normalize the Figma identifiers into `file_key` and `node_id`; reject malformed URLs or missing target identifiers.
-3. Using the Figma MCP `get_design_context`, verify the target node is a valid structural container and capture canonical node metadata.
-   - Note: `get_design_context` may return generated code (React/HTML) and a reference screenshot instead of raw Figma node JSON. If raw node JSON is present in the MCP response, use it directly. Otherwise, parse the returned code for `data-node-id` attributes and element hierarchy to recover node structure deterministically.
+2. Normalize the Figma identifiers into `file_key` and `node_id` using these exact rules:
+   - `file_key`: the path segment immediately after `/design/` in the URL, before the next `/`
+     (e.g. `https://www.figma.com/design/Rm9u0p7hbN87OQDkSCAACc/...` → `Rm9u0p7hbN87OQDkSCAACc`)
+   - `node_id`: the `node-id` query parameter value with every `-` converted to `:`
+     (e.g. `?node-id=15-36` → `15:36`)
+   - Reject and halt on malformed URLs or missing target identifiers.
+3. Call the Figma MCP tool `mcp_figma_get_design_context` with the extracted `fileKey` and `nodeId`.
+   IMPORTANT: Never use the `web` tool to fetch Figma URLs — the web tool cannot access Figma designs.
+   The MCP returns generated React/HTML code and a reference screenshot. If raw node JSON is present, use it directly. Otherwise parse the returned code for `data-node-id` attributes and element hierarchy to recover node structure deterministically.
 4. Capture or reuse the Figma screenshot returned by the MCP and store it as `.ui-state/pages/[target-name]-reference.png`.
 5. Resolve whether the request is a fresh target, a resume, or a revision against previously generated components.
 6. Scan `specs/queue/`, `specs/doing/`, and `specs/done/` for a resume path.
