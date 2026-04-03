@@ -10,6 +10,7 @@ tools:
   - edit/createFile
   - edit/editFiles
   - web
+  - mcp_figma_get_design_context
 agents: []
 ---
 
@@ -28,6 +29,7 @@ files with provenance.
 3. Preserve raw properties exactly. Do not tokenize or normalize values beyond the required JSON schema.
 4. Include provenance in every file: source node_id, tree path, extraction timestamp, and target name.
 5. Do not generate implementation guidance.
+6. If the Figma MCP `get_design_context` returns generated code rather than raw node JSON, parse the code for `data-node-id` attributes and inline structure to recover node properties as a deterministic fallback. Preserve discovered node ids in the provenance fields.
 </operating_rules>
 
 <report_format>

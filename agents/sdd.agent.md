@@ -17,6 +17,7 @@ tools:
   - vscode/runCommand
   - agent
   - web
+  - mcp_figma_get_design_context
 agents: ['SDD Initializer', 'SDD Researcher', 'SDD Mapper', 'SDD Extractor', 'SDD Token Synthesizer', 'SDD Design Guardian', 'SDD Spec Writer', 'SDD Task Planner', 'SDD UI Worker', 'SDD Reviewer', 'Explore']
 ---
 

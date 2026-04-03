@@ -109,8 +109,9 @@ Use these exact agent names when the workflow says to spawn a worker:
 
 1. Parse the Figma URL, target name, and user prompt.
 2. Normalize the Figma identifiers into `file_key` and `node_id`; reject malformed URLs or missing target identifiers.
-3. Using Figma MCP, verify the target node is a valid structural container and capture canonical node metadata.
-4. Capture a Figma screenshot for the validated target and store it as `.ui-state/pages/[target-name]-reference.png`.
+3. Using the Figma MCP `get_design_context`, verify the target node is a valid structural container and capture canonical node metadata.
+   - Note: `get_design_context` may return generated code (React/HTML) and a reference screenshot instead of raw Figma node JSON. If raw node JSON is present in the MCP response, use it directly. Otherwise, parse the returned code for `data-node-id` attributes and element hierarchy to recover node structure deterministically.
+4. Capture or reuse the Figma screenshot returned by the MCP and store it as `.ui-state/pages/[target-name]-reference.png`.
 5. Resolve whether the request is a fresh target, a resume, or a revision against previously generated components.
 6. Scan `specs/queue/`, `specs/doing/`, and `specs/done/` for a resume path.
 7. If a resume path exists, confirm whether the user intends resume or restart. A restart must preserve prior artifacts until explicitly superseded.

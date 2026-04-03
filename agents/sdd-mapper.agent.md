@@ -11,6 +11,7 @@ tools:
   - edit/createFile
   - edit/editFiles
   - web
+  - mcp_figma_get_design_context
 agents: []
 ---
 
@@ -29,6 +30,7 @@ target using only structural information.
 3. Extract parent-child structure, normalized names, stable identifiers, sibling order, and parent references.
 4. Do not include styling recommendations, code suggestions, or token mapping.
 5. Preserve deterministic ordering so the artifact can be replayed exactly.
+6. When calling the Figma MCP `get_design_context`, expect either raw node JSON or generated code + screenshot. If only generated code is returned, parse `data-node-id` attributes and nesting to reconstruct the structural tree deterministically.
 </operating_rules>
 
 <report_format>
