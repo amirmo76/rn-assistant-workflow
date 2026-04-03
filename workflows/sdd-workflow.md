@@ -115,7 +115,7 @@ Use these exact agent names when the workflow says to spawn a worker:
    - `node_id`: the `node-id` query parameter value with every `-` converted to `:`
      (e.g. `?node-id=15-36` → `15:36`)
    - Reject and halt on malformed URLs or missing target identifiers.
-3. Call the Figma MCP tool `mcp_figma_get_design_context` with the extracted `fileKey` and `nodeId`.
+3. Call the Figma MCP tool `figma/get_design_context` with the extracted `fileKey` and `nodeId`.
    IMPORTANT: Only the orchestrator (SpecDriven) may call this tool. Worker subagents (Mapper, Extractor, etc.) run in environments where the MCP is unavailable — they must never attempt to call it. Never use the `web` tool to fetch Figma URLs — the web tool cannot access Figma designs.
    The MCP returns generated React/HTML code and a reference screenshot. If raw node JSON is present, use it directly. Otherwise parse the returned code for `data-node-id` attributes and element hierarchy to recover node structure deterministically.
 4. Save the full MCP response HTML/code as `.ui-state/pages/[target-name]-mcp-raw.html`. This file is the single source of Figma data for all downstream workers — they read from it instead of calling the MCP.
@@ -181,7 +181,7 @@ Use these exact agent names when the workflow says to spawn a worker:
 2. Spawn a mapper worker with read access to `.ui-state/pages/[target-name]-mcp-raw.html` and write access only to the tree artifact.
    - Use `SDD Mapper`.
    - The brief MUST include the path to `.ui-state/pages/[target-name]-mcp-raw.html` as the Figma data source.
-   - The worker reads that file to get the Figma HTML/code. It must not call `mcp_figma_get_design_context` or any web tool.
+   - The worker reads that file to get the Figma HTML/code. It must not call `figma/get_design_context` or any web tool.
 3. Traverse the target node structure from the HTML (using `data-node-id` attributes and element hierarchy) to map parent/child relationships and identify structural boundaries (Atoms, Molecules, Organisms) without generating implementation advice.
 4. Normalize node names, stable identifiers, sibling order, and parent references so the tree can be replayed deterministically.
 5. Save the structural map to `.ui-state/pages/[target-name]-tree.json`.
@@ -205,7 +205,7 @@ Use these exact agent names when the workflow says to spawn a worker:
 2. Spawn an extractor worker with read access to those two files and write access only to `.ui-state/components/`.
    - Use `SDD Extractor`.
    - The brief MUST include paths to both `.ui-state/pages/[target-name]-tree.json` and `.ui-state/pages/[target-name]-mcp-raw.html`.
-   - The worker reads the HTML file to recover raw visual, layout, and text properties. It must not call `mcp_figma_get_design_context` or any web tool.
+   - The worker reads the HTML file to recover raw visual, layout, and text properties. It must not call `figma/get_design_context` or any web tool.
 3. Extract raw visual, layout, and text properties for each mapped component node from the saved HTML.
 4. Preserve source provenance in every JSON file, including the originating `node_id` (from `data-node-id` attributes), target tree path, and extraction timestamp.
 5. Save the extracted data as individual, raw `.ui-state/components/[ComponentName].json` files.

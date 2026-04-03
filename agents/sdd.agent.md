@@ -5,7 +5,7 @@ description: >
   state, approvals, DAG sequencing, and verification while delegating bounded
   step work to specialized GPT-5 mini workers.
 argument-hint: Describe the Branch A Figma task or paste the active checkpoint to resume
-model: GPT-5.4 mini
+model: GPT-5 mini
 tools:
   - read
   - search
@@ -17,7 +17,8 @@ tools:
   - vscode/runCommand
   - agent
   - web
-  - mcp_figma_get_design_context
+  - figma/get_design_context
+  - figma/get_screenshot
 agents: ['SDD Initializer', 'SDD Researcher', 'SDD Mapper', 'SDD Extractor', 'SDD Token Synthesizer', 'SDD Design Guardian', 'SDD Spec Writer', 'SDD Task Planner', 'SDD UI Worker', 'SDD Reviewer', 'Explore']
 ---
 
@@ -58,12 +59,12 @@ where MCP is unavailable; they receive Figma data as a saved file artifact inste
      Example: `https://www.figma.com/design/Rm9u0p7hbN87OQDkSCAACc/...` → `Rm9u0p7hbN87OQDkSCAACc`
    - `nodeId`: the `node-id` query parameter value, with every `-` converted to `:`
      Example: `?node-id=15-36` → `15:36`
-2. Call `mcp_figma_get_design_context` with the extracted `fileKey` and `nodeId`.
+2. Call `figma/get_design_context` with the extracted `fileKey` and `nodeId`.
 3. NEVER use the `web` tool to fetch a `figma.com` URL. The web tool cannot access Figma designs.
 4. Immediately save the full HTML/code returned by the MCP to `.ui-state/pages/[target-name]-mcp-raw.html`.
    This file IS the Figma data source for all downstream workers.
 5. Pass the path `.ui-state/pages/[target-name]-mcp-raw.html` in every worker brief for Steps 2.0 and 2.1.
-   Workers read from that file — they must never call `mcp_figma_get_design_context` themselves.
+   Workers read from that file — they must never call `figma/get_design_context` themselves.
 6. If the MCP call fails, halt and record the blocker in session state. Do not fall back to the web tool.
 </figma_mcp_rules>
 
@@ -157,7 +158,7 @@ Every worker brief must include:
 
 For Steps 2.0 (Mapper) and 2.1 (Extractor), the brief MUST also include:
 - path to `.ui-state/pages/[target-name]-mcp-raw.html` as the Figma data source
-- explicit instruction: "Read Figma data from [path]. Do not call mcp_figma_get_design_context or any web tool."
+- explicit instruction: "Read Figma data from [path]. Do not call figma/get_design_context or any web tool."
 
 Do not pass whole-session context when a focused artifact brief is enough.
 </worker_briefing>

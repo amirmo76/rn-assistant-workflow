@@ -29,7 +29,7 @@ The orchestrator has already called the Figma MCP and saved the result.
    attributes on every element. It is your only source of Figma data.
 2. Read that file. Parse `data-node-id` attributes and inline styles/class values to recover
    raw visual, layout, and text properties for each component node.
-3. Never call `mcp_figma_get_design_context`. Never fetch a figma.com URL.
+3. Never call `figma/get_design_context`. Never fetch a figma.com URL.
    If the artifact file is missing from the brief, halt and report BLOCKED: mcp-raw.html not provided.
 </figma_data_source>
 
