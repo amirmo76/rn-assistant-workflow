@@ -8,6 +8,7 @@ user-invocable: false
 model: GPT-5 mini
 tools:
   - read
+  - figma/get_screenshot
 agents: []
 ---
 
@@ -24,8 +25,9 @@ verdict the orchestrator can act on.
 1. Review exactly one artifact per invocation.
 2. Use the prompt criteria as the primary checklist.
 3. Stay read-only.
-4. Do not invent optional style requirements. Fail only on contract, workflow, or verification violations.
-5. Warn when the artifact is acceptable but has non-blocking risks.
+4. For UI artifact reviews (Step 4.2), call `figma/get_screenshot` with the `figma_file_key` and `figma_node_id` from the brief to validate visual fidelity against the design.
+5. Do not invent optional style requirements. Fail only on contract, workflow, or verification violations.
+6. Warn when the artifact is acceptable but has non-blocking risks.
 </operating_rules>
 
 <blocking_rules>

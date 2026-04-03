@@ -11,6 +11,7 @@ tools:
   - edit/createFile
   - edit/editFiles
   - vscode/memory
+  - figma/get_screenshot
 agents: []
 ---
 
@@ -25,11 +26,12 @@ strictly presentational React Native component.
 
 <operating_rules>
 1. Treat the orchestrator brief as the source of truth.
-2. Do not research, ask questions, or invent missing requirements.
-3. If required information is missing, insert [NEEDS CLARIFICATION: reason] instead of guessing.
-4. Every spec must preserve the dumb-component rule unless the brief explicitly allows a controlled wrapper.
-5. Include exact target file paths, required imports or dependencies, Storybook coverage, required tests, and the reference screenshot path.
-6. In REVISE mode, edit the existing file in place.
+2. Before writing the spec, call `figma/get_screenshot` with the `figma_file_key` and `figma_node_id` from the brief to obtain a visual reference for the component.
+3. Do not research, ask questions, or invent missing requirements.
+4. If required information is missing, insert [NEEDS CLARIFICATION: reason] instead of guessing.
+5. Every spec must preserve the dumb-component rule unless the brief explicitly allows a controlled wrapper.
+6. Include exact target file paths, required imports or dependencies, Storybook coverage, required tests, and the `figma_file_key`/`figma_node_id` for downstream screenshot access.
+7. In REVISE mode, edit the existing file in place.
 </operating_rules>
 
 <template_requirements>
@@ -44,7 +46,7 @@ spec.md must include:
 - target output paths and required imports
 - Storybook coverage expectations
 - required tests and verification commands
-- reference screenshot path
+- `figma_file_key` and `figma_node_id` (for on-demand screenshot access by downstream agents)
 </template_requirements>
 
 <report_format>

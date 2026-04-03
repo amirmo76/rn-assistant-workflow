@@ -31,7 +31,7 @@ The orchestrator owns routing, state, gates, and verification. Workers produce b
 17. **Task Completion Marking**: When a code worker returns `STATUS: DONE`, mark that task complete in `tasks.md` immediately.
 18. **Canonical Artifacts**: Every run uses stable artifact locations. Session state lives in `/memories/session/sdd-state.md`. Contracts live under `specs/queue/`, active execution under `specs/doing/`, completed tracking under `specs/done/`, and design-state artifacts under `.ui-state/`.
 19. **Explicit Routing Before Execution**: The orchestrator must route `QUESTION`, `APPROVAL`, `FEEDBACK`, and `CHECKPOINT CONTINUE` requests before attempting Step 1.0. Only `NEW TASK` requests start a fresh end-to-end build flow.
-20. **Visual Grounding**: The workflow must capture and preserve a Figma screenshot for the target so every downstream phase has a visual reference beside the JSON artifacts.
+20. **Visual Grounding**: Agents that require a visual reference (SDD Spec Writer, SDD UI Worker, SDD Reviewer) must call `figma/get_screenshot` directly using the `figma_file_key` and `figma_node_id` provided in their brief. Screenshots are fetched on demand — they are not saved as file artifacts.
 21. **One Source of Truth Per Phase**: Each phase must declare what it reads and what it may create or mutate. Missing required inputs must not be inferred.
 22. **Fail Closed**: If a required artifact, tool capability, validation result, or approval token is missing, halt and record the blocker in `/memories/session/sdd-state.md`.
 
@@ -39,7 +39,7 @@ The orchestrator owns routing, state, gates, and verification. Workers produce b
 
 - **Execution Context Object**: A persisted object in `/memories/session/sdd-state.md` containing at minimum `session_id`, `request_type`, `figma_file_key`, `figma_node_id`, `target_name`, `node_type`, `resume_mode`, `repo_root`, and `current_step`.
 - **Structural Container**: A Figma node that is valid as a page or component root for extraction, typically `FRAME`, `COMPONENT`, `COMPONENT_SET`, or a clearly isolated section explicitly approved by the user.
-- **Reference Screenshot**: A screenshot captured from Figma MCP for the validated target and stored with the design-state artifacts. It is a visual guide, not a style source of truth.
+- **Reference Screenshot**: A screenshot obtained by calling `figma/get_screenshot` with the validated `figma_file_key` and `figma_node_id`. It is fetched on demand by agents that need visual grounding and is never saved as a file artifact. It is a visual guide, not a style source of truth.
 - **Diff Array**: The normalized list of components to create or revise, with at minimum `component`, `status`, `source_json`, `target_paths`, and `spec_path`.
 - **Approved Spec**: A `spec.md` artifact that has passed reviewer checks and has an explicit user approval token recorded in session state.
 - **Execution Batch**: The smallest DAG-safe set of component tasks that may run in parallel without dependency conflicts.
@@ -53,7 +53,6 @@ The orchestrator owns routing, state, gates, and verification. Workers produce b
 - `specs/done/[component]/`: finalized tracking artifacts after completion
 - `.ui-state/pages/[target-name]-mcp-raw.html`: full Figma MCP response (HTML/code) saved by the orchestrator at Step 1.0; the only Figma data source for downstream workers
 - `.ui-state/pages/[target-name]-tree.json`: normalized structure tree for the target
-- `.ui-state/pages/[target-name]-reference.png`: Figma screenshot for the target
 - `.ui-state/components/[ComponentName].json`: tokenized component extraction payload
 
 If the repository already uses a compatible naming scheme, the initializer must map these logical artifact types to existing paths and record that mapping in session state before continuing.
@@ -119,7 +118,6 @@ Use these exact agent names when the workflow says to spawn a worker:
    IMPORTANT: Only the orchestrator (SpecDriven) may call this tool. Worker subagents (Mapper, Extractor, etc.) run in environments where the MCP is unavailable — they must never attempt to call it. Never use the `web` tool to fetch Figma URLs — the web tool cannot access Figma designs.
    The MCP returns generated React/HTML code and a reference screenshot. If raw node JSON is present, use it directly. Otherwise parse the returned code for `data-node-id` attributes and element hierarchy to recover node structure deterministically.
 4. Save the full MCP response HTML/code as `.ui-state/pages/[target-name]-mcp-raw.html`. This file is the single source of Figma data for all downstream workers — they read from it instead of calling the MCP.
-5. Capture or reuse the Figma screenshot returned by the MCP and store it as `.ui-state/pages/[target-name]-reference.png`.
 5. Resolve whether the request is a fresh target, a resume, or a revision against previously generated components.
 6. Scan `specs/queue/`, `specs/doing/`, and `specs/done/` for a resume path.
 7. If a resume path exists, confirm whether the user intends resume or restart. A restart must preserve prior artifacts until explicitly superseded.
@@ -131,8 +129,8 @@ Use these exact agent names when the workflow says to spawn a worker:
 **Step Contract:**
 
 - requires: classified user request containing Figma target
-- must_do: normalize Figma identifiers, validate target, save MCP response as `-mcp-raw.html`, capture screenshot, determine resume mode, assemble context object, map artifact paths
-- exit_criteria: Validated Execution Context Object exists, `.ui-state/pages/[target-name]-mcp-raw.html` exists, screenshot exists, and all required paths are known
+- must_do: normalize Figma identifiers, validate target, save MCP response as `-mcp-raw.html`, determine resume mode, assemble context object, map artifact paths
+- exit_criteria: Validated Execution Context Object exists, `.ui-state/pages/[target-name]-mcp-raw.html` exists, and all required paths are known
 - next_step: Step 1.5 Initialize
 - next_step_requires: Validated Execution Context Object and `.ui-state/pages/[target-name]-mcp-raw.html`
 
@@ -274,7 +272,7 @@ Use these exact agent names when the workflow says to spawn a worker:
 1. Read the Diff Array and Tokenized JSONs.
 2. Spawn the `SDD Spec Writer` agent.
 3. Define the TypeScript `Props` interface, supported visual variants, permitted interaction states, accessibility requirements, and explicit non-goals for each actionable component in the Diff Array.
-4. Each spec must include target file paths, required imports or dependencies, expected Storybook coverage, required tests, and the reference screenshot path.
+4. Each spec must include target file paths, required imports or dependencies, expected Storybook coverage, required tests, and the `figma_file_key` and `figma_node_id` for on-demand visual reference via `figma/get_screenshot`.
 5. Output the proposed `spec.md` contract under `specs/queue/[component]/spec.md`.
 6. Spawn the `SDD Reviewer` agent to ensure the spec is complete: no missing states, no illegal internal state, no token leaks, correct prop typing, and no hidden dependencies.
 7. If the review fails, craft targeted fixes and re-run `SDD Spec Writer` in REVISE mode. Maximum two revision rounds.
@@ -295,7 +293,7 @@ Use these exact agent names when the workflow says to spawn a worker:
 **Process:**
 
 1. The Orchestrator halts the execution thread.
-2. Present the proposed `spec.md` files, Diff Array, and reference screenshot to the user.
+2. Present the proposed `spec.md` files and Diff Array to the user. Optionally call `figma/get_screenshot` to display the visual reference inline.
 3. Ask for an explicit decision through `vscode/askQuestions`. Freeform approval text is insufficient unless it contains an exact recorded approval token.
 4. Wait for `APPROVE` or `REJECT_WITH_FEEDBACK`.
 5. If `REJECT_WITH_FEEDBACK`, record the feedback in session state, pass it to the `Spec Writer`, loop back to Step 3.1, and regenerate the spec in place.
@@ -358,10 +356,10 @@ Use these exact agent names when the workflow says to spawn a worker:
 
 **Process:**
 
-1. Read `tasks.md`, approved `spec.md` files, the recorded token source of truth, and the reference screenshot.
+1. Read `tasks.md`, approved `spec.md` files, and the recorded token source of truth.
 2. Promote only the current execution batch to `specs/doing/`; future batches remain queued.
-3. Spawn `SDD UI Worker` agents in parallel, strictly adhering to DAG batches. Pass one approved `spec.md` per worker.
-4. Workers generate `Component.tsx`, `Component.stories.tsx`, and any required test file. They may use the screenshot as a visual guide, but JSON artifacts and tokens remain the source of truth. No internal state logic (`useState`) is permitted unless the approved spec explicitly allows controlled wrappers that still remain externally driven.
+3. Spawn `SDD UI Worker` agents in parallel, strictly adhering to DAG batches. Pass one approved `spec.md` per worker. Include `figma_file_key` and `figma_node_id` in each brief so the worker can call `figma/get_screenshot` for visual grounding.
+4. Workers generate `Component.tsx`, `Component.stories.tsx`, and any required test file. They may call `figma/get_screenshot` for visual grounding, but JSON artifacts and tokens remain the source of truth. No internal state logic (`useState`) is permitted unless the approved spec explicitly allows controlled wrappers that still remain externally driven.
 5. After a worker finishes, spawn the `SDD Reviewer` agent to run the task-specific lint, type-check, and test commands declared in `tasks.md`.
 6. If the reviewer fails the code, send the error log back to the same `SDD UI Worker` for a fix loop. Hard cap: 3 retries per task. On the third failure, halt the workflow, preserve artifacts in `specs/doing/`, and alert the user with the blocking diagnostics.
 7. Upon successful review, mark the task as `STATUS: DONE` in `tasks.md` immediately and promote its tracking artifacts when the whole batch is complete.
@@ -370,8 +368,8 @@ Use these exact agent names when the workflow says to spawn a worker:
 
 **Step Contract:**
 
-- requires: `tasks.md`, approved `spec.md` files, recorded token source of truth, and reference screenshot
-- must_do: spawn parallel workers per DAG batch, generate UI/Stories/tests as specified, use screenshot only as visual guidance, enforce dumb-component rule, run review/fix loops, run aggregate batch verification, mark progress
+- requires: `tasks.md`, approved `spec.md` files, and recorded token source of truth
+- must_do: spawn parallel workers per DAG batch, provide `figma_file_key`/`figma_node_id` in briefs, generate UI/Stories/tests as specified, use screenshot only as visual guidance, enforce dumb-component rule, run review/fix loops, run aggregate batch verification, mark progress
 - exit_criteria: all tasks in `tasks.md` are DONE, required generated files exist, task-level checks pass, and aggregate verification passes
 - next_step: Step 5.0 Post-Sync
 - next_step_requires: Final generated code
@@ -384,7 +382,7 @@ Use these exact agent names when the workflow says to spawn a worker:
 
 1. Read the final generated code.
 2. Spawn `SDD Initializer` in POST-SYNC mode.
-3. Clear temporary files from execution, but never delete approved specs, reviews, session state, or the reference screenshot.
+3. Clear temporary files from execution, but never delete approved specs, reviews, or session state.
 4. Update the `.ui-state` manifests and ensure `[target-name]-tree.json` accurately reflects the finalized generated UI.
 5. Reconcile generated file paths back into the Diff Array and manifests so future resume or revision flows know what is authoritative.
 6. Update `/memories/session/sdd-state.md` to Step 5.1.

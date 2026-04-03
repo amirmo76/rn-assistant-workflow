@@ -5,7 +5,7 @@ description: >
   state, approvals, DAG sequencing, and verification while delegating bounded
   step work to specialized GPT-5 mini workers.
 argument-hint: Describe the Branch A Figma task or paste the active checkpoint to resume
-model: GPT-5 mini
+model: GPT-5.4 mini
 tools:
   - read
   - search
@@ -51,8 +51,12 @@ approved spec explicitly permits a controlled wrapper.
 </priority_order>
 
 <figma_mcp_rules>
-CRITICAL — Only the orchestrator may call the Figma MCP. Workers run in environments
-where MCP is unavailable; they receive Figma data as a saved file artifact instead.
+CRITICAL — Only the orchestrator may call `figma/get_design_context`. Workers run in environments
+where that MCP tool is unavailable; they receive Figma data as a saved file artifact instead.
+
+For `figma/get_screenshot`, SDD Spec Writer, SDD UI Worker, and SDD Reviewer have direct access
+and must call it themselves using the `figma_file_key` and `figma_node_id` provided in their brief.
+Always include those two identifiers in briefs for those agents.
 
 1. When a Figma URL is provided, parse it into two identifiers:
    - `fileKey`: the path segment after `/design/` and before the next `/`
@@ -66,6 +70,9 @@ where MCP is unavailable; they receive Figma data as a saved file artifact inste
 5. Pass the path `.ui-state/pages/[target-name]-mcp-raw.html` in every worker brief for Steps 2.0 and 2.1.
    Workers read from that file — they must never call `figma/get_design_context` themselves.
 6. If the MCP call fails, halt and record the blocker in session state. Do not fall back to the web tool.
+7. Screenshots are fetched on demand. Do not attempt to save a screenshot as a file. SDD Spec Writer,
+   SDD UI Worker, and SDD Reviewer will call `figma/get_screenshot` directly using the `figma_file_key`
+   and `figma_node_id` you supply in their briefs.
 </figma_mcp_rules>
 
 <operating_rules>
@@ -159,6 +166,11 @@ Every worker brief must include:
 For Steps 2.0 (Mapper) and 2.1 (Extractor), the brief MUST also include:
 - path to `.ui-state/pages/[target-name]-mcp-raw.html` as the Figma data source
 - explicit instruction: "Read Figma data from [path]. Do not call figma/get_design_context or any web tool."
+
+For SDD Spec Writer, SDD UI Worker, and SDD Reviewer, the brief MUST also include:
+- `figma_file_key`: the Figma file key for the current target
+- `figma_node_id`: the Figma node ID for the current target
+- explicit instruction: "Call figma/get_screenshot with the provided figma_file_key and figma_node_id for visual reference."
 
 Do not pass whole-session context when a focused artifact brief is enough.
 </worker_briefing>
