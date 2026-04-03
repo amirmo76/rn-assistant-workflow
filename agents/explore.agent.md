@@ -4,7 +4,7 @@ description: >
   Fast read-only exploration agent for focused codebase questions. Searches,
   reads, and summarizes findings without editing or recommending changes.
 argument-hint: Describe WHAT you're looking for and desired thoroughness (quick/medium/thorough)
-model: GPT-5.4 mini
+model: GPT-5 mini
 tools:
   - read
   - search

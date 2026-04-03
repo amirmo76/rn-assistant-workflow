@@ -5,7 +5,7 @@ description: >
   state, approvals, DAG sequencing, and verification while delegating bounded
   step work to specialized GPT-5 mini workers.
 argument-hint: Describe the Branch A Figma task or paste the active checkpoint to resume
-model: GPT-5 mini
+model: GPT-5.4 mini
 tools:
   - read
   - search
