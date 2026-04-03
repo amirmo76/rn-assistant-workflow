@@ -51,6 +51,7 @@ The orchestrator owns routing, state, gates, and verification. Workers produce b
 - `specs/queue/[component]/plan.json`: dependency and execution metadata when needed
 - `specs/doing/[component]/`: active execution artifacts for a component
 - `specs/done/[component]/`: finalized tracking artifacts after completion
+- `.ui-state/pages/[target-name]-mcp-raw.html`: full Figma MCP response (HTML/code) saved by the orchestrator at Step 1.0; the only Figma data source for downstream workers
 - `.ui-state/pages/[target-name]-tree.json`: normalized structure tree for the target
 - `.ui-state/pages/[target-name]-reference.png`: Figma screenshot for the target
 - `.ui-state/components/[ComponentName].json`: tokenized component extraction payload
@@ -115,9 +116,10 @@ Use these exact agent names when the workflow says to spawn a worker:
      (e.g. `?node-id=15-36` → `15:36`)
    - Reject and halt on malformed URLs or missing target identifiers.
 3. Call the Figma MCP tool `mcp_figma_get_design_context` with the extracted `fileKey` and `nodeId`.
-   IMPORTANT: Never use the `web` tool to fetch Figma URLs — the web tool cannot access Figma designs.
+   IMPORTANT: Only the orchestrator (SpecDriven) may call this tool. Worker subagents (Mapper, Extractor, etc.) run in environments where the MCP is unavailable — they must never attempt to call it. Never use the `web` tool to fetch Figma URLs — the web tool cannot access Figma designs.
    The MCP returns generated React/HTML code and a reference screenshot. If raw node JSON is present, use it directly. Otherwise parse the returned code for `data-node-id` attributes and element hierarchy to recover node structure deterministically.
-4. Capture or reuse the Figma screenshot returned by the MCP and store it as `.ui-state/pages/[target-name]-reference.png`.
+4. Save the full MCP response HTML/code as `.ui-state/pages/[target-name]-mcp-raw.html`. This file is the single source of Figma data for all downstream workers — they read from it instead of calling the MCP.
+5. Capture or reuse the Figma screenshot returned by the MCP and store it as `.ui-state/pages/[target-name]-reference.png`.
 5. Resolve whether the request is a fresh target, a resume, or a revision against previously generated components.
 6. Scan `specs/queue/`, `specs/doing/`, and `specs/done/` for a resume path.
 7. If a resume path exists, confirm whether the user intends resume or restart. A restart must preserve prior artifacts until explicitly superseded.
@@ -129,10 +131,10 @@ Use these exact agent names when the workflow says to spawn a worker:
 **Step Contract:**
 
 - requires: classified user request containing Figma target
-- must_do: normalize Figma identifiers, validate target, capture screenshot, determine resume mode, assemble context object, map artifact paths
-- exit_criteria: Validated Execution Context Object exists, screenshot exists, and all required paths are known
+- must_do: normalize Figma identifiers, validate target, save MCP response as `-mcp-raw.html`, capture screenshot, determine resume mode, assemble context object, map artifact paths
+- exit_criteria: Validated Execution Context Object exists, `.ui-state/pages/[target-name]-mcp-raw.html` exists, screenshot exists, and all required paths are known
 - next_step: Step 1.5 Initialize
-- next_step_requires: Validated Execution Context Object
+- next_step_requires: Validated Execution Context Object and `.ui-state/pages/[target-name]-mcp-raw.html`
 
 ## Step 1.5 - Initialize
 
@@ -176,20 +178,22 @@ Use these exact agent names when the workflow says to spawn a worker:
 **Process:**
 
 1. Read the Validated Execution Context Object and initialized environment.
-2. Spawn a mapper worker with read-only Figma structure access and write access only to the tree artifact.
+2. Spawn a mapper worker with read access to `.ui-state/pages/[target-name]-mcp-raw.html` and write access only to the tree artifact.
    - Use `SDD Mapper`.
-3. Traverse the target node to map parent/child relationships and identify structural boundaries (Atoms, Molecules, Organisms) without generating implementation advice.
+   - The brief MUST include the path to `.ui-state/pages/[target-name]-mcp-raw.html` as the Figma data source.
+   - The worker reads that file to get the Figma HTML/code. It must not call `mcp_figma_get_design_context` or any web tool.
+3. Traverse the target node structure from the HTML (using `data-node-id` attributes and element hierarchy) to map parent/child relationships and identify structural boundaries (Atoms, Molecules, Organisms) without generating implementation advice.
 4. Normalize node names, stable identifiers, sibling order, and parent references so the tree can be replayed deterministically.
 5. Save the structural map to `.ui-state/pages/[target-name]-tree.json`.
 6. Update `/memories/session/sdd-state.md` to Step 2.1.
 
 **Step Contract:**
 
-- requires: Initialized `.ui-state/` environment and Validated Execution Context Object
-- must_do: map structural hierarchy, enforce the no-AI-logic rule, normalize identifiers, save tree state
+- requires: Initialized `.ui-state/` environment, Validated Execution Context Object, and `.ui-state/pages/[target-name]-mcp-raw.html`
+- must_do: map structural hierarchy from the saved MCP HTML, enforce the no-AI-logic rule, normalize identifiers, save tree state
 - exit_criteria: `.ui-state/pages/[target-name]-tree.json` exists and is deterministic
 - next_step: Step 2.1 Extract JSONs
-- next_step_requires: `.ui-state/pages/[target-name]-tree.json`
+- next_step_requires: `.ui-state/pages/[target-name]-tree.json` and `.ui-state/pages/[target-name]-mcp-raw.html`
 
 ## Step 2.1 - Extract JSONs
 
@@ -197,18 +201,20 @@ Use these exact agent names when the workflow says to spawn a worker:
 
 **Process:**
 
-1. Read `.ui-state/pages/[target-name]-tree.json`.
-2. Spawn an extractor worker with read access to Figma node property data and write access only to `.ui-state/components/`.
+1. Read `.ui-state/pages/[target-name]-tree.json` and `.ui-state/pages/[target-name]-mcp-raw.html`.
+2. Spawn an extractor worker with read access to those two files and write access only to `.ui-state/components/`.
    - Use `SDD Extractor`.
-3. Extract raw visual, layout, and text properties for each mapped component node.
-4. Preserve source provenance in every JSON file, including the originating `node_id`, target tree path, and extraction timestamp.
+   - The brief MUST include paths to both `.ui-state/pages/[target-name]-tree.json` and `.ui-state/pages/[target-name]-mcp-raw.html`.
+   - The worker reads the HTML file to recover raw visual, layout, and text properties. It must not call `mcp_figma_get_design_context` or any web tool.
+3. Extract raw visual, layout, and text properties for each mapped component node from the saved HTML.
+4. Preserve source provenance in every JSON file, including the originating `node_id` (from `data-node-id` attributes), target tree path, and extraction timestamp.
 5. Save the extracted data as individual, raw `.ui-state/components/[ComponentName].json` files.
 6. Update `/memories/session/sdd-state.md` to Step 2.2.
 
 **Step Contract:**
 
-- requires: `.ui-state/pages/[target-name]-tree.json`
-- must_do: extract raw properties, preserve provenance, generate component JSON files
+- requires: `.ui-state/pages/[target-name]-tree.json` and `.ui-state/pages/[target-name]-mcp-raw.html`
+- must_do: extract raw properties from saved HTML, preserve provenance, generate component JSON files
 - exit_criteria: Raw `.ui-state/components/[ComponentName].json` files exist
 - next_step: Step 2.2 Synthesize Tokens
 - next_step_requires: Raw component JSON files

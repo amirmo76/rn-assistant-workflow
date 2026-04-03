@@ -5,7 +5,7 @@ description: >
   state, approvals, DAG sequencing, and verification while delegating bounded
   step work to specialized GPT-5 mini workers.
 argument-hint: Describe the Branch A Figma task or paste the active checkpoint to resume
-model: GPT-5.4 mini
+model: GPT-5 mini
 tools:
   - read
   - search
@@ -50,7 +50,8 @@ approved spec explicitly permits a controlled wrapper.
 </priority_order>
 
 <figma_mcp_rules>
-CRITICAL — Figma data must always come from the MCP, never from the web tool.
+CRITICAL — Only the orchestrator may call the Figma MCP. Workers run in environments
+where MCP is unavailable; they receive Figma data as a saved file artifact instead.
 
 1. When a Figma URL is provided, parse it into two identifiers:
    - `fileKey`: the path segment after `/design/` and before the next `/`
@@ -59,9 +60,11 @@ CRITICAL — Figma data must always come from the MCP, never from the web tool.
      Example: `?node-id=15-36` → `15:36`
 2. Call `mcp_figma_get_design_context` with the extracted `fileKey` and `nodeId`.
 3. NEVER use the `web` tool to fetch a `figma.com` URL. The web tool cannot access Figma designs.
-4. The MCP returns generated React/HTML code and a screenshot. Parse `data-node-id` attributes
-   from the code to recover node structure when raw JSON is not present.
-5. If the MCP call fails, halt and record the blocker. Do not fall back to the web tool.
+4. Immediately save the full HTML/code returned by the MCP to `.ui-state/pages/[target-name]-mcp-raw.html`.
+   This file IS the Figma data source for all downstream workers.
+5. Pass the path `.ui-state/pages/[target-name]-mcp-raw.html` in every worker brief for Steps 2.0 and 2.1.
+   Workers read from that file — they must never call `mcp_figma_get_design_context` themselves.
+6. If the MCP call fails, halt and record the blocker in session state. Do not fall back to the web tool.
 </figma_mcp_rules>
 
 <operating_rules>
@@ -151,6 +154,10 @@ Every worker brief must include:
 - exact acceptance criteria
 - explicit exclusions
 - return format expected by the orchestrator
+
+For Steps 2.0 (Mapper) and 2.1 (Extractor), the brief MUST also include:
+- path to `.ui-state/pages/[target-name]-mcp-raw.html` as the Figma data source
+- explicit instruction: "Read Figma data from [path]. Do not call mcp_figma_get_design_context or any web tool."
 
 Do not pass whole-session context when a focused artifact brief is enough.
 </worker_briefing>

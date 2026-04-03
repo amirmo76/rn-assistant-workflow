@@ -10,8 +10,6 @@ tools:
   - read
   - edit/createFile
   - edit/editFiles
-  - web
-  - mcp_figma_get_design_context
 agents: []
 ---
 
@@ -24,16 +22,17 @@ Create or revise .ui-state/pages/[target-name]-tree.json from a validated Figma
 target using only structural information.
 </objective>
 
-<figma_mcp_rules>
-CRITICAL — Figma data must always come from the MCP, never from the web tool.
+<figma_data_source>
+The orchestrator has already called the Figma MCP and saved the result.
 
-1. The brief contains `file_key` and `node_id` already normalized (node_id uses `:` not `-`).
-2. Call `mcp_figma_get_design_context` with `fileKey` and `nodeId` from the brief.
-3. NEVER use the `web` tool to fetch a `figma.com` URL. The web tool cannot access Figma designs.
-4. The MCP returns generated React/HTML code and a screenshot. Parse `data-node-id` attributes
-   from the code to reconstruct the structural tree deterministically when raw JSON is absent.
-5. If the MCP call fails, halt immediately and return a BLOCKED status with the error.
-</figma_mcp_rules>
+1. The brief includes a path to `.ui-state/pages/[target-name]-mcp-raw.html`.
+   This file contains the full MCP response: generated React/HTML code with `data-node-id`
+   attributes on every element. It is your only source of Figma data.
+2. Read that file. Parse `data-node-id` attributes and element nesting to reconstruct
+   the structural tree deterministically.
+3. Never call `mcp_figma_get_design_context`. Never fetch a figma.com URL.
+   If the artifact file is missing from the brief, halt and report BLOCKED: mcp-raw.html not provided.
+</figma_data_source>
 
 <operating_rules>
 1. Treat the orchestrator brief and validated Figma target as the source of truth.
