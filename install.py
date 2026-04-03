@@ -23,6 +23,45 @@ FOLDER_MAP = {
     "prompts": "prompts",
 }
 
+# Legacy and current SDD-managed files that may need pruning when they no longer
+# exist in the source repository. This avoids leaving outdated agents and
+# references installed across upgrades while preserving unrelated user files.
+MANAGED_FILES = {
+    "agents": {
+        "explore.agent.md",
+        "sdd.agent.md",
+        "sdd-code-worker.agent.md",
+        "sdd-design-guardian.agent.md",
+        "sdd-extractor.agent.md",
+        "sdd-initializer.agent.md",
+        "sdd-mapper.agent.md",
+        "sdd-plan-writer.agent.md",
+        "sdd-researcher.agent.md",
+        "sdd-reviewer.agent.md",
+        "sdd-spec-writer.agent.md",
+        "sdd-task-planner.agent.md",
+        "sdd-task-writer.agent.md",
+        "sdd-token-synthesizer.agent.md",
+        "sdd-ui-worker.agent.md",
+    },
+    "references": {
+        "branch-a-diffing.md",
+        "branch-a-execution.md",
+        "branch-a-init.md",
+        "branch-a-specs.md",
+        "branch-a-structure.md",
+        "branch-a-tasking.md",
+        "branch-a-token-taxonomy.md",
+        "questioning.md",
+        "sdd-execution.md",
+        "sdd-planning.md",
+        "sdd-specify.md",
+        "sdd-tasking.md",
+    },
+    "workflows": {"sdd-workflow.md"},
+    "prompts": {"commit.prompt.md"},
+}
+
 # Available models for agent configuration
 AVAILABLE_MODELS = {
     "1": "GPT-5.4",
@@ -314,6 +353,18 @@ def install(dry_run: bool = False) -> None:
             print(f"  CREATE {dest_path}")
             if not dry_run:
                 dest_path.mkdir(parents=True, exist_ok=True)
+
+        source_files = {
+            file.name for file in sorted(src_path.iterdir()) if file.is_file()
+        }
+        managed_names = MANAGED_FILES.get(src_folder, set())
+
+        for stale_name in sorted(managed_names - source_files):
+            stale_path = dest_path / stale_name
+            if stale_path.exists():
+                print(f"  REMOVE     {stale_name}  ->  {dest_path.relative_to(dest_root)}/")
+                if not dry_run:
+                    stale_path.unlink()
 
         for file in sorted(src_path.iterdir()):
             if not file.is_file():
