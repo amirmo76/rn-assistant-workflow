@@ -57,6 +57,26 @@ The orchestrator owns routing, state, gates, and verification. Workers produce b
 
 If the repository already uses a compatible naming scheme, the initializer must map these logical artifact types to existing paths and record that mapping in session state before continuing.
 
+## Agent Routing Table
+
+Use these exact agent names when the workflow says to spawn a worker:
+
+| Step | Agent | Responsibility |
+|---|---|---|
+| 1.5 research | `SDD Researcher` | Read-only repo research for package manager, Storybook, tests, token source, and project shape |
+| 1.5 initialize | `SDD Initializer` | INIT or SYNC infrastructure work |
+| 2.0 | `SDD Mapper` | Create `.ui-state/pages/[target-name]-tree.json` |
+| 2.1 | `SDD Extractor` | Create raw `.ui-state/components/[ComponentName].json` artifacts |
+| 2.2 | `SDD Token Synthesizer` | Tokenize component JSONs and update the token source of truth |
+| 3.0 | `SDD Design Guardian` | Produce the Diff Array and conflict classification |
+| 3.1 write | `SDD Spec Writer` | Write or revise `spec.md` |
+| 3.1 review | `SDD Reviewer` | Review spec completeness and policy compliance |
+| 4.0 | `SDD Task Planner` | Write DAG topology metadata |
+| 4.1 | `SDD Task Planner` | Write or revise `tasks.md` |
+| 4.2 execute | `SDD UI Worker` | Generate one presentational component task |
+| 4.2 review | `SDD Reviewer` | Review generated task output and diagnostics |
+| 5.0 | `SDD Initializer` | POST-SYNC cleanup and manifest reconciliation |
+
 ## Step 0 - State Check
 
 **Goal:** Determine session state and classify the request.
@@ -117,6 +137,8 @@ If the repository already uses a compatible naming scheme, the initializer must 
 2. Detect repository guidance needed for safe execution, including agent instructions, constitution, package manager, and React Native project shape.
 3. If sufficient guidance already exists, use the initializer in SYNC mode.
 4. Otherwise run focused research for stack and structure, then spawn the initializer in INIT mode with a complete brief.
+   - Use `SDD Researcher` for the focused repo research.
+   - Use `SDD Initializer` for INIT or SYNC execution.
 5. Verify success and capture `git_username` and the active package manager.
 6. Create or switch to a local Git feature branch. If the worktree is dirty, record it and continue without discarding unrelated changes.
 7. Verify or create the `.ui-state/` directory structure (`.ui-state/pages/` and `.ui-state/components/`).
@@ -148,6 +170,7 @@ If the repository already uses a compatible naming scheme, the initializer must 
 
 1. Read the Validated Execution Context Object and initialized environment.
 2. Spawn a mapper worker with read-only Figma structure access and write access only to the tree artifact.
+   - Use `SDD Mapper`.
 3. Traverse the target node to map parent/child relationships and identify structural boundaries (Atoms, Molecules, Organisms) without generating implementation advice.
 4. Normalize node names, stable identifiers, sibling order, and parent references so the tree can be replayed deterministically.
 5. Save the structural map to `.ui-state/pages/[target-name]-tree.json`.
@@ -169,6 +192,7 @@ If the repository already uses a compatible naming scheme, the initializer must 
 
 1. Read `.ui-state/pages/[target-name]-tree.json`.
 2. Spawn an extractor worker with read access to Figma node property data and write access only to `.ui-state/components/`.
+   - Use `SDD Extractor`.
 3. Extract raw visual, layout, and text properties for each mapped component node.
 4. Preserve source provenance in every JSON file, including the originating `node_id`, target tree path, and extraction timestamp.
 5. Save the extracted data as individual, raw `.ui-state/components/[ComponentName].json` files.
@@ -190,6 +214,7 @@ If the repository already uses a compatible naming scheme, the initializer must 
 
 1. Read raw `.ui-state/components/[ComponentName].json` files and the recorded token source of truth.
 2. Spawn a token synthesizer worker with write access only to token artifacts and extracted component JSONs.
+   - Use `SDD Token Synthesizer`.
 3. Scrub all absolute pixels, hex codes, and raw styling values from the JSON files.
 4. Map raw values to semantic tokens (e.g., `theme.colors.primary`, `spacing.md`) and update the token source of truth.
 5. If a raw value cannot be mapped confidently, halt and surface a token decision instead of inventing one.
@@ -212,6 +237,7 @@ If the repository already uses a compatible naming scheme, the initializer must 
 
 1. Read the tokenized `.ui-state/components/[ComponentName].json` files and previous `.ui-state` manifests.
 2. Spawn a design guardian worker with read access to current and historical design-state artifacts.
+   - Use `SDD Design Guardian`.
 3. Compare incoming components against existing design state to identify duplicates, variants, or new components.
 4. Generate a Diff Array (e.g., `[{ component: "Button", status: "MODIFIED_BASE" }, { component: "Hero", status: "NEW" }]`).
 5. For each diff item, record whether it is `NEW`, `NEW_VARIANT`, `MODIFIED_BASE`, `UNCHANGED`, or `CONFLICT`.
@@ -233,12 +259,12 @@ If the repository already uses a compatible naming scheme, the initializer must 
 **Process:**
 
 1. Read the Diff Array and Tokenized JSONs.
-2. Spawn the `Spec Writer` agent.
+2. Spawn the `SDD Spec Writer` agent.
 3. Define the TypeScript `Props` interface, supported visual variants, permitted interaction states, accessibility requirements, and explicit non-goals for each actionable component in the Diff Array.
 4. Each spec must include target file paths, required imports or dependencies, expected Storybook coverage, required tests, and the reference screenshot path.
 5. Output the proposed `spec.md` contract under `specs/queue/[component]/spec.md`.
-6. Spawn the `Reviewer` agent to ensure the spec is complete: no missing states, no illegal internal state, no token leaks, correct prop typing, and no hidden dependencies.
-7. If the review fails, craft targeted fixes and re-run `Spec Writer` in REVISE mode. Maximum two revision rounds.
+6. Spawn the `SDD Reviewer` agent to ensure the spec is complete: no missing states, no illegal internal state, no token leaks, correct prop typing, and no hidden dependencies.
+7. If the review fails, craft targeted fixes and re-run `SDD Spec Writer` in REVISE mode. Maximum two revision rounds.
 8. Update `/memories/session/sdd-state.md` to Step 3.2.
 
 **Step Contract:**
@@ -278,7 +304,7 @@ If the repository already uses a compatible naming scheme, the initializer must 
 **Process:**
 
 1. Read the approved `spec.md` files.
-2. Spawn the `Task Planner` agent.
+2. Spawn the `SDD Task Planner` agent in DAG mode.
 3. Analyze nested dependencies (e.g., `Icon` before `Button`).
 4. Validate that the dependency graph is acyclic. If a cycle exists, halt and route back to Step 3.1 for spec correction.
 5. Output a DAG topology map with build order and batch boundaries.
@@ -299,7 +325,7 @@ If the repository already uses a compatible naming scheme, the initializer must 
 **Process:**
 
 1. Read the DAG topology map.
-2. Spawn the `Task Planner` agent.
+2. Spawn the `SDD Task Planner` agent in TASKS mode.
 3. Generate a task list in `tasks.md`, grouped by execution batch.
 4. Map every generation job to its approved spec and target output paths.
 5. For each task, include status, owning worker role, retry count, verification commands, and promotion rules from `queue` to `doing` to `done`.
@@ -321,10 +347,10 @@ If the repository already uses a compatible naming scheme, the initializer must 
 
 1. Read `tasks.md`, approved `spec.md` files, the recorded token source of truth, and the reference screenshot.
 2. Promote only the current execution batch to `specs/doing/`; future batches remain queued.
-3. Spawn `UI Workers` in parallel, strictly adhering to DAG batches. Pass one approved `spec.md` per worker.
+3. Spawn `SDD UI Worker` agents in parallel, strictly adhering to DAG batches. Pass one approved `spec.md` per worker.
 4. Workers generate `Component.tsx`, `Component.stories.tsx`, and any required test file. They may use the screenshot as a visual guide, but JSON artifacts and tokens remain the source of truth. No internal state logic (`useState`) is permitted unless the approved spec explicitly allows controlled wrappers that still remain externally driven.
-5. After a worker finishes, spawn the `Reviewer` agent to run the task-specific lint, type-check, and test commands declared in `tasks.md`.
-6. If the reviewer fails the code, send the error log back to the same UI Worker for a fix loop. Hard cap: 3 retries per task. On the third failure, halt the workflow, preserve artifacts in `specs/doing/`, and alert the user with the blocking diagnostics.
+5. After a worker finishes, spawn the `SDD Reviewer` agent to run the task-specific lint, type-check, and test commands declared in `tasks.md`.
+6. If the reviewer fails the code, send the error log back to the same `SDD UI Worker` for a fix loop. Hard cap: 3 retries per task. On the third failure, halt the workflow, preserve artifacts in `specs/doing/`, and alert the user with the blocking diagnostics.
 7. Upon successful review, mark the task as `STATUS: DONE` in `tasks.md` immediately and promote its tracking artifacts when the whole batch is complete.
 8. After each batch completes, run an aggregate verification pass to catch cross-component type or import regressions before releasing the next batch.
 9. Update `/memories/session/sdd-state.md` to Step 5.0 once all tasks in `tasks.md` are marked DONE and the final aggregate verification passes.
@@ -344,7 +370,7 @@ If the repository already uses a compatible naming scheme, the initializer must 
 **Process:**
 
 1. Read the final generated code.
-2. Spawn the initializer in POST-SYNC mode.
+2. Spawn `SDD Initializer` in POST-SYNC mode.
 3. Clear temporary files from execution, but never delete approved specs, reviews, session state, or the reference screenshot.
 4. Update the `.ui-state` manifests and ensure `[target-name]-tree.json` accurately reflects the finalized generated UI.
 5. Reconcile generated file paths back into the Diff Array and manifests so future resume or revision flows know what is authoritative.

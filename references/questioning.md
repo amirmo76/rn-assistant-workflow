@@ -1,34 +1,36 @@
-# Questioning Reference
-> Used by the orchestrator during Steps 2 and 3.
-> Defines HOW the orchestrator asks questions — strategy, not format.
+# Branch A Questioning Reference
+> Used by the orchestrator at Step 0, Step 1.0, Step 3.2, and Step 5.1.
+> Defines when the workflow may interrupt execution for explicit user input.
 
 ## Core principle
-Ask only when the answer changes what gets built.
-Not when it changes how it looks. Not when it changes wording.
-Only when a different answer produces a different set of files, functions, or behaviors.
+Ask only when the workflow requires a decision that changes routing, approval, or
+blocking setup.
 
-## Pre-question triage (enforced)
-Before forming any question, the orchestrator must have:
-- Spawned researchers to scan the codebase
-- Read the constitution
-- Checked user-profile.md and learned-rules.md for known preferences
-Questions the codebase already answers are BUCKET-A. Do not ask them.
+For Branch A this means:
+- malformed or incomplete Figma targeting at Step 1.0
+- resume versus restart decisions when prior artifacts already exist
+- token-source or scaffolding decisions the initializer is not allowed to infer
+- spec approval or rejection at Step 3.2
+- final commit confirmation at Step 5.1
 
-## Question formation rules
-- Max 4 questions per #tool:vscode/askQuestions call. Hard limit.
-- Batch all into one call. Never sequential.
-- Every bounded question (2–5 valid answers) MUST use options, not free text.
-- Put the recommended option first. Mark it "(Recommended)" in the label only.
-- Write one sentence of context before each question.
-- Never ask about: naming conventions, comment style, import ordering,
-  log format, error message wording — decide from existing code.
-- Never ask: "would you like me to..." — decide yourself and present as default.
+## Hard rules
+- All required user interaction must go through vscode/askQuestions.
+- Max 4 questions per call.
+- Batch questions into one call whenever possible.
+- Use fixed options for bounded choices.
+- Freeform text is allowed only for feedback or missing identifiers.
+- Do not ask questions the repo, workflow state, or Figma metadata can answer.
 
-## Question types
-TYPE-CHOICE: Bounded, one correct answer. 2–4 options.
-TYPE-MULTI: Bounded, multiple may apply. 2–4 options.
-TYPE-OPEN: No bounded options. Rare. Inline free-text question.
+## Required approval tokens
+- Step 3.2 approval must record exactly `APPROVE` or `REJECT_WITH_FEEDBACK`.
+- Step 5.1 commit confirmation must record an explicit yes/no style decision in the askQuestions result.
+
+## Recommended question shapes
+- Resume choice: `Resume existing artifacts` or `Restart from fresh extraction`
+- Token-source choice: `Use existing token source`, `Map alternate token source`, or `Block and decide later`
+- Spec gate: `APPROVE` or `REJECT_WITH_FEEDBACK`
 
 ## After answers received
-- Integrate immediately. No follow-up questions. No re-runs.
-- Surface remaining ambiguities as BUCKET-B assumptions.
+- Update /memories/session/sdd-state.md immediately.
+- Resume exactly from the recorded checkpoint.
+- Do not ask follow-up questions unless the workflow still cannot proceed safely.
