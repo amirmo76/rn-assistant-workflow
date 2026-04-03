@@ -1,214 +1,377 @@
-# SDD Workflow
+# Figma-to-React-Native Spec Driven Agentic Workflow (Branch A)
 
-Source of truth for the Spec-Driven Development orchestration flow.
-The orchestrator owns reasoning, sequencing, and state. Workers execute one
-focused task at a time.
+Source of truth for the Branch A (Visuals) Figma-to-React-Native orchestration flow.
+
+## System Overview
+
+This system implements a Spec-Driven, Component-Driven Development pipeline powered by AI agents. It serves as "Branch A" (Visuals) in a Y-shaped development architecture. Its sole purpose is to translate Figma designs into isolated, strictly presentational React Native components and Storybook files.
+
+By completely separating UI generation from application logic ("Branch B") and enforcing a **Contract-First** workflow, we prevent LLM context bloat, eliminate design hallucination, and produce highly reusable, self-documenting code.
+
+The workflow is orchestration-first: the orchestrator does the routing, state management, gating, and verification; specialist workers produce bounded artifacts; reviewers validate only against explicit contracts and diagnostics.
 
 ## Core Rules
 
-1. Orchestrator owns all multi-step logic. Workers do focused execution only.
-2. All spawned workers are GPT-5 mini. Keep briefs small, explicit, and pre-digested.
-3. User interaction must go through `vscode/askQuestions`.
-4. Step order is fixed: `1 -> 1.5 -> 2 -> 3 -> 4 -> 5 -> 5.5 -> 5.7 -> 6`.
-5. Update `/memories/session/sdd-state.md` at every step transition with the current step contract.
-6. Spawn workers in parallel whenever tasks are independent.
-7. The orchestrator must not create `spec.md`, `plan.md`, `tasks.md`, or source code directly.
+1. **Strict Role Separation**: The Orchestrator owns all multi-step logic, entry detection, and DAG planning. Specialized domain agents are strictly separated by read/write capabilities to prevent hallucination and execution drift.
+2. **"Dumb" Components Only**: UI components must remain strictly presentational. No internal state logic (e.g., `useState`) is permitted for interactive elements; all interactivity must be passed up to the parent via props.
+3. **Absolute Token Taxonomy**: Agents are strictly forbidden from writing raw hardcoded styles (e.g., `#0F172A` or `15px`). All raw values must be mapped to semantic tokens and injected into `design-system.ts`.
+4. **No AI in the Data Pipe**: Phase 2 (Extraction) is purely mechanical. No AI logic reviewers are permitted during mapping and extraction to prevent infinite loop hallucinations over raw Figma data.
+5. **Mandatory System Pause**: Execution must halt at Step 3.2. No code generation begins until a human explicitly inputs `APPROVE` or `REJECT_WITH_FEEDBACK` on the generated specs.
+6. **State Preservation**: The `.ui-state/` directory is the source of truth for design state. Initializers and post-sync agents must read and preserve existing manifests rather than blindly overwriting them.
+7. **DAG-Driven Parallelism**: UI Code Workers execute in parallel, but strictly adhering to the Directed Acyclic Graph (DAG) topology to solve underlying dependency race conditions (e.g., Atoms before Molecules).
+8. **Fixed Phase Order**: Execution flows strictly through `Phase 1 (Init) -> Phase 2 (Extraction) -> Phase 3 (Contract/Pause) -> Phase 4 (Execution) -> Phase 5 (Teardown)`.
+9. **Bounded Fix Loops**: If a Reviewer fails a code worker's output (lint/type-check), the error log is sent back to the worker for a fix loop. This is hard-capped at a maximum of 3 retries before failing gracefully.
+10. **Worker Model & Briefs**: All spawned workers are GPT-5 mini. Keep briefs small, explicit, and pre-digested.
+11. **User Interaction Channel**: User interaction must go through `vscode/askQuestions`.
+12. **Session State Updates**: Update `/memories/session/sdd-state.md` at every step transition with the current step contract.
+13. **Parallelism Policy**: Spawn workers in parallel whenever tasks are independent.
+14. **Orchestrator Editing Restrictions**: The orchestrator must not create `spec.md`, `plan.md`, `tasks.md`, or source code directly.
 Only orchestrator-owned tracking files may be edited inline: `/memories/session/*`, `specs/queue/checkpoint.md`, and task checkboxes in `tasks.md`.
-8. Revisions always edit existing artifacts in place.
-9. Nested subagents are optional. If unavailable, fall back to the original single-hop path.
-10. When a code worker returns `STATUS: DONE`, mark that task complete in `tasks.md` immediately.
-11. Step 5 is not the end. Always continue through `5.5 -> 5.7 -> 6`.
-12. Bug fixes use the full workflow, not an abbreviated path.
+15. **In-Place Revisions**: Revisions always edit existing artifacts in place.
+16. **Subagent Fallback**: Nested subagents are optional. If unavailable, fall back to the original single-hop path.
+17. **Task Completion Marking**: When a code worker returns `STATUS: DONE`, mark that task complete in `tasks.md` immediately.
+18. **Canonical Artifacts**: Every execution must use stable artifact locations. Session state lives in `/memories/session/sdd-state.md`. Contracts live under `specs/queue/` until approved, active execution lives under `specs/doing/`, and completed tracking artifacts live under `specs/done/`. Structural extraction lives under `.ui-state/pages/` and `.ui-state/components/`.
+19. **Explicit Routing Before Execution**: The orchestrator must route `QUESTION`, `APPROVAL`, `FEEDBACK`, and `CHECKPOINT CONTINUE` requests before attempting Step 1.0. Only `NEW TASK` requests start a fresh end-to-end build flow.
+20. **One Source of Truth Per Phase**: Each phase must declare exactly which artifacts it reads and which artifacts it is allowed to create or mutate. No phase may infer missing inputs from surrounding repo context when the required artifact is absent.
+21. **Fail Closed**: If a required artifact, tool capability, validation result, or approval token is missing, execution halts and records a blocking reason in `/memories/session/sdd-state.md`. The system must not silently skip gates.
+
+## Operating Definitions
+
+- **Execution Context Object**: A persisted object in `/memories/session/sdd-state.md` containing at minimum `session_id`, `request_type`, `figma_file_key`, `figma_node_id`, `target_name`, `node_type`, `resume_mode`, `repo_root`, and `current_step`.
+- **Structural Container**: A Figma node that is valid as a page or component root for extraction, typically `FRAME`, `COMPONENT`, `COMPONENT_SET`, or a clearly isolated section explicitly approved by the user.
+- **Diff Array**: The normalized list of components to create or revise, with at minimum `component`, `status`, `source_json`, `target_paths`, and `spec_path`.
+- **Approved Spec**: A `spec.md` artifact that has passed reviewer checks and has an explicit user approval token recorded in session state.
+- **Execution Batch**: The smallest DAG-safe set of component tasks that may run in parallel without dependency conflicts.
+
+## Artifact Conventions
+
+- `specs/queue/[component]/spec.md`: proposed contract awaiting approval
+- `specs/queue/[component]/review.md`: spec completeness review
+- `specs/queue/[component]/plan.json`: dependency and execution metadata when needed
+- `specs/doing/[component]/`: active execution artifacts for a component
+- `specs/done/[component]/`: finalized tracking artifacts after completion
+- `.ui-state/pages/[target-name]-tree.json`: normalized structure tree for the target
+- `.ui-state/components/[ComponentName].json`: tokenized component extraction payload
+
+If the repository already uses a compatible naming scheme, the initializer must map these logical artifact types to existing paths and record that mapping in session state before continuing.
 
 ## Step 0 - State Check
 
-Process:
+**Goal:** Determine session state and classify the incoming request.
+
+**Process:**
+
 1. Read `/memories/session/sdd-state.md`.
-2. If missing, create initial state for Step 1.
+2. If missing, create initial state for Step 1.0.
 3. Classify the user message as `QUESTION`, `APPROVAL`, `NEW TASK`, `FEEDBACK`, or `CHECKPOINT CONTINUE`.
+4. If the request is not `NEW TASK`, route it to the currently active checkpoint instead of restarting the workflow:
+   - `QUESTION`: answer from current state only; do not advance steps.
+   - `APPROVAL`: only valid when current step is Step 3.2 or commit confirmation in Step 5.1.
+   - `FEEDBACK`: only valid when revising an existing artifact in place.
+   - `CHECKPOINT CONTINUE`: resume from the recorded `current_step` and required artifacts.
+5. Record the request classification, active checkpoint, and any blocking reason in session state.
 
-## Step 1 - Entry Detection
+**Step Contract:**
 
-Goal: determine whether to start fresh, resume, or split the request into multiple independent items.
+- requires: user message
+- must_do: read/create state tracking, classify input, route non-build requests safely
+- exit_criteria: state exists, message classified, route decision recorded
+- next_step: Step 1.0 Entry Detection for `NEW TASK`; otherwise remain at current checkpoint or halt pending user input
+- next_step_requires: classified request and recorded route decision
 
-Process:
-1. Run item decomposition before anything else.
-2. Split aggressively by type, scope, layer, or user story when that produces smaller coherent work items.
-3. If multiple items remain, confirm decomposition with `vscode/askQuestions`.
-4. If approved as multi-item work, write `specs/queue/checkpoint.md`, process one item at a time, stop after each committed item, and wait for `continue` before starting the next.
+## Step 1.0 - Entry Detection & Context Assembly
+
+**Goal:** Assemble and validate the execution context from the user request and Figma source.
+
+**Process:**
+
+1. Parse the Figma URL, Target Page name, and User Prompt from the request.
+2. Normalize the Figma identifiers into `file_key` and `node_id`; reject malformed URLs or missing target identifiers.
+3. Using the official Figma MCP tools, verify the target node is a valid structural container and capture its canonical node metadata.
+4. Resolve whether the request is a fresh target, a resume of an existing target, or a revision against a previously generated component set.
 5. Scan `specs/queue/`, `specs/doing/`, and `specs/done/` for an existing resume path.
-6. Update state.
+6. If a resume path exists, confirm whether the user intends resume or restart. A restart must preserve prior artifacts until explicitly superseded.
+7. If invalid or missing data, clarify with the user via `vscode/askQuestions` and halt until resolved.
+8. Construct the Validated Execution Context Object (Session ID, File Key, Node ID, Node Type, Target Name, Resume Mode, Repo Root).
+9. Record the exact artifact path mapping to be used for this run.
+10. Update `/memories/session/sdd-state.md` to Step 1.5.
 
-Step Contract:
-- requires: user request or existing artifacts to resume
-- must_do: decompose items, detect resume state, choose fresh vs resume routing
-- exit_criteria: items confirmed, route selected, state written
-- next_step: Step 1.5 INIT or the appropriate resume step
-- next_step_requires: active feature description or resumed artifact path
+**Step Contract:**
+
+- requires: classified user request containing Figma target
+- must_do: normalize Figma identifiers, validate target, determine resume mode, assemble context object, map artifact paths
+- exit_criteria: Validated Execution Context Object exists and all required path conventions are known
+- next_step: Step 1.5 Initialize
+- next_step_requires: Validated Execution Context Object
 
 ## Step 1.5 - Initialize
 
-Goal: ensure git, constitution, and Copilot instructions are ready.
+**Goal:** Scaffold the working environment, preserve existing design state, and prepare source control.
 
-Process:
-1. Check for `.github/copilot-instructions.md` and `memory/constitution.md`.
-2. If both exist, use `SDD Initializer` in SYNC mode.
-3. Otherwise run two parallel `SDD Researcher` tasks for stack and structure, analyze the findings, and spawn `SDD Initializer` in INIT mode with a complete brief.
-4. Verify success and capture `git_username`.
-5. Update state to Step 2.
+**Process:**
 
-Step Contract:
-- requires: feature description from Step 1
-- must_do: verify infrastructure, run init research when needed, spawn initializer
-- exit_criteria: git ready, constitution exists, instructions exist, git_username captured
-- next_step: Step 2 SPECIFY
-- next_step_requires: initialized project and active feature description
+1. Read the Validated Execution Context Object.
+2. Detect repository-level guidance needed for safe execution, including any agent instructions, repository constitution, package manager, and React Native project shape.
+3. If sufficient guidance already exists, use the initializer in SYNC mode.
+4. Otherwise run focused research for stack and structure, then spawn the initializer in INIT mode with a complete brief.
+5. Verify success and capture `git_username` and the active package manager.
+6. Create or switch to a local Git feature branch for this run. If the worktree is dirty, record that fact and continue without discarding unrelated changes.
+7. Verify or create the `.ui-state/` directory structure (`.ui-state/pages/` and `.ui-state/components/`).
+8. Ensure initialization is strictly idempotent: read and preserve any existing `.ui-state` manifests rather than overwriting them blindly.
+9. Resolve the design token source of truth:
+   - If a compatible `design-system.ts` exists, record its path.
+   - If a different token source exists, map it explicitly and record the mapping.
+   - If no token source exists, create a blocking decision for the user or scaffold one only if the workflow is explicitly allowed to do so.
+10. Verify Storybook and testing environments:
+   - Detect Storybook configuration (e.g. `.storybook/`, `storybook/`, or `package.json` scripts). If missing, scaffold a minimal Storybook setup appropriate to the project stack (web or React Native) including a basic config, a sample story, and a `storybook` script.
+   - Detect test runner and framework (e.g. `jest`, `vitest`, `@testing-library/react` / `@testing-library/react-native`). If missing, scaffold a minimal testing setup: add a test script, a base test configuration, and a sample smoke test.
+   - Run smoke checks using the detected package manager and record exact commands and results in `/memories/session/sdd-state.md`.
+11. Record any blockers that still permit design extraction but would block later execution.
+12. Update `/memories/session/sdd-state.md` to Step 2.0.
 
-## Step 2 - Specify
+**Step Contract:**
 
-Goal: produce an approved `spec.md`.
+- requires: Validated Execution Context Object
+- must_do: verify infrastructure, branch git safely, scaffold `.ui-state/` idempotently, resolve token source of truth, detect or scaffold Storybook, detect or scaffold test runner, run smoke-verification, record results
+- exit_criteria: Git branch active, `.ui-state/` directories validated/created, token source of truth recorded, Storybook config and a sample story present OR scaffolding performed, test runner configured and a sample test exists, smoke checks passed or failing items recorded
+- next_step: Step 2.0 Map Component Tree
+- next_step_requires: Initialized `.ui-state/` environment
 
-Process:
-1. Read `memory/constitution.md`.
-2. Spawn 2-3 parallel `SDD Researcher` tasks for domain, structure, and existing context when needed.
-3. Analyze findings, resolve what can be resolved directly, bucket remaining ambiguities, and ask only the unresolved user questions.
-4. Create the feature branch.
-5. Spawn `SDD Spec Writer` with a complete brief.
-6. Spawn `SDD Reviewer` on the written spec.
-7. If review fails, craft targeted fixes and re-run `SDD Spec Writer` in REVISE mode, then re-review. Maximum two revision rounds.
-8. Show the full spec, ask for approval, and stay on this step until approved.
-9. Update state to Step 3.
+## Step 2.0 - Map Component Tree
 
-Step Contract:
-- requires: initialized project and feature description
-- must_do: research, clarify, branch, write spec, review, get approval
-- exit_criteria: `spec.md` exists, branch exists, reviewer pass or user-approved artifact exists
-- next_step: Step 3 PLAN
-- next_step_requires: approved `spec.md`
+**Goal:** Extract the structural hierarchy of the target Figma node without processing stylistic data.
 
-## Step 3 - Plan
+**Process:**
 
-Goal: produce an approved `plan.md` and supporting planning artifacts.
+1. Read the Validated Execution Context Object and initialized environment.
+2. Spawn a mapper worker with read-only access to Figma structure data and write access only to the tree artifact.
+3. Traverse the target Figma node to map strictly parent/child relationships, identifying structural boundaries (Atoms, Molecules, Organisms) without generating implementation advice.
+4. Normalize node names, stable identifiers, sibling order, and parent references so the tree can be replayed deterministically.
+5. Save the structural map to `.ui-state/pages/[target-name]-tree.json`.
+6. Update `/memories/session/sdd-state.md` to Step 2.1.
 
-Process:
-1. Read the approved spec.
-2. Spawn three parallel `SDD Researcher` tasks for architecture, integration, and testing/data patterns.
-3. Analyze and choose the concrete technical approach, file structure, data model, interfaces, and constitution compliance.
-4. Ask only unresolved clarification questions.
-5. Spawn `SDD Plan Writer` with the complete brief.
-6. Spawn `SDD Reviewer` on the plan artifacts.
-7. If review fails, re-run the writer in REVISE mode with targeted fixes, then re-review. Maximum two revision rounds.
-8. Show the complete plan, ask for approval, and stay on this step until approved.
-9. Update state to Step 4.
+**Step Contract:**
 
-Step Contract:
-- requires: approved `spec.md`
-- must_do: research, decide approach, clarify, write plan artifacts, review, get approval
-- exit_criteria: `plan.md` and required supporting artifacts exist, reviewer pass or user-approved artifact exists
-- next_step: Step 4 TASKS
-- next_step_requires: approved `spec.md`, `plan.md`, and supporting artifacts
+- requires: Initialized `.ui-state/` environment and Validated Execution Context Object
+- must_do: map structural hierarchy, enforce no-AI-logic constraint, normalize identifiers, save tree state
+- exit_criteria: `.ui-state/pages/[target-name]-tree.json` exists and is deterministic
+- next_step: Step 2.1 Extract JSONs
+- next_step_requires: `.ui-state/pages/[target-name]-tree.json`
 
-## Step 4 - Tasks
+## Step 2.1 - Extract JSONs
 
-Goal: produce an approved `tasks.md` with dependencies, checkpoints, and coverage.
+**Goal:** Extract raw property data for each discrete component identified in the mapped tree.
 
-Process:
-1. Read `spec.md`, `plan.md`, and supporting planning artifacts.
-2. Build the dependency graph yourself: setup, foundation, per-story phases, and polish.
-3. Map every acceptance scenario to at least one task and identify all parallel-safe tasks.
-4. Spawn `SDD Task Writer` with a complete brief.
-5. Spawn `SDD Reviewer` on `tasks.md`.
-6. If review fails, re-run `SDD Task Writer` in REVISE mode with targeted fixes, then re-review. Maximum two revision rounds.
-7. Show the complete task list, ask whether execution should begin, and stay on this step until approved.
-8. Update state to Step 5.
+**Process:**
 
-Step Contract:
-- requires: approved `spec.md` and `plan.md`
-- must_do: build dependency graph, write tasks, review, get approval
-- exit_criteria: `tasks.md` exists, scenarios are mapped, reviewer pass or user-approved artifact exists
-- next_step: Step 5 EXECUTE
-- next_step_requires: approved `tasks.md` and all supporting artifacts
+1. Read `.ui-state/pages/[target-name]-tree.json`.
+2. Spawn an extractor worker with read access to Figma node property data and write access only to `.ui-state/components/`.
+3. Extract raw visual, layout, and textual properties for each mapped component node.
+4. Preserve source provenance in every JSON file, including the originating `node_id`, target tree path, and extraction timestamp.
+5. Save the extracted data as individual, raw `.ui-state/components/[ComponentName].json` files.
+6. Update `/memories/session/sdd-state.md` to Step 2.2.
 
-## Step 5 - Execute
+**Step Contract:**
 
-Goal: complete all tasks with verified implementation.
+- requires: `.ui-state/pages/[target-name]-tree.json`
+- must_do: extract raw properties, preserve provenance, generate individual component JSON files
+- exit_criteria: Raw `.ui-state/components/[ComponentName].json` files exist
+- next_step: Step 2.2 Synthesize Tokens
+- next_step_requires: Raw component JSON files
 
-Process:
-1. Move the feature directory from `specs/queue/` to `specs/doing/` and commit the move.
-2. Detect the build and test commands from the project root.
-3. For each phase in `tasks.md`, scan the entire phase first and split work into parallel and sequential sets.
-4. For parallel-safe work, spawn up to five `SDD Code Worker` tasks at a time with minimal complete briefs.
-5. After each batch returns, mark all completed tasks in `tasks.md` before any build check.
-6. Handle non-DONE statuses:
-   - `BLOCKED`: analyze, split further, and re-spawn
-   - `DEVIATION`: ask the user whether to revise plan, continue, or abort
-   - `BUILD_FAIL`: diagnose, create a targeted fix task, and spawn a fix worker
-7. For sequential tasks, run one worker at a time and mark completion immediately after each `DONE` result.
-8. Run build and test at each phase checkpoint.
-9. If a task is too large for GPT-5 mini, split it into sub-tasks, save a checkpoint in `/memories/session/`, and continue from the checkpoint.
-10. After all phases, verify every task is checked off, run the final build and test, and verify the acceptance scenarios from the spec.
-11. After three failed fix attempts on the same problem, stop and ask the user how to proceed.
+## Step 2.2 - Synthesize Tokens & Update Design System
 
-Step Contract:
-- requires: approved `tasks.md` and detected build system
-- must_do: execute all task phases, mark progress on disk, verify build/test checkpoints
-- exit_criteria: all tasks complete, final build and test pass, acceptance scenarios verified
-- next_step: Step 5.5 POST_SYNC
-- next_step_requires: completed implementation and any new technology notes
+**Goal:** Enforce the strict semantic token taxonomy by scrubbing all hardcoded design values.
 
-## Step 5.5 - Post-Execute Sync
+**Process:**
 
-Goal: reconcile project instructions with what was built.
+1. Read raw `.ui-state/components/[ComponentName].json` files and the recorded token source of truth.
+2. Spawn a token synthesizer worker with write access only to token artifacts and the extracted component JSONs.
+3. Scrub all absolute pixels, hex codes, and raw styling values from the JSON files.
+4. Map these raw values to strict semantic tokens (e.g., `theme.colors.primary`, `spacing.md`) and update the recorded token source of truth.
+5. If a raw value cannot be mapped confidently, halt and surface a token decision instead of inventing a semantic name.
+6. Overwrite the raw JSONs with final, tokenized `.ui-state/components/[ComponentName].json` files.
+7. Update `/memories/session/sdd-state.md` to Step 3.0.
 
-Process:
-1. Summarize implementation changes, new technologies, and user corrections.
-2. Spawn `SDD Initializer` in POST-EXECUTE mode.
-3. Update state to Step 5.7.
+**Step Contract:**
 
-Step Contract:
-- requires: completed execution
-- must_do: run post-execution initializer sync
-- exit_criteria: instruction sync completed
-- next_step: Step 5.7 WRAP_UP
-- next_step_requires: synced instructions
+- requires: raw component JSON files and a recorded token source of truth
+- must_do: scrub hardcoded values, synthesize tokens, update token source of truth, rewrite JSONs, fail closed on unmappable values
+- exit_criteria: tokenized `.ui-state/components/[ComponentName].json` files and updated token source of truth exist
+- next_step: Step 3.0 Guard the Design
+- next_step_requires: tokenized component JSONs and updated token source of truth
 
-## Step 5.7 - Wrap-Up and Commit
+## Step 3.0 - Guard the Design
 
-Goal: finalize the implemented feature before retrospective.
+**Goal:** Prevent duplicate components and maintain the integrity of the design system.
 
-Process:
-1. Ask whether anything else should change before commit.
-2. If yes, run targeted code-worker fixes and loop, up to three rounds.
-3. If no, or the loop limit is reached:
-   - `git add -A`
-   - generate a conventional commit message
-   - confirm the message with the user
-   - `git commit -m "[message]"`
-   - move the feature from `specs/doing/` to `specs/done/`
-   - commit that move
-4. Update state either to Step 6 or to the next unchecked multi-item entry.
+**Process:**
 
-Step Contract:
-- requires: completed execution and synced instructions
-- must_do: ask for final adjustments, commit work, move feature to `specs/done/`
-- exit_criteria: feature committed and moved to done
-- next_step: Step 6 RETROSPECTIVE or next multi-item entry
-- next_step_requires: committed feature
+1. Read the tokenized `.ui-state/components/[ComponentName].json` files and previous `.ui-state` manifests.
+2. Spawn a design guardian worker with read access to current and historical design-state artifacts.
+3. Compare incoming components against the existing design state to identify duplicates, variants, or entirely new components.
+4. Generate a Diff Array (e.g., `[{ component: "Button", status: "MODIFIED_BASE" }, { component: "Hero", status: "NEW" }]`).
+5. For each diff item, record whether it is `NEW`, `NEW_VARIANT`, `MODIFIED_BASE`, `UNCHANGED`, or `CONFLICT`.
+6. Do not generate specs for `UNCHANGED` items; halt on unresolved `CONFLICT` items.
+7. Update `/memories/session/sdd-state.md` to Step 3.1.
 
-## Step 6 - Retrospective
+**Step Contract:**
 
-Goal: close the workflow with lessons and a final summary.
+- requires: Tokenized component JSONs and `.ui-state` history
+- must_do: compare current extraction against existing state, classify diff status, exclude unchanged items, stop on unresolved conflicts
+- exit_criteria: Diff Array generated and contains only actionable or explicitly blocked items
+- next_step: Step 3.1 Specify
+- next_step_requires: Diff Array and Tokenized JSONs
 
-Process:
-1. Review assumptions, plan changes, failures, user corrections, and worker issues.
-2. Format candidate lessons.
-3. Ask which lessons to keep.
-4. Save confirmed lessons to `/memories/session/lessons.md`.
-5. Present the final summary with spec, plan, tasks, branch, worker count, and batch count.
+## Step 3.1 - Specify
 
-Step Contract:
-- requires: committed feature
-- must_do: review the session, save chosen lessons, present final summary
-- exit_criteria: lessons saved or declined and final summary shown
+**Goal:** Produce a mathematically complete, logically sound component Contract (`spec.md`).
+
+**Process:**
+
+1. Read the Diff Array and Tokenized JSONs.
+2. Spawn the `Spec Writer` agent.
+3. Define the strict TypeScript `Props` interface, supported visual variants, permitted interaction states, accessibility requirements, and explicit non-goals for each actionable component in the Diff Array.
+4. Each spec must include target file paths, required imports or dependencies, expected Storybook coverage, and whether snapshot or smoke tests are required.
+5. Output the proposed `spec.md` contract under `specs/queue/[component]/spec.md`.
+6. Spawn the `Reviewer` agent to ensure the spec is logically sound and complete: no missing states, no illegal internal state, no token leaks, correct prop typing, and no hidden dependencies.
+7. If the review fails, craft targeted fixes and re-run `Spec Writer` in REVISE mode. Maximum two revision rounds.
+8. Update `/memories/session/sdd-state.md` to Step 3.2.
+
+**Step Contract:**
+
+- requires: Diff Array and Tokenized JSONs
+- must_do: write strict interface contracts, include file/output expectations, review for completeness, handle revisions
+- exit_criteria: unapproved `spec.md` files exist for all actionable diff items
+- next_step: Step 3.2 System Pause
+- next_step_requires: Proposed `spec.md` files
+
+## Step 3.2 - System Pause (Human-in-the-Loop)
+
+**Goal:** Halt the system to secure explicit human approval on the component contracts before any code is generated.
+
+**Process:**
+
+1. The Orchestrator halts the execution thread.
+2. Present the proposed `spec.md` files and Diff Array to the user.
+3. Ask for an explicit decision through `vscode/askQuestions`. Freeform approval text is insufficient unless it contains an exact recorded approval token.
+4. Wait for `APPROVE` or `REJECT_WITH_FEEDBACK`.
+5. If `REJECT_WITH_FEEDBACK`, record the feedback in session state, pass it to the `Spec Writer`, loop back to Step 3.1, and regenerate the spec in place.
+6. If `APPROVE`, record the approver decision, timestamp, and approved spec paths in session state, then lock the `spec.md` files as the absolute source of truth.
+7. Update `/memories/session/sdd-state.md` to Step 4.0.
+
+**Step Contract:**
+
+- requires: Proposed `spec.md` files
+- must_do: halt system, prompt user through the approved interaction channel, handle feedback loop or approval, record approval metadata
+- exit_criteria: explicit user approval received and recorded for all specs
+- next_step: Step 4.0 Plan DAG
+- next_step_requires: Approved `spec.md` files
+
+## Step 4.0 - Plan DAG
+
+**Goal:** Map underlying component dependencies to solve race conditions during code generation.
+
+**Process:**
+
+1. Read the approved `spec.md` files.
+2. Spawn the `Task Planner` agent.
+3. Analyze nested dependencies (e.g., an `Icon` must be built before the `Button` that contains it).
+4. Validate that the dependency graph is acyclic. If a cycle exists, halt and route back to Step 3.1 for spec correction.
+5. Output a Directed Acyclic Graph (DAG) topology map representing the required build order and batch boundaries.
+6. Update `/memories/session/sdd-state.md` to Step 4.1.
+
+**Step Contract:**
+
+- requires: Approved `spec.md` files
+- must_do: analyze component dependencies, validate acyclicity, generate topological order and batch boundaries
+- exit_criteria: DAG topology map exists and contains no cycles
+- next_step: Step 4.1 Generate Tasks
+- next_step_requires: DAG topology map
+
+## Step 4.1 - Generate Tasks
+
+**Goal:** Translate the DAG into a linear, prioritized queue of discrete execution jobs.
+
+**Process:**
+
+1. Read the DAG topology map.
+2. Spawn the `Task Planner` agent.
+3. Generate a task list in `tasks.md`, grouped by execution batch rather than as a flat sequence.
+4. Map every component generation job strictly to its corresponding approved spec and target output paths.
+5. For each task, include status, owning worker role, retry count, verification commands, and promotion rules from `queue` to `doing` to `done`.
+6. Update `/memories/session/sdd-state.md` to Step 4.2.
+
+**Step Contract:**
+
+- requires: DAG topology map
+- must_do: create prioritized execution queue, group parallel tasks by batch, embed verification metadata
+- exit_criteria: `tasks.md` exists, is populated, and can be executed without inferred information
+- next_step: Step 4.2 Execute
+- next_step_requires: `tasks.md` and approved `spec.md` files
+
+## Step 4.2 - Execute
+
+**Goal:** Generate strictly presentational components and Storybook files.
+
+**Process:**
+
+1. Read `tasks.md`, approved `spec.md` files, and the recorded token source of truth.
+2. Promote only the current execution batch to `specs/doing/`; future batches remain queued.
+3. Spawn `UI Workers` in parallel, strictly adhering to the DAG batches. Pass one approved `spec.md` per worker.
+4. Workers generate `Component.tsx`, `Component.stories.tsx`, and any explicitly required test file. No internal state logic (`useState`) is permitted unless the approved spec explicitly allows controlled state wrappers, which still must remain externally driven.
+5. After a worker finishes, spawn the `Reviewer` agent to run the task-specific linter, type-check, and test commands declared in `tasks.md`.
+6. If the reviewer fails the code, send the error log back to the same UI Worker for a fix loop. Hard cap: 3 retries per task. On the third failure, halt the workflow, preserve artifacts in `specs/doing/`, and alert the user with the blocking diagnostics.
+7. Upon successful review, mark the task as `STATUS: DONE` in `tasks.md` immediately and promote its tracking artifacts when the whole batch is complete.
+8. After each batch completes, run an aggregate verification pass for the batch outputs to catch cross-component type or import regressions before releasing the next batch.
+9. Update `/memories/session/sdd-state.md` to Step 5.0 once all tasks in `tasks.md` are marked DONE and the final aggregate verification passes.
+
+**Step Contract:**
+
+- requires: `tasks.md`, approved `spec.md` files, and recorded token source of truth
+- must_do: spawn parallel workers per DAG batch, generate UI/Stories/tests as specified, enforce dumb-component rule, run review/fix loops, run aggregate batch verification, mark progress
+- exit_criteria: all tasks in `tasks.md` are DONE, required generated files exist, task-level checks pass, and aggregate verification passes
+- next_step: Step 5.0 Post-Sync
+- next_step_requires: Final generated code
+
+## Step 5.0 - Post-Sync
+
+**Goal:** Clean up temporary files and reconcile the local design state with the final generated code.
+
+**Process:**
+
+1. Read the final generated code.
+2. Spawn the initializer in POST-SYNC mode.
+3. Clear temporary files generated during the execution phase, but never delete approved specs, reviews, or session state.
+4. Update the `.ui-state` manifests and ensure `[target-name]-tree.json` accurately reflects the finalized generated UI.
+5. Reconcile generated file paths back into the Diff Array and artifact manifests so future resume or revision flows know what is authoritative.
+6. Update `/memories/session/sdd-state.md` to Step 5.1.
+
+**Step Contract:**
+
+- requires: Final generated code
+- must_do: clean temp files safely, synchronize `.ui-state` manifests, reconcile generated outputs into manifests
+- exit_criteria: `.ui-state` matches generated codebase and resume metadata is accurate
+- next_step: Step 5.1 & 6.0 Wrap-Up & Retrospective
+- next_step_requires: Synchronized `.ui-state`
+
+## Step 5.1 & 6.0 - Wrap-Up & Retrospective
+
+**Goal:** Commit the finished work, generate human-readable documentation, and capture session lessons.
+
+**Process:**
+
+1. Spawn the Orchestrator.
+2. Generate a `.md` summary outlining the semantic tokens added, the components built or revised, the verification commands run, and any residual limitations.
+3. Review assumptions, user corrections, and worker fix-loops to format candidate lessons. Ask the user which lessons to keep and save accepted lessons to `/memories/session/lessons.md`.
+4. Stage changes (`git add -A`), generate a conventional commit message, confirm with the user through the approved interaction channel, and execute the commit only after explicit approval.
+5. Move the tracked feature artifacts from `specs/doing/` to `specs/done/`.
+6. Update `/memories/session/sdd-state.md` to `SESSION_COMPLETE`, including commit SHA and summary path.
+
+**Step Contract:**
+
+- requires: Synchronized `.ui-state` and completed codebase
+- must_do: summarize output, capture lessons, confirm and commit to git, move tracking files, close state cleanly
+- exit_criteria: git commit completed, `.md` summary generated, lessons saved, state marked complete with commit metadata
 - next_step: none
 - next_step_requires: n/a
