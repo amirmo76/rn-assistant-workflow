@@ -21,6 +21,7 @@ FOLDER_MAP = {
     "references": "references",
     "workflows": "workflows",
     "prompts": "prompts",
+    "skills": "skills",
 }
 
 # Legacy and current SDD-managed files that may need pruning when they no longer
@@ -39,6 +40,7 @@ MANAGED_FILES = {
         "sdd-researcher.agent.md",
         "sdd-reviewer.agent.md",
         "sdd-spec-writer.agent.md",
+        "tree-builder.agent.md",
         "sdd-task-planner.agent.md",
         "sdd-task-writer.agent.md",
         "sdd-token-synthesizer.agent.md",
@@ -60,6 +62,7 @@ MANAGED_FILES = {
     },
     "workflows": {"sdd-workflow.md"},
     "prompts": {"commit.prompt.md"},
+    "skills": {"rn-tree-decomposition.skill.md"},
 }
 
 # Available models for agent configuration
