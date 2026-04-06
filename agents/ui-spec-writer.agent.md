@@ -13,7 +13,7 @@ argument-hint: >
   (4) path to the design system file, (5) Figma URL for the screen.
   Optionally include paths to already-written child spec files so this
   component can reference what its children expose.
-model: GPT-5 mini
+model: GPT-5.4 mini
 tools:
   - read
   - edit/createFile

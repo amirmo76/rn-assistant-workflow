@@ -11,7 +11,7 @@ argument-hint: >
   Provide: (1) path to dag.md, (2) path to tree.json, (3) path to the design
   system file, (4) Figma URL for the screen. Optionally name one component to
   limit the run to that component and its descendants only.
-model: GPT-5 mini
+model: GPT-5.4 mini
 tools:
   - read
   - vscode/askQuestions
