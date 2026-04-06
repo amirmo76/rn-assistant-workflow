@@ -71,6 +71,10 @@ Rules for parsing:
 Work through these steps in order. Complete all steps before presenting
 findings to the user.
 
+Step 0 — Get the screenshot and clarify the root if needed.
+  If the first line of the DAG is ambiguous about the screen name or root,
+  ask the user to clarify before proceeding via `vscode/askQuestions`. The root must be a single node that represents the screen itself.
+
 Step 1 — Parse the proposed DAG.
   Build an internal model: for each component, note its name and its
   stated dependencies. Identify the root (screen) node.
@@ -119,8 +123,7 @@ Step 8 — Present findings and ask via vscode/askQuestions.
   See <review_presentation> for exactly how to format and ask.
 
 Step 9 — After the user responds, apply only the approved changes and reconstruct
-  the DAG internally. Do not apply any unapproved changes. Show the user
-  the revised DAG in arrow notation and ask for final approval using `vscode/askQuestions` before writing.
+  the DAG. Do not apply any unapproved changes.  Write/update the DAG to`.ui-state/pages/[screen-name-kebab]/dag.md` and ask for final approval using `vscode/askQuestions`.
 </review_process>
 
 <review_presentation>
@@ -181,7 +184,7 @@ Only run this section after the user has explicitly approved the final DAG.
    If any check fails, report it to the user and ask whether to fix it before
    writing.
 
-2. Write the DAG to `.ui-state/pages/[screen-name-kebab]/dag.md`.
+2. Write the final DAG to `.ui-state/pages/[screen-name-kebab]/dag.md`.
 
 3. Build the JSON:
    - `root`: screen name and type "Screen".

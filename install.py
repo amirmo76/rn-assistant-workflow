@@ -38,16 +38,23 @@ def parse_args() -> argparse.Namespace:
         default=Path(__file__).resolve().parent,
         help="Repository root containing the agents/ and skills/ directories.",
     )
+    # Default destination prefers the COPILOT_HOME env var, otherwise ~/.copilot
+    default_dest = Path(os.environ.get("COPILOT_HOME")) if os.environ.get("COPILOT_HOME") else Path.home() / ".copilot"
     parser.add_argument(
         "--dest",
         type=Path,
-        default=Path(".copilot"),
-        help="Destination .copilot directory.",
+        default=default_dest,
+        help="Destination .copilot directory (defaults to ~/.copilot or $COPILOT_HOME).",
     )
     parser.add_argument(
         "--dry-run",
         action="store_true",
         help="Show planned changes without writing anything.",
+    )
+    parser.add_argument(
+        "--no-prune",
+        action="store_true",
+        help="Do not delete files from the destination that are missing from the source.",
     )
     return parser.parse_args()
 
@@ -117,7 +124,7 @@ def prune_stale(dest_root: Path, source_relative_paths: set[Path], dry_run: bool
     return actions
 
 
-def install_files(source_root: Path, dest_root: Path, dry_run: bool) -> list[FileAction]:
+def install_files(source_root: Path, dest_root: Path, dry_run: bool, prune: bool = True) -> list[FileAction]:
     actions: list[FileAction] = []
     source_files = iter_source_files(source_root)
     source_relative_paths = {relative for _, relative, _ in source_files}
@@ -138,7 +145,8 @@ def install_files(source_root: Path, dest_root: Path, dry_run: bool) -> list[Fil
             if not dry_run:
                 write_atomic(target_path, source_content)
 
-    actions.extend(prune_stale(dest_root, source_relative_paths, dry_run))
+    if prune:
+        actions.extend(prune_stale(dest_root, source_relative_paths, dry_run))
     return actions
 
 
@@ -178,7 +186,7 @@ def main() -> int:
             )
             return 1
 
-    actions = install_files(source_root, dest_root, args.dry_run)
+    actions = install_files(source_root, dest_root, args.dry_run, prune=not args.no_prune)
     print(format_report(actions, dest_root, args.dry_run))
     return 0
 
