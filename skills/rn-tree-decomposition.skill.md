@@ -61,12 +61,11 @@ Rules:
 
 ---
 
-## 3. The Five Decomposition Principles
+## 3. The Four Decomposition Principles
 
 ### 3.1 Name by role, not by instance
 - Use `Button`, not `LoginButton` or `PrimaryButton`.
 - Use `InputGroup`, not `PhoneInputGroup`.
-- Use `Card`, not `LoginCard`.
 - Treat visual variants (color, size, style) as props, never separate
   components.
 
@@ -89,13 +88,7 @@ Do NOT split when:
   purpose.
 - The only reason to split is "it has children in Figma".
 
-### 3.4 Distinguish container from content
-A frosted/blurred sheet that wraps a card is NOT the same component as the
-card inside it. The outer container handles visual framing; the inner card
-handles content. Model them separately. Use `WrapperCard` (or `BottomSheet`)
-for the outer container and `Card` for the inner content block.
-
-### 3.5 Preserve the shadcn Card anatomy for RN
+### 3.4 Preserve the shadcn style anatomy for RN
 Even without a web DOM, React Native cards follow the same logical anatomy:
 
 ```
@@ -197,108 +190,7 @@ is a prop, not a new component.
 
 ---
 
-## 7. Worked Example: Login Screen
-
-Given a screen with: full-screen food photo background, frosted bottom card
-with welcome title, white inner card with subtitle, two labeled icon+input
-fields, a forgot-password link, a sign-up footer prompt, and a login button.
-
-```json
-{
-  "root": { "name": "LoginScreen", "type": "Screen" },
-  "components": [
-    {
-      "name": "BackgroundImage",
-      "dependencies": [],
-      "short_description": "Full-screen background image with a gradient overlay"
-    },
-    {
-      "name": "WrapperCard",
-      "dependencies": ["WrapperCardHeader", "WrapperCardContent"],
-      "short_description": "Frosted card with a semi-transparent background anchored to the bottom half"
-    },
-    {
-      "name": "WrapperCardHeader",
-      "dependencies": ["WrapperCardTitle"],
-      "short_description": "Header section of the wrapper card"
-    },
-    {
-      "name": "WrapperCardTitle",
-      "dependencies": [],
-      "short_description": "Title displayed at the top of the wrapper card"
-    },
-    {
-      "name": "WrapperCardContent",
-      "dependencies": ["Card"],
-      "short_description": "Main content area of the wrapper card"
-    },
-    {
-      "name": "Card",
-      "dependencies": ["CardHeader", "CardContent"],
-      "short_description": "White rounded card containing the login form"
-    },
-    {
-      "name": "CardHeader",
-      "dependencies": ["CardDescription"],
-      "short_description": "Header section of the card with instructional text"
-    },
-    {
-      "name": "CardDescription",
-      "dependencies": [],
-      "short_description": "Subtitle or instruction text inside the card header"
-    },
-    {
-      "name": "CardContent",
-      "dependencies": ["InputGroup", "Link"],
-      "short_description": "Main content area of the card containing form fields"
-    },
-    {
-      "name": "InputGroup",
-      "dependencies": ["Label", "Input", "Icon"],
-      "short_description": "Labelled form field with an icon and text input"
-    },
-    {
-      "name": "Label",
-      "dependencies": [],
-      "short_description": "Field label text displayed above an input"
-    },
-    {
-      "name": "Input",
-      "dependencies": [],
-      "short_description": "Text input field"
-    },
-    {
-      "name": "Icon",
-      "dependencies": [],
-      "short_description": "Icon displayed inside a form field"
-    },
-    {
-      "name": "Link",
-      "dependencies": [],
-      "short_description": "Tappable inline text used for navigation"
-    },
-    {
-      "name": "Footer",
-      "dependencies": ["SignUpPrompt", "Button"],
-      "short_description": "Bottom-anchored screen footer with sign-up prompt and login button"
-    },
-    {
-      "name": "SignUpPrompt",
-      "dependencies": ["Link"],
-      "short_description": "Static text with an inline sign-up link"
-    },
-    {
-      "name": "Button",
-      "dependencies": [],
-      "short_description": "Primary action button"
-    }
-  ]
-}
-```
-
----
-
-## 8. Checklist Before Writing the Tree
+## 7. Checklist Before Writing the Tree
 
 - [ ] Have I named every component by role/intent, not Figma layer name?
 - [ ] Does each `InputGroup` (or equivalent) reuse `Input`, `Icon`, `Label`
