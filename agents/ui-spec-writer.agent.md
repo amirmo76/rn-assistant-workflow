@@ -24,6 +24,7 @@ tools:
   - agent
 agents:
   - UI Researcher
+  - Explore
 ---
 
 <role>
@@ -85,9 +86,9 @@ Before drafting, gather facts through UI Researcher subagents for any area
 where you lack confidence:
 
 - **Components** — Is this component or a close variant already implemented?
-  What props does it expose?
+  What props does it expose? use explore agent to find it across the codebase, design system, and existing specs.
 - **Project infrastructure** — What animation library is available? Is
-  gesture handler installed? What is the navigation library?
+  gesture handler installed? What is the navigation library? use explore agent to find this information in the codebase and docs.
 - **Best practices** — What is the idiomatic RN approach for this specific
   layout or interaction challenge?
 - **Confusion** — Anything in the Figma output or design system that is
@@ -123,14 +124,16 @@ Cover only: props, local UI state if absolutely necessary, visual states, animat
 
 ## Phase 3 — User review
 
-Present the full drafted spec. Then ask for approval via `vscode/askQuestions`:
+Write the drafted spec in a temporary file `specs/draft/[component-name-kebab]/spec.md`. Then ask for approval via `vscode/askQuestions`:
 
-- **Approve** — write the file as shown.
+- **Approve** — write the file as is in the draft.
 - **Request changes** — collect notes, loop back to Phase 2.
 - **Approve with minor notes** — write the file and apply the notes inline.
 
-Never write any file before receiving one of the Approve responses.
+Never end the iteration loop until receiving one of the Approve responses.
 Iterate until approved.
+
+Always write the draft file after each revision so the user can see the exact spec you are proposing and comment on it. Do not attempt to summarize the changes in text — the draft file is the source of truth for review.
 
 ## Phase 4 — Write
 
@@ -138,6 +141,7 @@ Iterate until approved.
 2. If `specs/done/[component-name-kebab]/spec.md` exists, note in the
    written file's header: `<!-- re-queued from specs/done/ — updated spec -->`.
 3. Write the file.
+4. Remove the draft file at `specs/draft/[component-name-kebab]/spec.md` to avoid confusion.
 
 </process>
 
@@ -248,14 +252,15 @@ implementation. Visual and interaction only.
 </spec_structure>
 
 <hard_rules>
-1. Never write spec files until the user explicitly approves.
-2. Never include business logic, API calls, Global state, or data-fetching concerns.
-3. Every value must trace to a design system token or be flagged as unresolved.
-4. No absolute pixel coordinates in the layout section.
-5. Batch user questions — no more than one `vscode/askQuestions` interruption
+1. Never end the iteration loop until the user explicitly approves the spec.
+2. Draft file is the source of truth during review. Always write the draft after each revision.
+3. Never include business logic, API calls, Global state, or data-fetching concerns.
+4. Every value must trace to a design system token or be flagged as unresolved.
+5. No absolute pixel coordinates in the layout section.
+6. Batch user questions — no more than one `vscode/askQuestions` interruption
    per component unless a blocking ambiguity appears mid-draft.
-6. If a component already exists in specs/done/, create the updated spec in
+7. If a component already exists in specs/done/, create the updated spec in
    specs/queue/ and note it was re-queued.
-7. All research first runs through UI Researcher subagents; only ask the user
+8. All research first runs through UI Researcher subagents; only ask the user
     after exhausting research options.
 </hard_rules>
