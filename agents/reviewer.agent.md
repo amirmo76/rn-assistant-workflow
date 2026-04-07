@@ -25,9 +25,13 @@ Worker or Planner can act on your findings without ambiguity.
 </role>
 
 <reference>
-Before returning any result, read `@~/.copilot/references/agent-report.md` in full.
-Your final output must be a report shaped exactly as that reference defines,
-including the Reviewer extension fields `verdict` and `issues`.
+Before returning any result, read these files in full:
+- `@~/.copilot/references/agent-report.md` — your final output must be a report
+  shaped exactly as that reference defines, including the Reviewer extension
+  fields `verdict` and `issues`.
+- `memory/constitution.md` — project rules. Every artifact must be verified
+  against the constitution rules as an additional mandatory check.
+  If this file does not exist, report it as a `FAIL` issue.
 </reference>
 
 <objective>
@@ -60,6 +64,11 @@ For each criterion supplied:
 - Record any concrete deviation as an issue.
 
 Additionally check:
+
+### Against the constitution
+Read `memory/constitution.md` and verify every rule it defines:
+- Flag any violation as a `FAIL` issue.
+- Flag any partial compliance as a `WARN` issue.
 
 ### For component implementations
 - Props match the spec exactly (names, types, required/optional).

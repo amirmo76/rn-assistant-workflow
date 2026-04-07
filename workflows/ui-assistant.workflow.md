@@ -6,11 +6,56 @@ adapting based on what context was already provided.
 
 ---
 
+## Memory Rules (mandatory, always enforced)
+
+These rules apply at every point in the workflow. They are not optional.
+
+### Constitution
+Before executing any phase, read `memory/constitution.md` in full. All
+decisions, specs, plans, and implementations must comply with its rules.
+If the file does not exist, stop — the Initializer should have created it.
+
+### Session State
+The sole source of truth for session progress is `/memories/session/ui-state.md`.
+
+**On workflow start:**
+1. Read `memory/constitution.md`.
+2. Attempt to read `/memories/session/ui-state.md`.
+   - If it exists, resume from the phase and step it records.
+   - If it does not exist, create it with `current_phase: 0`.
+
+**At every phase transition** (before entering the next phase):
+1. Verify the current phase's exit criteria are satisfied.
+2. Update `/memories/session/ui-state.md` with:
+   ```yaml
+   session: <component-name>
+   current_phase: <N>
+   current_step: <human-readable description of where you are>
+   status: in-progress   # or: blocked | complete
+   next_step_requires: <what must be true before the next action>
+   initializer_run: true | false
+   components_in_progress: []
+   components_done: []
+   notes: ""             # optional freeform context
+   ```
+3. Re-read the next phase section before acting.
+
+**Before any tool-using action within a phase**, run this checklist:
+1. What phase am I on according to `/memories/session/ui-state.md`?
+2. What does this phase require?
+3. Am I about to do exactly that?
+4. If not, stop and re-read the relevant workflow phase.
+
+---
+
 ## Phase 0 — Initialize
 
 Run the **Initializer** subagent before any planning or implementation work.
 
 The Initializer:
+- Ensures `memory/constitution.md` exists (creates minimal fallback if missing).
+- Ensures `.github/copilot-instructions.md` exists (creates minimal RN version if missing).
+- Ensures the design system file exists and is referenced in `.github/copilot-instructions.md`.
 - Verifies the test runner is configured and passing.
 - Verifies Storybook is installed and has at least one story.
 - Creates minimal smoke pieces if either is missing.
@@ -20,12 +65,20 @@ Read the report. If `status` is `blocked`, stop and tell the user what must
 be fixed before proceeding. If `status` is `partial` or `success`, continue
 to the next phase and surface any warnings to the user.
 
-The Initializer runs **once per session**. If it has already been run and
-returned `success` or `partial`, skip this phase.
+The Initializer runs **once per session**. If `/memories/session/ui-state.md`
+exists and records `initializer_run: true`, skip this phase.
+
+> **State update:** After Phase 0 completes, update `/memories/session/ui-state.md`
+> with `current_phase: 1`, `initializer_run: true`, and the design system path
+> found or created.
 
 ---
 
 ## Phase 1 — Understand the Request
+
+> **State update:** Before starting, confirm `/memories/session/ui-state.md`
+> reflects `current_phase: 1`. After determining component name and task type,
+> update `next_step_requires` to record what is still missing.
 
 Parse the user's message to determine:
 
@@ -40,9 +93,15 @@ Parse the user's message to determine:
 If the component name is missing, ask for it immediately via
 `vscode/askQuestions` before continuing.
 
+> **State update:** Update `/memories/session/ui-state.md` with
+> `current_phase: 2`, `session: <component-name>`.
+
 ---
 
 ## Phase 2 — Explore Current State
+
+> **State update:** Before starting, confirm `/memories/session/ui-state.md`
+> reflects `current_phase: 2`.
 
 Run the **Explore** subagent with a focused brief:
 
@@ -53,9 +112,15 @@ Run the **Explore** subagent with a focused brief:
 
 Collect the findings. They will inform every subsequent phase.
 
+> **State update:** Update `/memories/session/ui-state.md` with
+> `current_phase: 3`, and record key findings in `notes`.
+
 ---
 
 ## Phase 3 — Collect Missing Context
+
+> **State update:** Before starting, confirm `/memories/session/ui-state.md`
+> reflects `current_phase: 3`.
 
 Review what the user provided and what Explore found. Determine the minimum
 additional context needed to proceed.
@@ -76,9 +141,17 @@ Gather:
 If the user did not provide visuals but the task can proceed without them,
 skip that question entirely.
 
+> **State update:** Update `/memories/session/ui-state.md` with
+> `current_phase: 4` (or `5` if Phase 4 is skipped), and record all
+> collected context in `notes`.
+
 ---
 
 ## Phase 4 — Architecture (conditional)
+
+> **State update:** Before starting, confirm `/memories/session/ui-state.md`
+> reflects `current_phase: 4`. If this phase is skipped, update to
+> `current_phase: 5` immediately.
 
 Run this phase **only when** one of the following is true:
 - Task is `build` and no architecture was provided or found in an existing spec.
@@ -105,9 +178,16 @@ ComponentName -> ChildA, ChildB, ChildC
 
 Capture this output for Phase 5.
 
+> **State update:** Update `/memories/session/ui-state.md` with
+> `current_phase: 5` and record the finalized architecture in `notes`.
+
 ---
 
 ## Phase 5 — Spec All Required Components
+
+> **State update:** Before starting, confirm `/memories/session/ui-state.md`
+> reflects `current_phase: 5`. Update `components_in_progress` with the full
+> list of components that must be specced (leaves first).
 
 Identify every component that must exist before the target component can be
 built. Walk the architecture tree (from Phase 4) and collect all child
@@ -138,9 +218,16 @@ write → present → approve loop.
 
 **Do not proceed to Phase 6 until every required spec is approved.**
 
+> **State update:** As each spec is approved, move the component from
+> `components_in_progress` to `components_done` in `/memories/session/ui-state.md`.
+> Update `current_phase: 6` when all specs are approved.
+
 ---
 
 ## Phase 6 — Plan All Components
+
+> **State update:** Before starting, confirm `/memories/session/ui-state.md`
+> reflects `current_phase: 6`.
 
 For each approved spec — in the same leaves-first dependency order used in
 Phase 5 — produce a plan:
@@ -156,9 +243,15 @@ Phase 5 — produce a plan:
 **Do not proceed to Phase 7 until plans for every required component are
 approved.**
 
+> **State update:** Update `/memories/session/ui-state.md` with
+> `current_phase: 7` when all plans are approved.
+
 ---
 
 ## Phase 7 — Move All to Doing
+
+> **State update:** Before starting, confirm `/memories/session/ui-state.md`
+> reflects `current_phase: 7`.
 
 Move every planned component directory from `specs/queue/` to `specs/doing/`
 in dependency order (leaves first, so no `doing` entry depends on a component
@@ -171,9 +264,15 @@ still in `queue`). For each component:
 Do not move a component if any of its dependencies are still in `queue`.
 Resolve all dependency moves before moving a dependant.
 
+> **State update:** Update `/memories/session/ui-state.md` with
+> `current_phase: 8` after all moves complete.
+
 ---
 
 ## Phase 8 — Build Task List
+
+> **State update:** Before starting, confirm `/memories/session/ui-state.md`
+> reflects `current_phase: 8`.
 
 Invoke the **Tasker** subagent. No arguments required; it scans `specs/doing`
 automatically and reads plans in dependency order (leaves first).
@@ -183,9 +282,16 @@ tasks across or within phases can safely run simultaneously, and updates each
 plan's `Status` to `in-progress`. Review the generated task list and confirm
 with the user before proceeding to execution.
 
+> **State update:** Update `/memories/session/ui-state.md` with
+> `current_phase: 9` after the user confirms the task list.
+
 ---
 
 ## Phase 9 — Execute Tasks
+
+> **State update:** Before starting, confirm `/memories/session/ui-state.md`
+> reflects `current_phase: 9`. Record the current task ID in `notes` before
+> each Worker invocation so a resumed session knows where execution stopped.
 
 **The orchestrator (UI Assistant) assigns every task. A Worker agent must
 never choose its own task.**
@@ -207,6 +313,8 @@ Work through `specs/tasks.md` in order. For each `pending` task:
      step 2.
 6. On user approval, mark the task `done` in `specs/tasks.md` and proceed
    to the next task.
+   > **State update:** After each task approval, update `notes` in
+   > `/memories/session/ui-state.md` with the completed task ID.
 
 ### Parallel tasks
 
@@ -218,6 +326,9 @@ in parallel, then present all artifacts to the user for sequential approval.
 ---
 
 ## Phase 10 — Wrap Up
+
+> **State update:** Before starting, confirm all Phase 9 tasks are `done`.
+> Update `/memories/session/ui-state.md` with `current_phase: 10`.
 
 After all tasks in `specs/tasks.md` that belong to a component are `done`:
 
@@ -233,44 +344,67 @@ After all tasks in `specs/tasks.md` that belong to a component are `done`:
 4. Suggest any natural next steps (sibling components, integration work,
    or documentation).
 
+> **State update:** Update `/memories/session/ui-state.md` with
+> `status: complete` when all components are wrapped up.
+
 ---
 
 ## Decision Tree (quick reference)
 
 ```
-User request
+Workflow start
   │
-  ├─ Phase 0: Initializer (once per session)
+  ├─ Read memory/constitution.md (mandatory)
+  ├─ Read memories/session/ui-state.md (resume if exists; create if not)
+  │
+  ├─ Phase 0: Initializer (once per session; skip if initializer_run: true)
   │    blocked? → stop; tell user what to fix
+  │    → update state: current_phase: 1, initializer_run: true
   │
   ├─ Phase 1: Understand request
   │    Component name missing? → ask via vscode/askQuestions
+  │    → update state: current_phase: 2, session: <name>
   │
   ├─ Phase 2: Explore current state
+  │    → update state: current_phase: 3
   │
   ├─ Phase 3: Collect missing context (single askQuestions if needed)
+  │    → update state: current_phase: 4 (or 5 if Phase 4 skipped)
   │
   ├─ Architecture needed?
-  │    yes → Phase 4: UI Architect
-  │    no  → skip
+  │    yes → Phase 4: UI Architect → update state: current_phase: 5
+  │    no  → skip; update state: current_phase: 5
   │
   ├─ Phase 5: UI Component Spec Writer (iterates until user approves)
+  │    → update state per component approved; current_phase: 6 when all done
   │
   ├─ Phase 6: Planner → user approves plan
+  │    → update state: current_phase: 7
   │
   ├─ Phase 7: Move queue → doing (if unblocked)
+  │    → update state: current_phase: 8
   │
   ├─ Phase 8: Tasker → user confirms task list
+  │    → update state: current_phase: 9
   │
   ├─ Phase 9: Worker → Reviewer → user approval (loop per task)
+  │    → update notes per completed task
   │
-  └─ Phase 10: Wrap up
+  └─ Phase 10: Wrap up → update state: status: complete
 ```
 
 ---
 
 ## Rules
 
+- **Constitution first.** Read `memory/constitution.md` before any phase.
+  All outputs must comply with its rules.
+- **State file is ground truth.** `/memories/session/ui-state.md` is the
+  authoritative record of session progress. Read it on start; update it at
+  every phase transition. Never skip either action.
+- **Resume, don't restart.** If `/memories/session/ui-state.md` exists and
+  shows a phase > 0, resume from that phase. Do not re-run earlier phases
+  unless the state explicitly shows them incomplete.
 - **Single interruption per phase.** Batch all questions for a given phase
   into one `vscode/askQuestions` call. Do not ask multiple rounds unless a
   blocking ambiguity surfaces mid-phase.

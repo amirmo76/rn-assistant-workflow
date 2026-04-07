@@ -29,6 +29,35 @@ them. When you need a decision from the user you ask via askQuestions, wait
 for the answer, and continue.
 </role>
 
+<constitution>
+Before doing anything else, check whether `memory/constitution.md` exists:
+- If it exists, read it in full. All your decisions and output must comply
+  with its rules.
+- If it does not exist: ask the user via `vscode/askQuestions` whether they
+  want to provide its content or accept a minimal generated fallback:
+  - **Provide content** — accept the user's input and write it to
+    `memory/constitution.md`.
+  - **Generate minimal fallback** — create `memory/constitution.md` with:
+    ```markdown
+    # Project Constitution
+
+    ## Design System
+    - All colors, spacing, typography, radii, shadows, and animations must
+      use design system tokens. No hard-coded values.
+
+    ## Component Rules
+    - Components must contain no business logic, API calls, navigation,
+      or global state.
+    - All layout must use semantic flex descriptions (no absolute pixel
+      coordinates).
+
+    ## Code Conventions
+    - Follow the existing project conventions for naming, imports, and file layout.
+    - All tests must pass before a component is considered done.
+    - Every visual state described in a spec must have a Storybook story.
+    ```
+</constitution>
+
 <reference>
 Read `@~/.copilot/references/agent-report.md` in full before returning any result.
 Your final output must be a report shaped exactly as that reference defines.
@@ -48,20 +77,112 @@ That skill defines:
 Ensure the project has all required infrastructure in place and verified
 working before spec-driven development begins:
 
-1. Git repository initialized and functional.
-2. Test runner installed, configured, smoke test present, and passing.
-3. Storybook installed, configured, smoke story present, and loadable.
-4. All npm scripts covering test, storybook, and related usage are present.
-5. A git commit capturing the baseline infra state.
+1. `memory/constitution.md` exists and contains project rules.
+2. `.github/copilot-instructions.md` exists with a design system path declared.
+3. The design system file exists at the declared path.
+4. Git repository initialized and functional.
+5. Test runner installed, configured, smoke test present, and passing.
+6. Storybook installed, configured, smoke story present, and loadable.
+7. All npm scripts covering test, storybook, and related usage are present.
+8. A git commit capturing the baseline infra state.
 </objective>
 
 <process>
 
-## Step 0 — Read the skills
+## Step 0 — Read the skills and constitution
 
 - Read and internalize the testing and Storybook setup skills before doing
   anything else. You will use these as your how-to guides and troubleshooting
   references throughout the process.
+- Ensure `memory/constitution.md` exists as described in the `<constitution>`
+  section above. This step is a hard prerequisite — do not proceed until the
+  file exists.
+
+## Step 0a — Ensure `.github/copilot-instructions.md`
+
+- Check whether `.github/copilot-instructions.md` exists in the project root.
+- If it does **not** exist, create it with this minimal React Native content:
+  ```markdown
+  # Copilot Instructions
+
+  This is a React Native project.
+
+  ## Design System
+  <!-- design_system_path: REPLACE_WITH_PATH -->
+  The design system tokens are located at: `REPLACE_WITH_PATH`
+  All colors, spacing, typography, radii, shadows, and animations must use
+  these tokens. No hard-coded values.
+
+  ## Component Rules
+  - No business logic, API calls, navigation, or global state in UI components.
+  - Semantic flex layout only; no absolute pixel positions.
+  - Every visual state must have a Storybook story.
+  - All tests must pass before a component is considered done.
+  ```
+- Record whether the file was created or already existed.
+
+## Step 0b — Ensure design system file
+
+1. Search the project for a design system or token file. Common locations and
+   patterns to look for:
+   - `src/design-system/tokens.*`
+   - `src/theme.*`
+   - `src/tokens.*`
+   - `design-system.*`
+   - Any file whose name contains `token`, `theme`, or `design-system`.
+
+2. Read `.github/copilot-instructions.md` and check whether a
+   `design_system_path` is already declared and points to a real file.
+
+3. Outcome matrix:
+
+   | File found? | Path in instructions? | Action |
+   |-------------|----------------------|--------|
+   | Yes | Yes, matches | No action needed. |
+   | Yes | No or wrong path | Update `.github/copilot-instructions.md` to reference the found file. |
+   | No | No | Ask the user via `vscode/askQuestions`: |
+
+   When asking the user (no design system found):
+   - **Question 1:** "No design system token file was found. Please provide
+     the path to your existing file, or choose an option:"
+     - Option A: "I'll provide the path" — user types a path.
+     - Option B: "Generate a minimal design system file for me".
+   - If the user provides a path, verify it exists. If it does not, ask again.
+   - If the user chooses Option B, create `src/design-system/tokens.ts` with
+     a minimal token set:
+     ```ts
+     export const tokens = {
+       color: {
+         primary: '#007AFF',
+         secondary: '#5856D6',
+         background: '#FFFFFF',
+         surface: '#F2F2F7',
+         text: '#000000',
+         textSecondary: '#3C3C43',
+         border: '#C6C6C8',
+         error: '#FF3B30',
+         success: '#34C759',
+         warning: '#FF9500',
+       },
+       spacing: { xs: 4, sm: 8, md: 16, lg: 24, xl: 32, xxl: 48 },
+       radii: { sm: 4, md: 8, lg: 16, full: 9999 },
+       typography: {
+         fontSize: { xs: 12, sm: 14, md: 16, lg: 18, xl: 24, xxl: 32 },
+         fontWeight: { regular: '400', medium: '500', semibold: '600', bold: '700' },
+       },
+       shadow: {
+         sm: { shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.1, shadowRadius: 2, elevation: 2 },
+         md: { shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.15, shadowRadius: 4, elevation: 4 },
+       },
+     } as const;
+     ```
+
+4. After resolving the design system path, ensure `.github/copilot-instructions.md`
+   contains the line:
+   ```
+   The design system tokens are located at: `<resolved-path>`
+   ```
+   Replace the `REPLACE_WITH_PATH` placeholder or update any stale path.
 
 ## Step 1 — Locate the project root
 
@@ -176,6 +297,9 @@ Run all of the following in order and confirm each exits with code 0:
 3. `<pm> test` — all tests pass.
 
 Also confirm:
+- `memory/constitution.md` exists and is non-empty.
+- `.github/copilot-instructions.md` exists and references the design system path.
+- The design system file exists at the declared path.
 - Storybook config and story file are present and valid.
 - All required npm scripts (`test`, `test:watch`, `test:coverage`, `lint`, `typecheck`, `storybook`) exist in `package.json`.
 - `.git/` is present.
@@ -187,7 +311,7 @@ re-verify. Do not exit this loop until all checks pass.
 
 Once all checks pass:
 - Run `git add -A`.
-- Run `git commit -m "chore: initialise project infra (tests, storybook, smoke)"`.
+- Run `git commit -m "chore: initialise project infra (constitution, copilot-instructions, design-system, tests, storybook, smoke)"`.
 - Record the commit hash in the report.
 
 ## Step 7 — Return report

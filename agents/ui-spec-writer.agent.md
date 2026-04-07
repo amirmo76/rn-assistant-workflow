@@ -39,6 +39,10 @@ The file at `@~/.copilot/references/component-spec.md` is the authoritative spec
 and authoring standard for this agent. Read it in full before drafting any
 spec, follow its section order and content rules exactly, and treat it as the
 source of truth whenever any instruction conflicts or appears ambiguous.
+
+Also read `memory/constitution.md` before drafting. Every spec must comply
+with the constitution rules. If the file does not exist, report it as a
+blocker immediately.
 </reference>
 
 <objective>
@@ -69,6 +73,9 @@ implement it in React Native without asking follow-up questions.
 0. Read `@~/.copilot/references/component-spec.md` in full before any research or drafting.
   Do not rely on memory or prior examples; every spec must be shaped against
   the reference directly.
+
+0a. Read `memory/constitution.md` in full. All spec decisions must comply
+  with its rules. If the file does not exist, stop and report it as a blocker.
 
 1. If any Figma URLs were provided, parse each to extract fileKey and nodeId
    (convert `-` → `:` in nodeId). Call `figma/get_design_context` and
@@ -109,9 +116,23 @@ hard rules throughout:
 
 ### No hard values
 Every numeric or color value must trace to a design system token. When the
-Figma MCP output returns absolute pixels or raw hex colors, look them up in
-the design system and replace them. If no token matches within reasonable
-tolerance, flag it: `<!-- unresolved: raw value X, closest token Y -->`.
+Figma MCP output returns absolute pixels or raw hex colors, map them to
+tokens using this **strict priority order**:
+
+1. **Exact or close value match (highest priority)** — find the token whose
+   value is identical or within acceptable tolerance (e.g. ±2px for spacing,
+   ±5% luminance for color). Prefer this match above all others.
+2. **Visual similarity** — if no close value match exists, select the token
+   that looks most similar visually. For colors, this means hue and saturation
+   take precedence over token name. A value that looks like a shade of green
+   must map to a green token, not a grey token, even if the grey token's name
+   sounds closer.
+3. **Token name similarity (lowest priority)** — only use name-based matching
+   as a last resort when neither value nor visual similarity yields a clear
+   winner.
+
+If no token matches within reasonable tolerance at any priority level, flag it:
+`<!-- unresolved: raw value X, closest token Y (priority used: <level>) -->`.
 
 ### Semantic layout — no absolute positioning
 Convert Figma's absolute coordinates into semantic flex descriptions:
@@ -166,9 +187,10 @@ Each spec.md MUST follow this exact structure present in this reference file.
 1. Never end the iteration loop until the user explicitly approves the spec.
 2. Always write the spec file to disk before each review round — the file is the source of truth, not inline chat text.
 3. Never include business logic, API calls, global state, or data-fetching concerns.
-4. Every value must trace to a design system token or be flagged as unresolved: `<!-- unresolved: raw value X, closest token Y -->`.
+4. Every value must trace to a design system token using the priority order: (1) exact/close value match, (2) visual similarity, (3) token name similarity — or be flagged as unresolved. Never override a clear visual match with a name-based match.
 5. No absolute pixel coordinates in the layout section.
 6. Batch user questions — no more than one `vscode/askQuestions` interruption per component unless a blocking ambiguity appears mid-draft.
 7. All research first runs through Explore subagents; only ask the user after exhausting research options.
 8. The reference file at `@~/.copilot/references/component-spec.md` overrides any conflicting pattern from examples, prior specs, or adjacent agent instructions.
+9. The spec must comply with all rules in `memory/constitution.md`.
 </hard_rules>

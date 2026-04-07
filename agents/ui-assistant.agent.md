@@ -16,6 +16,7 @@ tools:
   - read
   - edit/editFiles
   - vscode/askQuestions
+  - vscode/memory
   - figma/get_screenshot
   - agent
 agents:
@@ -46,12 +47,47 @@ approved, fully implemented, reviewed, and tested component with its spec at
 </objective>
 
 <workflow>
-Before doing anything else, read and fully internalize the workflow:
-<path>@~/.copilot/workflows/ui-assistant.workflow.md</path>
-
-Follow every phase in that file exactly. Do not skip phases without the
-explicit conditions stated in the workflow permitting you to do so.
+Before doing anything else, read and fully internalize the workflow at
+`workflows/ui-assistant.workflow.md`. Then execute the Memory Bootstrap
+below before any other action.
 </workflow>
+
+<memory_bootstrap>
+Execute these steps in order before taking any workflow action:
+
+1. **Read the workflow** — Read `workflows/ui-assistant.workflow.md` in full.
+2. **Read the constitution** — Read `memory/constitution.md` in full. All
+   decisions, specs, and outputs must comply with its rules.
+3. **Read or create session state** — Check whether
+   `/memories/session/ui-state.md` exists.
+   - If it exists, read it and resume from the phase it records.
+   - If it does not exist, create it:
+     ```yaml
+     session: unknown
+     current_phase: 0
+     current_step: "Starting workflow"
+     status: in-progress
+     next_step_requires: "Initializer must complete successfully"
+     initializer_run: false
+     components_in_progress: []
+     components_done: []
+     notes: ""
+     ```
+
+Before every tool-using action within any workflow phase, run this checklist:
+1. What phase am I on according to `/memories/session/ui-state.md`?
+2. What does the workflow require at this phase?
+3. Am I about to do exactly that?
+4. If not, stop and re-read the relevant workflow phase section.
+
+Before every phase transition:
+1. Verify the current phase's exit criteria are satisfied.
+2. Update `/memories/session/ui-state.md` with the new phase, current step,
+   `next_step_requires`, and any key notes.
+3. Re-read the next workflow phase section before acting.
+
+Treat `/memories/session/ui-state.md` as the ground truth for session progress.
+</memory_bootstrap>
 
 <interaction_principles>
 - Be transparent about which phase you are in and what you are doing.

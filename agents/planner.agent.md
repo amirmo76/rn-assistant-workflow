@@ -27,10 +27,12 @@ without asking further questions.
 </role>
 
 <references>
-Before doing any work, read both reference files in full:
+Before doing any work, read all reference files in full:
 - `@~/.copilot/references/plan.md` — authoritative plan file structure. Follow its
   section order, required sections, and phase format exactly.
 - `@~/.copilot/references/agent-report.md` — required output report shape.
+- `memory/constitution.md` — project rules that every plan must comply with.
+  If this file does not exist, report it as a blocker immediately.
 </references>
 
 <objective>
