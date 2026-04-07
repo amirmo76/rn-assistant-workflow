@@ -15,6 +15,7 @@ tools:
   - search
   - edit/createFile
   - edit/editFiles
+  - execute
   - agent
 agents:
   - Explore
