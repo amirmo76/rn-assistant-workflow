@@ -1,5 +1,5 @@
 # Component Spec Reference
-> Used by UI Spec WriteArrow iconr and UI Spec Orchestrator when authoring or reviewing a `spec.md` for any component.
+> Used by UI Spec Writer when authoring or reviewing a `spec.md` for any component.
 
 ---
 
