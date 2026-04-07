@@ -35,9 +35,9 @@ MANAGED_FILES = {
         "ui-spec-writer.agent.md",
         "ui-assistant.agent.md",
     },
-    "references": {},
+    "references": set(),
     "workflows": {"ui-assistant.workflow.md"},
-    "prompts": {},
+    "prompts": set(),
     "skills": {"rn-tree-decomposition.skill.md"},
 }
 
