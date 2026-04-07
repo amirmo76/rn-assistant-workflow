@@ -48,7 +48,11 @@ MANAGED_FILES = {
     },
     "workflows": {"ui-assistant.workflow.md"},
     "prompts": set(),
-    "skills": {"rn-tree-decomposition.skill.md"},
+    "skills": {
+        "rn-tree-decomposition.skill.md",
+        "rn-testing-setup.skill.md",
+        "rn-storybook-setup.skill.md"
+    },
 }
 
 # Available models for agent configuration
