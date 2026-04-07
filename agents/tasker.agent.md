@@ -48,6 +48,12 @@ Search `specs/doing/` for all `plan.md` files. Read each one in full.
 If no `plan.md` files are found, return a `blocked` report stating that
 no plans are in the doing state.
 
+Determine the dependency order of the plans: a component that is depended
+upon by others must appear earlier. Read each spec's dependency section (child
+components listed in the architecture) to build this order. Process plans
+leaves-first so that tasks for foundational components appear in the task list
+before tasks for the components that depend on them.
+
 ## Step 2 — Check existing tasks.md
 
 If `specs/tasks.md` exists, read it to determine the highest existing task

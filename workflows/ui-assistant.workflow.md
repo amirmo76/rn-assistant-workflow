@@ -107,70 +107,93 @@ Capture this output for Phase 5.
 
 ---
 
-## Phase 5 — Spec Writing
+## Phase 5 — Spec All Required Components
 
-Invoke the **UI Component Spec Writer** subagent. Provide all gathered context:
+Identify every component that must exist before the target component can be
+built. Walk the architecture tree (from Phase 4) and collect all child
+components, recursively. Each component not yet specced in `specs/queue/`,
+`specs/doing/`, or `specs/done/` is **required**.
 
-- Component name.
-- Atomic level.
-- Architecture in arrow notation.
-- Visual context: local image paths and/or Figma URLs (pass everything available).
-- Brief from Phase 2: whether a spec already exists and any relevant
-  findings about existing implementations or related components.
+### 5a — Write dependency specs first
 
-The Spec Writer handles its own research, drafting, and iterative review
-loop with the user. It writes the final spec to
-`specs/queue/component-[component-name-kebab]/spec.md`.
+For each required component, write its spec **before** writing the target
+component's spec. Work leaves-first (most deeply nested first). For each
+component:
 
----
+1. Invoke the **UI Component Spec Writer** subagent with:
+   - Component name, atomic level, architecture (direct children).
+   - Any relevant visual context (images/Figma URLs) carried from Phase 3.
+   - Whether an existing spec or implementation was found (from Phase 2 /
+     Explore).
+2. Present the draft spec to the user for review via `vscode/askQuestions`:
+   - **Approve** — treat spec as done; continue.
+   - **Request changes** — relay changes to the Spec Writer and loop back.
+3. Do **not** advance to the next component until the current spec is approved.
 
-## Phase 6 — Plan
+### 5b — Write the target component's spec last
 
-Invoke the **Planner** subagent. Provide:
-- Path to the approved spec: `specs/queue/component-[name]/spec.md`.
+After every dependency spec is approved, invoke the **UI Component Spec
+Writer** for the originally requested component, following the same
+write → present → approve loop.
 
-The Planner researches the codebase, derives phased work, and writes
-`specs/queue/component-[name]/plan.md` with status `draft`.
-
-After the Planner returns, present the plan to the user for review via
-`vscode/askQuestions`:
-
-- **Approve** — proceed to Phase 7.
-- **Request changes** — relay the changes to the Planner and loop back.
-
----
-
-## Phase 7 — Move to Doing
-
-Before moving, confirm the spec is not blocked by another spec currently
-in `doing`. A spec is blocked if it depends on a component whose spec is
-still in `queue` or `doing`.
-
-- If **unblocked**: move the entire `specs/queue/component-[name]/` directory
-  to `specs/doing/component-[name]/`. Update the plan header `Status` from
-  `draft` to `ready`.
-- If **blocked**: inform the user which dependency must be resolved first.
-  Do not move the directory. Return to Phase 6 for the blocking dependency.
+**Do not proceed to Phase 6 until every required spec is approved.**
 
 ---
 
-## Phase 8 — Tasking
+## Phase 6 — Plan All Components
+
+For each approved spec — in the same leaves-first dependency order used in
+Phase 5 — produce a plan:
+
+1. Invoke the **Planner** subagent with the path to the spec:
+   `specs/queue/component-[name]/spec.md`.
+2. The Planner writes `specs/queue/component-[name]/plan.md` with status
+   `draft`.
+3. Present the plan to the user for review via `vscode/askQuestions`:
+   - **Approve** — continue to the next component.
+   - **Request changes** — relay changes to the Planner and loop back.
+
+**Do not proceed to Phase 7 until plans for every required component are
+approved.**
+
+---
+
+## Phase 7 — Move All to Doing
+
+Move every planned component directory from `specs/queue/` to `specs/doing/`
+in dependency order (leaves first, so no `doing` entry depends on a component
+still in `queue`). For each component:
+
+1. Move `specs/queue/component-[name]/` →  `specs/doing/component-[name]/`.
+2. Update the plan header `Status` from `draft` to `ready`.
+
+Do not move a component if any of its dependencies are still in `queue`.
+Resolve all dependency moves before moving a dependant.
+
+---
+
+## Phase 8 — Build Task List
 
 Invoke the **Tasker** subagent. No arguments required; it scans `specs/doing`
-automatically.
+automatically and reads plans in dependency order (leaves first).
 
-The Tasker writes or updates `specs/tasks.md` and updates the plan status
-to `in-progress`. Review the generated task list and confirm with the user
-before proceeding to execution.
+The Tasker writes or updates `specs/tasks.md`, inserts parallel markers where
+tasks across or within phases can safely run simultaneously, and updates each
+plan's `Status` to `in-progress`. Review the generated task list and confirm
+with the user before proceeding to execution.
 
 ---
 
 ## Phase 9 — Execute Tasks
 
-Work through `specs/tasks.md` task by task. For each `pending` task:
+**The orchestrator (UI Assistant) assigns every task. A Worker agent must
+never choose its own task.**
+
+Work through `specs/tasks.md` in order. For each `pending` task:
 
 1. Mark the task `in-progress` in `specs/tasks.md`.
-2. Invoke the **Worker** subagent with the task's full detail block.
+2. **Assign** the task: invoke the **Worker** subagent with the task's full
+   detail block copied from `specs/tasks.md`.
 3. Read the Worker's report.
    - If `blocked`: surface the blocker to the user and pause execution.
    - If `success`: proceed to review.
@@ -179,25 +202,33 @@ Work through `specs/tasks.md` task by task. For each `pending` task:
 5. Read the Reviewer's verdict:
    - `PASS`: present artifact to the user for approval.
    - `WARN`: present artifact and warnings; await user decision.
-   - `FAIL`: relay issues back to the Worker and repeat from step 2.
-6. On user approval, mark the task `done` and proceed to the next task.
+   - `FAIL`: relay issues back to the Worker (re-assign) and repeat from
+     step 2.
+6. On user approval, mark the task `done` in `specs/tasks.md` and proceed
+   to the next task.
 
 ### Parallel tasks
 
-When a task has `Parallel: yes`, it can be run simultaneously with the
-preceding task. Invoke two Worker subagents in parallel and collect both
-reports before either Reviewer step.
+When a task has `Parallel: yes`, it can run simultaneously with the
+task immediately above it. Invoke multiple **Worker** subagents in parallel
+(one per parallel task). Collect all Workers' reports, then run Reviewers
+in parallel, then present all artifacts to the user for sequential approval.
 
 ---
 
 ## Phase 10 — Wrap Up
 
-After all tasks in `specs/tasks.md` are `done`:
+After all tasks in `specs/tasks.md` that belong to a component are `done`:
 
-1. Update the plan header `Status` to `done`.
-2. Move the spec dir from `specs/doing/` to `specs/done/`.
-3. Confirm the completed component to the user with the spec and
-   implementation paths.
+1. Update the component's `plan.md` header `Status` to `done`.
+2. Move the spec dir from `specs/doing/component-[name]/` to
+   `specs/done/component-[name]/`.
+3. Remove any leftover temporary files created during execution (e.g. draft
+   snapshots, scratch notes). Do not remove the spec or plan.
+4. Repeat steps 1–3 for every component that has all tasks done, in
+   dependency order.
+5. Confirm the completed work to the user with a summary listing each spec
+   and its implementation path.
 4. Suggest any natural next steps (sibling components, integration work,
    or documentation).
 
