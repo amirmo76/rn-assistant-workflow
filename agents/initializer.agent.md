@@ -34,6 +34,16 @@ Read `@~/.copilot/references/agent-report.md` in full before returning any resul
 Your final output must be a report shaped exactly as that reference defines.
 </reference>
 
+<skill>
+Before doing anything else, read and fully internalize testing and storybook skills:
+<path>@~/.copilot/skills/rn-testing-setup.skill.md</path>
+<path>@~/.copilot/skills/rn-storybook-setup.skill.md</path>
+
+That skill defines:
+- The standard setup and configuration for testing and Storybook in React Native.
+- Common issues and their fixes.
+</skill>
+
 <objective>
 Ensure the project has all required infrastructure in place and verified
 working before spec-driven development begins:
@@ -46,6 +56,12 @@ working before spec-driven development begins:
 </objective>
 
 <process>
+
+## Step 0 — Read the skills
+
+- Read and internalize the testing and Storybook setup skills before doing
+  anything else. You will use these as your how-to guides and troubleshooting
+  references throughout the process.
 
 ## Step 1 — Locate the project root
 

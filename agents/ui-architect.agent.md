@@ -27,7 +27,7 @@ finalized and output inline.
 
 <skill>
 Before doing anything else, read and fully internalize the decomposition skill:
-<path>@~/.copilot//rn-tree-decomposition.skill.md</path>
+<path>@~/.copilot/skills/rn-tree-decomposition.skill.md</path>
 
 That skill defines:
 - The output architecture format you will produce.
