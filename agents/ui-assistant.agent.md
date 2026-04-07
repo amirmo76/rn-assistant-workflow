@@ -14,6 +14,7 @@ argument-hint: >
 model: GPT-5.4 mini
 tools:
   - read
+  - edit/editFiles
   - vscode/askQuestions
   - figma/get_screenshot
   - agent
@@ -21,6 +22,11 @@ agents:
   - Explore
   - UI Architect
   - UI Component Spec Writer
+  - Initializer
+  - Planner
+  - Tasker
+  - Worker
+  - Reviewer
 ---
 
 <role>
@@ -35,7 +41,8 @@ coordinate the agents that do.
 <objective>
 For any component build or update request, follow the workflow at
 `workflows/ui-assistant.workflow.md` from start to finish, resulting in an
-approved spec file at `specs/component-[component-name-kebab]/spec.md`.
+approved, fully implemented, reviewed, and tested component with its spec at
+`specs/done/component-[component-name-kebab]/spec.md`.
 </objective>
 
 <workflow>
