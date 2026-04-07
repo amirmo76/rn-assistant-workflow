@@ -1,6 +1,8 @@
-# Skill: React Native Component Tree Decomposition
+# Skill: React Native Component Architecture Decomposition
 
-This skill teaches you how to decompose a screen screenshot into a semantic **dependency tree** — a flat, ordered list of reusable components and their direct child dependencies — modelled after the shadcn/ui component philosophy adapted for React Native.
+This skill teaches you how to architect a single React Native component: how to assign its atomic design level and decide what direct children it should compose. It is modelled after the shadcn/ui component philosophy adapted for React Native.
+
+**Scope:** You work on one component at a time. Your goal is to define its immediate children only — not the full subtree. You may name or briefly describe deeper descendants only when they belong to a tightly coupled organism (e.g. a Card's mandatory slot anatomy), but you do not design them here.
 
 ---
 
@@ -23,32 +25,43 @@ CardHeader   → CardTitle, CardSubtitle
 InputGroup   → Label, Input, Icon
 ```
 
-The dependency tree answers the question: *"What reusable components does this component directly compose?"* Never transcribe Figma layer names. Always infer semantic names from their visual role and intent.
+The dependency tree answers: *"What reusable components does this component directly compose?"* Never transcribe Figma layer names. Always infer semantic names from their visual role and intent.
 
 ---
 
 ## 2. Output Format
 
-```json
-{
-  "root": { "name": "ScreenName", "type": "Screen" },
-  "components": [
-    {
-      "name": "ComponentName",
-      "dependencies": ["Child1", "Child2"],
-      "short_description": "one-line visual role description"
-    }
-  ]
-}
+The finalized architecture for a single component is expressed as:
+
+**Atomic design level** — one of: `atom`, `molecule`, `organism`, `template`, `page`.
+
+**Dependency graph** — arrow notation listing this component and its direct children. Leaf components (no children of their own) appear on their own line with no arrow.
+
+```
+ComponentName -> ChildA, ChildB, ChildC
+ChildA
+ChildB -> LeafX, LeafY
+ChildC
+LeafX
+LeafY
 ```
 
 **Rules:**
-* `root` is always the screen itself, never a component inside it.
-* `components` is a **flat list**, not nested.
-* `dependencies` lists the names of other components in the same file that this component directly renders. Leaf primitives MUST explicitly use an empty array `[]`.
-* `short_description` describes the visual role in plain English. No code, no style values.
-* Every component that appears in any `dependencies` list must also appear as its own standalone entry in the `components` array, unless it is a trivial inline variant.
-* List order: outer-to-inner, concluding with shared primitives.
+* The subject component is listed first.
+* Children are listed in visual order: top-to-bottom, left-to-right.
+* Leaf children appear as separate lines with no `->`.
+* No style data, no Figma metadata, no implementation details.
+* Only include children one level deep. Do not recurse further unless a tightly coupled organism mandates it (e.g. Card slot anatomy per §3.4).
+
+### 2.1 Atomic Design Levels
+
+| Level | Assign when… |
+| :--- | :--- |
+| `atom` | The component has no child components — it is a single primitive (Button, Icon, Label, Input). |
+| `molecule` | The component composes 2–4 atoms into one focused unit (InputGroup, ListItem, Badge). |
+| `organism` | The component composes multiple molecules or atoms into a distinct section of the UI (Card, NavBar, FormSection). |
+| `template` | The component defines a page-level layout skeleton with named regions, no data. |
+| `page` | The component is a screen rendered by a navigator; it provides all data and orchestrates the layout. |
 
 ---
 
@@ -116,40 +129,41 @@ Primitives are leaf components (no child component dependencies). They map direc
 
 ---
 
-## 5. Container / Wrapper Patterns
+## 5. Example Patterns
 
-### 5.1 Screen with background + overlay card
+These are examples of common component architectures. Apply the same thinking to the component you are currently working on.
+
+### 5.1 Card organism
 ```text
-ScreenName (root, type: Screen)
-  BackgroundImage        → [] (full-screen image)
-  WrapperCard            → WrapperCardHeader, WrapperCardContent
-    WrapperCardHeader    → WrapperCardTitle
-      WrapperCardTitle   → []
-    WrapperCardContent   → Card
-      Card               → CardHeader, CardContent
-        CardHeader       → CardDescription
-        CardContent      → InputGroup, Link
+Card -> CardHeader, CardContent, CardFooter
+CardHeader -> CardTitle, CardSubtitle
+CardTitle
+CardSubtitle
+CardContent -> InputGroup, Link
+CardFooter -> Button
 ```
+The three slots (Header/Content/Footer) are always present per §3.4. Do not invent custom slot names like `CardTop` or `CardBody`.
 
 ### 5.2 Form field group
 ```text
-InputGroup → Label, Input, Icon
-  Label    → [] (field label text)
-  Input    → [] (text box)
-  Icon     → [] (leading or trailing icon)
+InputGroup -> Label, Input, Icon
+Label
+Input
+Icon
 ```
 All three are always separate leaves. Never merge the icon into the `Input` primitive.
 
 ### 5.3 Footer action bar
 ```text
-ScreenFooter             → SignUpPrompt, Button
-  SignUpPrompt           → Link
-  Button                 → []
+Footer -> SignUpPrompt, Button
+SignUpPrompt -> Link
+Link
+Button
 ```
 If the footer is extremely simple (one button + one static text), you may keep it as a single `Footer` leaf. Only split when the footer contains semantically distinguishable sub-regions.
 
 ### 5.4 Link as a named primitive
-`Link` is a primitive leaf (Pressable + Text). When a screen has multiple distinct link *usages* (e.g., "Forgot Password" and "Sign Up"), model one generic `Link` primitive and use it multiple times. The specific text or destination is a prop, not a new component.
+`Link` is a primitive leaf (Pressable + Text). When a component has multiple distinct link *usages* (e.g., "Forgot Password" and "Sign Up"), model one generic `Link` primitive. The specific text or destination is a prop, not a new component.
 
 ---
 
@@ -160,6 +174,7 @@ If the footer is extremely simple (one button + one static text), you may keep i
 * **Figma artifacts:** No layer IDs, component set names, or variant keys.
 * **Over-splitting:** Do not create a component purely because a bounding box exists in the design file.
 * **Infrastructure wrappers:** Do not add `SafeAreaView`, `ScrollView`, or `KeyboardAvoidingView` to the tree. These are structural React Native implementations, not semantic UI components.
+* **Deep subtrees:** Do not recursively design children-of-children unless they are a tightly coupled organism. Each component's internals are designed in a separate architecture session.
 
 ---
 
@@ -170,5 +185,6 @@ If the footer is extremely simple (one button + one static text), you may keep i
 * [ ] Are all leaf primitives utilizing the canonical names from Section 4?
 * [ ] Does the `Card` anatomy strictly follow Section 3.4 (`CardHeader`, `CardContent`, `CardFooter`)?
 * [ ] Are all styling and spatial details completely absent from the output?
-* [ ] Does every component listed in a `dependencies` array have its own standalone entry in the `components` array?
-* [ ] Is the `root` strictly defined as the screen itself, rather than a sub-component?
+* [ ] Does every component listed in the dependency graph appear as its own line with its own children (or as a leaf)?
+* [ ] Is the atomic design level correctly assigned for the subject component itself (not its children)?
+* [ ] Have I stayed at one level of depth — direct children only — unless a tightly coupled organism (e.g. Card anatomy) requires naming one level deeper?
