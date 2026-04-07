@@ -13,6 +13,7 @@ tools:
   - search
   - edit/createFile
   - edit/editFiles
+  - agent
 agents:
   - Explore
 ---

@@ -3,7 +3,7 @@ name: UI Researcher
 description: >
   Read-only repository researcher. Answers one focused question about project structure, Components, package management, Storybook, tests, design system, or existing UI conventions.
 user-invocable: false
-model: GPT-5 mini
+model: GPT-5.4 mini
 tools:
   - read
   - search
