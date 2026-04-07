@@ -1,91 +1,100 @@
 # Skill: Setup Unit Testing in React Native
 
-## 1. Installation
+## Installation and configuration
 
-React Native and Expo projects generally come with `jest` pre-installed. You need to add React Native Testing Library (RNTL) and custom Jest matchers for native elements.
+Follow Expo's current Jest setup for new or existing Expo projects.
+
+Install the required dev dependencies:
 
 ```bash
-npm install --save-dev @testing-library/react-native @testing-library/jest-native
+npx expo install jest-expo jest @types/jest --dev
 ```
 
-## 2. Configuration
+If the project does not use TypeScript, `@types/jest` is optional. If it does use TypeScript, add `jest` to the `types` array in `tsconfig.json` so Jest globals are available:
 
-Create or update your Jest configuration files so your tests understand React Native components and have access to native assertions.
-
-`jest.config.js`
-
-```JavaScript
-module.exports = {
-  preset: 'react-native', // Or 'jest-expo' if using Expo
-  setupFilesAfterEnv: ['./jest.setup.js'],
-  transformIgnorePatterns: [
-    'node_modules/(?!(react-native|@react-native|react-native-button)/)',
-  ],
-};
+```json
+{
+  "compilerOptions": {
+    "types": ["jest"]
+  }
+}
 ```
 
-`jest.setup.js`
+Add a test script and configure `jest-expo` as the preset in `package.json`:
 
-Create this file in your root directory to extend Jest with React Native specific matchers.
-
-```JavaScript
-// Adds custom matchers like .toBeVisible(), .toHaveTextContent(), etc.
-import '@testing-library/jest-native/extend-expect';
-
-// Example: Silence reanimated warnings in tests (if using Reanimated)
-jest.mock('react-native-reanimated', () => {
-  const Reanimated = require('react-native-reanimated/mock');
-  return Reanimated;
-});
+```json
+{
+  "scripts": {
+    "test": "jest --watchAll"
+  },
+  "jest": {
+    "preset": "jest-expo"
+  }
+}
 ```
 
-## 3. Writing a Test (components/Button.test.tsx)
+If the app depends on packages that Jest does not transpile by default, add a `transformIgnorePatterns` entry. Expo's recommended baseline is:
 
-Write your tests by interacting with the component exactly as a user would.
+```json
+{
+  "jest": {
+    "preset": "jest-expo",
+    "transformIgnorePatterns": [
+      "node_modules/(?!((jest-)?react-native|@react-native(-community)?)|expo(nent)?|@expo(nent)?/.*|@expo-google-fonts/.*|react-navigation|@react-navigation/.*|@sentry/react-native|native-base|react-native-svg)"
+    ]
+  }
+}
+```
 
-```TypeScript
-import React from 'react';
-import { Button } from 'react-native';
-import { render, screen, fireEvent } from '@testing-library/react-native';
+## Install React Native Testing Library
 
-describe('Button Component', () => {
-  it('renders correctly and handles presses', () => {
-    const mockFn = jest.fn();
-    
-    render(<Button title="Submit" onPress={mockFn} />);
-    
-    // Find the element by its text
-    const buttonElement = screen.getByText('Submit');
-    
-    // Assert it exists and is visible
-    expect(buttonElement).toBeVisible();
-    
-    // Simulate a user tap
-    fireEvent.press(buttonElement);
-    
-    // Assert the function was called
-    expect(mockFn).toHaveBeenCalledTimes(1);
+Use React Native Testing Library for component tests:
+
+```bash
+npx expo install @testing-library/react-native --dev
+```
+
+This replaces the deprecated `react-test-renderer`, which does not support React 19 and above.
+
+## Write tests
+
+Expo's `jest-expo` preset recognizes files with `-test.ts` and `-test.tsx` extensions. A common layout is to keep tests in a root `__tests__` directory or in feature-specific `__tests__` folders next to the code they cover.
+
+Prefer focused unit tests for behavior and logic. Example:
+
+```tsx
+import { render } from '@testing-library/react-native';
+
+import HomeScreen, { CustomText } from '@/app/index';
+
+describe('<HomeScreen />', () => {
+  test('Text renders correctly on HomeScreen', () => {
+    const { getByText } = render(<HomeScreen />);
+
+    getByText('Welcome!');
   });
 });
 ```
 
-## 4. Running Tests
+## Coverage
 
-Run your test suite via the terminal.
+To generate coverage output, set coverage flags in `package.json` and include the files you want tracked:
 
-```Bash
-# Run all tests
-npm test
+```json
+{
+  "jest": {
+    "preset": "jest-expo",
+    "collectCoverage": true,
+    "collectCoverageFrom": [
+      "**/*.{ts,tsx,js,jsx}",
+      "!**/coverage/**",
+      "!**/node_modules/**",
+      "!**/babel.config.js",
+      "!**/expo-env.d.ts",
+      "!**/.expo/**"
+    ]
+  }
+}
 ```
 
-### Clear Jest cache (useful if tests act weirdly after a config change)
-
-```Bash
-npm test -- --clearCache
-```
-
-### Important Notes
-
-* **Behavior Over Implementation:** We use `@testing-library/react-native` instead of `react-test-renderer` because it encourages testing *how the app behaves* rather than its internal state. You find elements by text, accessibility labels, or placeholders (how a user finds them), rather than by component instances.
-* **The Node.js Limitation (Mocking):** Jest runs in a Node.js environment on your computer, not on an actual iOS or Android device. Therefore, any library that relies on native code (Camera, AsyncStorage, Reanimated, Gesture Handler) will crash your tests unless you **mock** it. `transformIgnorePatterns` in your config tells Jest to compile specific node_modules that ship as raw ES6/JSX instead of standard CommonJS.
-* **`@testing-library/jest-native`:** Standard Jest only knows about basic JavaScript types. This library bridges the gap by providing React Native specific DOM-like assertions. Instead of checking if a property exists in an object tree, you can simply write `expect(element).toBeDisabled()` or `expect(element).toHaveStyle({ opacity: 0.5 })`.
+Add `coverage/**/*` to `.gitignore` so generated reports are not committed.
