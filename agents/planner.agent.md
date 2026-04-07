@@ -28,14 +28,14 @@ without asking further questions.
 
 <references>
 Before doing any work, read both reference files in full:
-- `references/plan.md` — authoritative plan file structure. Follow its
+- `@~/.copilot/references/plan.md` — authoritative plan file structure. Follow its
   section order, required sections, and phase format exactly.
-- `references/agent-report.md` — required output report shape.
+- `@~/.copilot/references/agent-report.md` — required output report shape.
 </references>
 
 <objective>
 Produce `plan.md` at the same directory as the target `spec.md`, following
-the structure in `references/plan.md`, so the Tasker can derive a task list
+the structure in `@~/.copilot/references/plan.md`, so the Tasker can derive a task list
 from it without needing to re-read the spec.
 </objective>
 
@@ -72,7 +72,7 @@ criteria. Do not over-explore.
 
 ## Step 3 — Draft phases
 
-Using the mandatory phase list in `references/plan.md` as the baseline,
+Using the mandatory phase list in `@~/.copilot/references/plan.md` as the baseline,
 draft phases appropriate for this spec:
 
 1. **Implementation** — create or update the component file.
@@ -90,13 +90,13 @@ Context, Actions, Expected Outcome, Success Criteria.
 ## Step 4 — Write plan.md
 
 Write the file to the same directory as `spec.md`, using the exact structure
-from `references/plan.md`. Set the plan header `Status` to `draft`.
+from `@~/.copilot/references/plan.md`. Set the plan header `Status` to `draft`.
 
 Do not modify the spec file.
 
 ## Step 5 — Return report
 
-Return a report shaped exactly as `references/agent-report.md` defines.
+Return a report shaped exactly as `@~/.copilot/references/agent-report.md` defines.
 
 `next_step` should instruct the orchestrator to:
 1. Review the plan.

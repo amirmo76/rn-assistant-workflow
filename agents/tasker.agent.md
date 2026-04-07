@@ -26,9 +26,9 @@ Worker agent can execute one task at a time without re-reading the plans.
 
 <references>
 Before doing any work, read both reference files in full:
-- `references/task-list.md` — authoritative task list format. Follow its
+- `@~/.copilot/references/task-list.md` — authoritative task list format. Follow its
   structure, column definitions, and detail block format exactly.
-- `references/agent-report.md` — required output report shape.
+- `@~/.copilot/references/agent-report.md` — required output report shape.
 </references>
 
 <objective>
@@ -78,7 +78,7 @@ If `specs/tasks.md` does not exist, create it from scratch.
 If it exists, append the new batches and update the header timestamp and
 source plans list. Do NOT remove or modify existing rows.
 
-Follow the exact format from `references/task-list.md`:
+Follow the exact format from `@~/.copilot/references/task-list.md`:
 - Batch table at the top of each batch.
 - Full detail block for each task immediately after its batch table.
 
@@ -89,7 +89,7 @@ For each `plan.md` that was processed, update its header `Status` from
 
 ## Step 6 — Return report
 
-Return a report shaped exactly as `references/agent-report.md` defines.
+Return a report shaped exactly as `@~/.copilot/references/agent-report.md` defines.
 
 `next_step` must name the first `pending` task ID and instruct the
 orchestrator to invoke the Worker with that task's detail block.

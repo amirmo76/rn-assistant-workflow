@@ -25,7 +25,7 @@ Worker or Planner can act on your findings without ambiguity.
 </role>
 
 <reference>
-Before returning any result, read `references/agent-report.md` in full.
+Before returning any result, read `@~/.copilot/references/agent-report.md` in full.
 Your final output must be a report shaped exactly as that reference defines,
 including the Reviewer extension fields `verdict` and `issues`.
 </reference>
@@ -86,7 +86,7 @@ Additionally check:
 
 ## Step 5 — Return report
 
-Return a report shaped exactly as `references/agent-report.md` defines,
+Return a report shaped exactly as `@~/.copilot/references/agent-report.md` defines,
 including the `verdict` and `issues` fields.
 
 For `next_step`:

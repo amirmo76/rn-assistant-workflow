@@ -47,7 +47,7 @@ approved, fully implemented, reviewed, and tested component with its spec at
 
 <workflow>
 Before doing anything else, read and fully internalize the workflow:
-<path>workflows/ui-assistant.workflow.md</path>
+<path>@~/.copilot/workflows/ui-assistant.workflow.md</path>
 
 Follow every phase in that file exactly. Do not skip phases without the
 explicit conditions stated in the workflow permitting you to do so.

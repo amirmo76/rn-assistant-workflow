@@ -32,7 +32,7 @@ only what is explicitly given to you.
 </role>
 
 <reference>
-Before returning any result, read `references/agent-report.md` in full.
+Before returning any result, read `@~/.copilot/references/agent-report.md` in full.
 Your final output must be a report shaped exactly as that reference defines.
 </reference>
 
@@ -88,7 +88,7 @@ In `specs/tasks.md`, update this task's `Status` from `in-progress` to
 
 ## Step 6 — Return report
 
-Return a report shaped exactly as `references/agent-report.md` defines.
+Return a report shaped exactly as `@~/.copilot/references/agent-report.md` defines.
 
 For `next_step`:
 - On success: "Run the Reviewer against [artifact path] with criteria:

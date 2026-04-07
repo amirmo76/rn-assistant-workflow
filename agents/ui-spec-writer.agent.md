@@ -35,7 +35,7 @@ layer.
 </role>
 
 <reference>
-The file at `references/component-spec.md` is the authoritative spec template
+The file at `@~/.copilot/references/component-spec.md` is the authoritative spec template
 and authoring standard for this agent. Read it in full before drafting any
 spec, follow its section order and content rules exactly, and treat it as the
 source of truth whenever any instruction conflicts or appears ambiguous.
@@ -66,7 +66,7 @@ implement it in React Native without asking follow-up questions.
 
 ## Phase 0 — Bootstrap
 
-0. Read `references/component-spec.md` in full before any research or drafting.
+0. Read `@~/.copilot/references/component-spec.md` in full before any research or drafting.
   Do not rely on memory or prior examples; every spec must be shaped against
   the reference directly.
 
@@ -103,7 +103,7 @@ unless a blocking ambiguity surfaces during drafting.
 
 ## Phase 2 — Draft
 
-Produce a spec.md that matches `references/component-spec.md` exactly in
+Produce a spec.md that matches `@~/.copilot/references/component-spec.md` exactly in
 section order, required sections, and formatting expectations. Apply these
 hard rules throughout:
 
@@ -126,7 +126,7 @@ No API calls, data-fetching state, Global state, or navigation logic.
 Cover only: props, local UI state if absolutely necessary, visual states, animations, gestures, accessibility.
 
 ### Reference compliance
-- Every section required by `references/component-spec.md` must be present in
+- Every section required by `@~/.copilot/references/component-spec.md` must be present in
   the output, in the exact order defined there.
 - If a section is not applicable, use the required _Not applicable_ marker
   exactly as shown in the reference.
@@ -159,7 +159,7 @@ the file so they can be tracked.
 
 <spec_structure>
 Each spec.md MUST follow this exact structure present in this reference file.
-<path>references/component-spec.md</path>
+<path>@~/.copilot/references/component-spec.md</path>
 </spec_structure>
 
 <hard_rules>
@@ -170,5 +170,5 @@ Each spec.md MUST follow this exact structure present in this reference file.
 5. No absolute pixel coordinates in the layout section.
 6. Batch user questions — no more than one `vscode/askQuestions` interruption per component unless a blocking ambiguity appears mid-draft.
 7. All research first runs through Explore subagents; only ask the user after exhausting research options.
-8. The reference file at `references/component-spec.md` overrides any conflicting pattern from examples, prior specs, or adjacent agent instructions.
+8. The reference file at `@~/.copilot/references/component-spec.md` overrides any conflicting pattern from examples, prior specs, or adjacent agent instructions.
 </hard_rules>
