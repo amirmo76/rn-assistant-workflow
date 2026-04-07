@@ -164,7 +164,8 @@ Move every planned component directory from `specs/queue/` to `specs/doing/`
 in dependency order (leaves first, so no `doing` entry depends on a component
 still in `queue`). For each component:
 
-1. Move `specs/queue/component-[name]/` →  `specs/doing/component-[name]/`.
+1. Move the **entire** directory `specs/queue/component-[name]/` → `specs/doing/component-[name]/`
+   **recursively in a single operation** (e.g. `mv specs/queue/component-[name] specs/doing/`). Do not copy files one by one. Do not leave an empty source directory behind.
 2. Update the plan header `Status` from `draft` to `ready`.
 
 Do not move a component if any of its dependencies are still in `queue`.
@@ -221,8 +222,8 @@ in parallel, then present all artifacts to the user for sequential approval.
 After all tasks in `specs/tasks.md` that belong to a component are `done`:
 
 1. Update the component's `plan.md` header `Status` to `done`.
-2. Move the spec dir from `specs/doing/component-[name]/` to
-   `specs/done/component-[name]/`.
+2. Move the **entire** spec directory `specs/doing/component-[name]/` → `specs/done/component-[name]/`
+   **recursively in a single operation** (e.g. `mv specs/doing/component-[name] specs/done/`). Do not copy files one by one. Do not leave an empty source directory behind.
 3. Remove any leftover temporary files created during execution (e.g. draft
    snapshots, scratch notes). Do not remove the spec or plan.
 4. Repeat steps 1–3 for every component that has all tasks done, in

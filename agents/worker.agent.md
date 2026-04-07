@@ -75,10 +75,54 @@ Carry out the task as described. Rules:
 - Do not touch files outside the task's scope.
 - Do not refactor existing code unless the task explicitly requires it.
 
+### Storybook story standards
+
+When the task includes a story file, every story must:
+- Include a `meta` object with a `title` and a meaningful `component` field, plus
+  a `parameters.docs.description.component` string that describes what the
+  component does and when to use it.
+- Type all props in the `ArgTypes` or via the component's TypeScript interface;
+  do not use `any`.
+- Expose `argTypes` controls for every prop that is meaningful to edit and
+  verify in Storybook (appearance, content, state toggles).
+- Include at minimum:
+  - A `Default` story showing the baseline state.
+  - A story for each meaningful variant defined in the spec.
+  - Stories for every important user-facing or interaction state (e.g. loading,
+    disabled, error, empty).
+  - An accessibility story when the component has accessibility-related props
+    or behaviour (`accessibilityLabel`, `accessible`, focus handling, etc.).
+  - A story that demonstrates the primary user story or usage pattern if one
+    is described in the spec.
+- Never hard-code prop values that should be controllable; use `args` instead.
+
+### Component state standards
+
+- **Prefer controlled components.** Accept values and callbacks via props
+  rather than managing state internally.
+- Do not introduce local `useState` or `useReducer` unless the spec or design
+  explicitly requires internal state (e.g. a self-contained toggle with no
+  controlled API).
+- When local state is genuinely necessary, keep it minimal and add a comment
+  explaining why it cannot be lifted to a controlled prop.
+
 ## Step 4 — Verify
 
-Check each success criterion from the task detail block:
-- For tests: run the test command and confirm exit code 0.
+Run the following checks in order. Fix any failure before proceeding to the
+next check. Iterate until all three pass.
+
+1. **Typecheck** — run `<pm> typecheck`. Resolve every type error introduced
+   by or directly related to this task before continuing.
+2. **Lint** — run `<pm> lint`. Resolve every lint error introduced by or
+   directly related to this task before continuing.
+3. **Tests** — run `<pm> test`. Confirm exit code 0.
+
+"All pass" means no failures that were introduced by, or are directly related
+to, this task and its normal verification commands. Pre-existing unrelated
+repo-wide failures that are outside the task scope do not count as blockers,
+but must be noted in the report.
+
+Also check each success criterion from the task detail block:
 - For Storybook: confirm the story file is syntactically valid.
 - For implementation: confirm the component file exists and compiles.
 

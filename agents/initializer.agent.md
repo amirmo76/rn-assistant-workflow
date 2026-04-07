@@ -105,6 +105,22 @@ Ensure `package.json` contains at minimum:
 - `"test:coverage"` — runs tests with coverage.
 Add any that are missing.
 
+### 3e — lint and typecheck scripts
+Ensure `package.json` contains at minimum:
+- `"lint"` — runs the linter (e.g. ESLint).
+- `"typecheck"` — runs the TypeScript compiler in check mode (e.g. `tsc --noEmit`).
+
+If either script is missing:
+- Add the missing script using the conventions already present in the project
+  (e.g. existing ESLint config, existing `tsconfig.json`).
+- If no ESLint config exists, create a minimal one compatible with the project's
+  tech stack and add the `lint` script.
+- If `tsconfig.json` does not exist, create a minimal one and add the `typecheck` script.
+
+After adding any script, run it and confirm exit code 0.
+If it fails, inspect the error, fix the root cause, and re-run until it passes.
+Ask via askQuestions only when a fix requires a user decision.
+
 ### 3d — Smoke test
 - Search for any existing test file. A single passing file counts.
 - If none exists, create `src/__tests__/smoke.test.ts` with:
@@ -154,12 +170,18 @@ Add it if missing.
 
 ## Step 5 — Final verification
 
-- Re-run `<pm> test`. Confirm exit code 0.
-- Confirm Storybook config and story file are present and valid.
-- Confirm all required npm scripts exist in `package.json`.
-- Confirm `.git/` is present.
-- If any check still fails, loop back to the relevant step and fix, then
-  re-verify. Do not exit this loop until all checks pass.
+Run all of the following in order and confirm each exits with code 0:
+1. `<pm> typecheck` — no TypeScript errors.
+2. `<pm> lint` — no lint errors.
+3. `<pm> test` — all tests pass.
+
+Also confirm:
+- Storybook config and story file are present and valid.
+- All required npm scripts (`test`, `test:watch`, `test:coverage`, `lint`, `typecheck`, `storybook`) exist in `package.json`.
+- `.git/` is present.
+
+If any check still fails, loop back to the relevant step and fix, then
+re-verify. Do not exit this loop until all checks pass.
 
 ## Step 6 — Stage and commit
 
