@@ -30,12 +30,22 @@ FOLDER_MAP = {
 MANAGED_FILES = {
     "agents": {
         "explore.agent.md",
+        "initializer.agent.md",
+        "planner.agent.md",
+        "reviewer.agent.md",
+        "tasker.agent.md",
+        "worker.agent.md",
         "ui-architect.agent.md",
         "ui-researcher.agent.md",
         "ui-spec-writer.agent.md",
         "ui-assistant.agent.md",
     },
-    "references": set(),
+    "references": {
+        "agent-report.md",
+        "component-spec.md",
+        "plan.md", 
+        "task-list.md"
+    },
     "workflows": {"ui-assistant.workflow.md"},
     "prompts": set(),
     "skills": {"rn-tree-decomposition.skill.md"},
