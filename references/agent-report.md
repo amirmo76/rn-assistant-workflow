@@ -71,7 +71,7 @@ summary:   Created plan.md for the PrimaryButton component covering five
 
 inputs:
   - spec.md at specs/doing/component-primary-button/spec.md
-  - references/plan.md (structure reference)
+  - @~/.copilot/references/plan.md (structure reference)
 
 actions:
   - Read spec.md in full.

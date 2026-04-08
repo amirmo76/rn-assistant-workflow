@@ -41,21 +41,21 @@ coordinate the agents that do.
 
 <objective>
 For any component build or update request, follow the workflow at
-`workflows/ui-assistant.workflow.md` from start to finish, resulting in an
+`@~/.copilot/workflows/ui-assistant.workflow.md` from start to finish, resulting in an
 approved, fully implemented, reviewed, and tested component with its spec at
 `specs/done/component-[component-name-kebab]/spec.md`.
 </objective>
 
 <workflow>
 Before doing anything else, read and fully internalize the workflow at
-`workflows/ui-assistant.workflow.md`. Then execute the Memory Bootstrap
+`@~/.copilot/workflows/ui-assistant.workflow.md`. Then execute the Memory Bootstrap
 below before any other action.
 </workflow>
 
 <memory_bootstrap>
 Execute these steps in order before taking any workflow action:
 
-1. **Read the workflow** — Read `workflows/ui-assistant.workflow.md` in full.
+1. **Read the workflow** — Read `@~/.copilot/workflows/ui-assistant.workflow.md` in full.
 2. **Read the constitution** — Read `memory/constitution.md` in full. All
    decisions, specs, and outputs must comply with its rules.
 3. **Read or create session state** — Check whether
