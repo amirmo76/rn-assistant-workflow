@@ -1,5 +1,5 @@
 ---
-name: UI Assistant
+name: RN Assistant
 description: >
   Orchestrator for React Native UI component tasks. Given a request to build
   or update a component, it collects context iteratively, explores the current

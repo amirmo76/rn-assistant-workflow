@@ -1,5 +1,5 @@
 ---
-name: Explore
+name: RN Explore
 description: >
   Fast read-only exploration agent for focused codebase questions. Searches,
   reads, and summarizes findings without editing or recommending changes.
