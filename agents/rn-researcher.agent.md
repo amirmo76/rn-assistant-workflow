@@ -1,5 +1,5 @@
 ---
-name: UI Researcher
+name: RN Researcher
 description: >
   Read-only repository researcher. Answers one focused question about project structure, Components, package management, Storybook, tests, design system, or existing UI conventions.
 user-invocable: false

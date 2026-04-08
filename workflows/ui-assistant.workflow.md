@@ -304,8 +304,8 @@ Work through `specs/tasks.md` in order. For each `pending` task:
 3. Read the Worker's report.
    - If `blocked`: surface the blocker to the user and pause execution.
    - If `success`: proceed to review.
-4. Invoke the **Reviewer** subagent with the artifact path, criteria, and
-   spec path from the task detail block.
+4. Invoke the **Reviewer** subagent with the task context, criteria, and
+   artifact path(s) from the task detail block.
 5. Read the Reviewer's verdict:
    - `PASS`: present artifact to the user for approval.
    - `WARN`: present artifact and warnings; await user decision.
@@ -320,8 +320,8 @@ Work through `specs/tasks.md` in order. For each `pending` task:
 
 When a task has `Parallel: yes`, it can run simultaneously with the
 task immediately above it. Invoke multiple **Worker** subagents in parallel
-(one per parallel task). Collect all Workers' reports, then run Reviewers
-in parallel, then present all artifacts to the user for sequential approval.
+(one per parallel task). Collect all Workers' reports, then run Reviewers in
+parallel, then present all artifacts to the user for sequential approval.
 
 ---
 
@@ -415,6 +415,6 @@ Workflow start
 - **Delegate, do not duplicate.** Do not perform spec writing, planning,
   architecture review, implementation, or artifact review inline — always
   delegate to the appropriate subagent.
-- **Never skip the Reviewer.** Every artifact produced by the Worker must
-  pass through the Reviewer before the user is asked to approve it.
+- **Reviewer is only post-Worker.** The Reviewer is called only after a
+   Worker returns `success`, and only in Phase 9.
 - **One task in-progress at a time** unless the task carries `Parallel: yes`.

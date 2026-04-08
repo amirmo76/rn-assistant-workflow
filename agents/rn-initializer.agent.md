@@ -1,5 +1,5 @@
 ---
-name: Initializer
+name: RN Initializer
 description: >
   Inspects the target project and iteratively installs, configures, and
   verifies all required infrastructure (testing, Storybook, npm scripts, Git)

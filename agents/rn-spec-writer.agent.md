@@ -1,5 +1,5 @@
 ---
-name: UI Component Spec Writer
+name: RN Component Spec Writer
 description: >
   Writes or updates the spec.md for a single React Native component. Given
   a component name, its atomic level, its architecture (direct children),

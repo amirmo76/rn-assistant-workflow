@@ -1,5 +1,5 @@
 ---
-name: UI Architect
+name: RN Architect
 description: >
   Given context about a single component and optional visuals, asks the user
   for a proposed architecture (direct children only), then iteratively

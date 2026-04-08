@@ -1,5 +1,5 @@
 ---
-name: Planner
+name: RN Planner
 description: >
   Researches a completed spec and produces a phased implementation plan.
   Writes plan.md next to the spec file. The plan covers implementation,

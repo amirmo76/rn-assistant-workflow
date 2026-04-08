@@ -1,5 +1,5 @@
 ---
-name: Worker
+name: RN Worker
 description: >
   Executes one task from the task list. Receives a single task detail block
   and works independently to complete it. Returns a structured report with
@@ -136,8 +136,8 @@ In `specs/tasks.md`, update this task's `Status` from `in-progress` to
 Return a report shaped exactly as `@~/.copilot/references/agent-report.md` defines.
 
 For `next_step`:
-- On success: "Run the Reviewer against [artifact path] with criteria:
-  [success criteria from task]."
+- On success: "Run the Reviewer against [artifact path] with task, criteria,
+  and artifact paths from this task."
 - On blocked: "Resolve blocker — [blocker description] — then re-run
   Worker for [task ID]."
 

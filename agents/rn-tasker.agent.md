@@ -1,5 +1,5 @@
 ---
-name: Tasker
+name: RN Tasker
 description: >
   Reads the plan.md files inside specs/doing and converts them into a flat,
   ordered task list at specs/tasks.md. Supports parallel task markers.
