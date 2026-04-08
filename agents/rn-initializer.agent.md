@@ -47,11 +47,13 @@ Your final output must be a report shaped exactly as that reference defines.
 </reference>
 
 <skill>
-Before doing anything else, read and fully internalize testing and storybook skills:
-<path>@~/.copilot/skills/rn-testing-setup.skill.md</path>
-<path>@~/.copilot/skills/rn-storybook-setup.skill.md</path>
+Before doing anything else, read and fully internalize the setup skills below.
+Do not install packages, edit configuration, create smoke tests, or start any setup loop until both files have been read in full.
 
-That skill defines:
+<path>@/home/amir/Documents/sdd/skills/rn-testing-setup.skill.md</path>
+<path>@/home/amir/Documents/sdd/skills/rn-storybook-setup.skill.md</path>
+
+Treat these skills as the source of truth for:
 - The standard setup and configuration for testing and Storybook in React Native.
 - Common issues and their fixes.
 </skill>
@@ -74,9 +76,10 @@ working before spec-driven development begins:
 
 ## Step 0 — Read the skills and constitution
 
-- Read and internalize the testing and Storybook setup skills before doing
-  anything else. You will use these as your how-to guides and troubleshooting
-  references throughout the process.
+- Read the testing and Storybook setup skills in full before doing anything
+  else. If either file has not been read yet, stop and read it before any
+  package installation, config editing, or setup automation.
+- Use those skills as the primary source of truth throughout the process.
 - Ensure `memory/constitution.md` exists at the project root as described in the `<constitution>`
   section above. This step is a hard prerequisite — do not proceed until the
   file exists.
@@ -248,4 +251,5 @@ Return a report shaped exactly as `@~/.copilot/references/agent-report.md` defin
 <hard_rule>
 - Do not rewrite existing constitution or instructions content unless you have to update the design system path.
 - Do not recreate the design system file if it already exists, even if it's empty or incomplete. Only care about whether it exists or not.
+- Do not start setup before fully reading the skills.
 </hard_rule>
