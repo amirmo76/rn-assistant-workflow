@@ -1,105 +1,118 @@
-# Skill: Setup Storybook in React Native
+# SKILL: Storybook Setup for Expo React Native (with Expo Router)
 
-## 1. Initialization
+## Context
 
-Run the following command in your React Native project root. It auto-detects your environment and installs the correct `@storybook/react-native` dependencies.
+This guide defines the standard operating procedure for integrating Storybook into an Expo React Native project that uses **Expo Router** and **Custom Development Builds** (not Expo Go).
+
+## The Golden Rules
+
+Before executing any steps, the AI must adhere to these strict constraints:
+
+1. **The Cache is the Enemy:** React Native's Metro bundler aggressively caches environment variables and module paths. When switching between Storybook and the main app, or when fixing a missing module, ALWAYS start the server with the clear cache flag: `expo start -c`.
+2. **Expo Install over NPM Install:** For any package that interacts with the native layer (e.g., `expo-constants`, `@react-native-async-storage/async-storage`), ALWAYS use `npx expo install`. Standard `npm install` will fetch bleeding-edge versions that break the current Expo SDK's autolinker.
+3. **Dynamic Imports Don't Exist:** React Native cannot resolve dynamic imports. Storybook relies on a generated file (`.rnstorybook/storybook.requires.ts`). If stories aren't updating or addon imports are broken, manually delete the file and run `npx sb-rn-get-stories` to rebuild it.
+4. **Native Modules Require Rebuilds:** If utilizing `@storybook/addon-ondevice-controls`, it relies on native UI elements (Sliders, DatePickers). This will crash Expo Go. It requires installing the native community packages and compiling a fresh development build (`npx expo run:android` / `run:ios`).
+
+---
+
+## The Standard Workflow
+
+### Step 1: Initialization & Base Dependencies
+
+Run the standard Storybook initialization, then safely install environment bridging tools.
 
 ```bash
 npx storybook@latest init
+npm install --save-dev cross-env
+npx expo install expo-constants
 ```
 
-## 2. Configuration (.storybook/main.ts)
+*(Note: If npm throws an `ERESOLVE` peer dependency error on `expo-constants`, completely uninstall it via npm first, then run the `npx expo install` command to lock it to the correct SDK version).*
 
-Ensure Storybook knows where to look for your story files and addons.
+### Step 2: Environment Variable Bridge
 
-```TypeScript
-module.exports = {
-  stories: ['../components/**/*.stories.?(ts|tsx|js|jsx)'],
-  addons: [
-    '@storybook/addon-ondevice-controls', 
-    '@storybook/addon-ondevice-actions'
-  ],
-};
+Do not modify the static `app.json` for dynamic variables. Create an `app.config.js` file alongside it to merge in the environment state.
+
+```javascript
+// app.config.js
+export default ({ config }) => ({
+  ...config,
+  extra: {
+    ...config.extra,
+    storybookEnabled: process.env.STORYBOOK_ENABLED === 'true',
+  },
+});
 ```
 
-## 3. Entry Point & Toggling (App.tsx)
+### Step 3: Expo Router Entry Point
 
-Because Storybook does not run on a separate port like the web, it must intercept your app's entry point. Do not use hardcoded booleans to toggle it, as they can accidentally ship to production.
+With Expo Router, the root entry point is `app/_layout.tsx`, not `index.tsx` or `App.tsx`. Intercept the routing logic here.
 
-Option A: Environment Variables (Recommended)
-This build-time approach prevents accidental commits. (Example using Expo):
+```tsx
+// app/_layout.tsx
+import { Stack } from 'expo-router'; 
+import Constants from 'expo-constants';
+import StorybookUIRoot from '../.storybook'; // Adjust path if needed
 
-```TypeScript
-import StorybookUIRoot from './.storybook';
-import MainApp from './src/MainApp';
+const STORYBOOK_ENABLED = Constants.expoConfig?.extra?.storybookEnabled;
 
-// For Expo, use EXPO_PUBLIC_ prefix. For bare RN, use react-native-config.
-const SHOW_STORYBOOK = process.env.EXPO_PUBLIC_STORYBOOK === 'true';
+export default function RootLayout() {
+  if (STORYBOOK_ENABLED) {
+    return <StorybookUIRoot />;
+  }
 
-export default SHOW_STORYBOOK ? StorybookUIRoot : MainApp;
-```
-
-Run App: `npx expo start`
-
-Run Storybook: `EXPO_PUBLIC_STORYBOOK=true npx expo start`
-
-Option B: Dev Menu Toggle (Advanced)
-Use AsyncStorage and the React Native Dev Menu for a runtime toggle without restarting your server.
-
-```TypeScript
-import React, { useState, useEffect } from 'react';
-import { DevSettings } from 'react-native';
-import AsyncStorage from '@react-native-async-storage/async-storage';
-import StorybookUIRoot from './.storybook';
-import MainApp from './src/MainApp';
-
-export default function App() {
-  const [showStorybook, setShowStorybook] = useState(false);
-
-  useEffect(() => {
-    AsyncStorage.getItem('SHOW_STORYBOOK').then((val) => setShowStorybook(val === 'true'));
-
-    if (__DEV__) {
-      DevSettings.addMenuItem('Toggle Storybook', () => {
-        AsyncStorage.setItem('SHOW_STORYBOOK', showStorybook ? 'false' : 'true').then(() => {
-          DevSettings.reload();
-        });
-      });
-    }
-  }, [showStorybook]);
-
-  return showStorybook ? <StorybookUIRoot /> : <MainApp />;
+  return <Stack />; 
 }
 ```
 
-## 4. Writing a Story (components/Button.stories.tsx)
+### Step 4: Addons & Native Dependencies (Dev Build Only)
 
-Create a story using Component Story Format (CSF).
+If the project requires on-device controls, install the specific native dependencies using Expo to prevent Gradle/CocoaPods build failures (like the `org.asyncstorage.shared_storage` crash).
 
-```TypeScript
-import type { Meta, StoryObj } from '@storybook/react-native';
-import { Button } from 'react-native';
+```bash
+# Safely install native dependencies for UI controls and storage
+npx expo install @react-native-community/slider @react-native-community/datetimepicker @react-native-async-storage/async-storage
 
-const meta: Meta<typeof Button> = {
-  title: 'Components/Button',
-  component: Button,
-};
-
-export default meta;
-type Story = StoryObj<typeof Button>;
-
-export const Primary: Story = {
-  args: {
-    title: 'Click Me',
-    onPress: () => console.log('Pressed!'),
-  },
-};
+# Rebuild the app binary to inject the new native code
+npx expo run:android
+# or npx expo run:ios
 ```
 
-## 5. Running
+### Step 5: NPM Scripts
 
-Clear your bundler cache to ensure new files are picked up.
+Provide reliable scripts that utilize `cross-env` for cross-platform compatibility.
 
-```Bash
-npm start -- --reset-cache
+```json
+{
+  "scripts": {
+    "storybook": "cross-env STORYBOOK_ENABLED='true' expo start",
+    "storybook:clear": "cross-env STORYBOOK_ENABLED='true' expo start -c",
+    "storybook:generate": "sb-rn-get-stories"
+  }
+}
 ```
+
+*(Note: If the user is operating directly in a shell that doesn't support `VAR=true command` syntax, like Fish shell, instruct them to use `env STORYBOOK_ENABLED=true npx expo start -c` directly in the terminal).*
+
+### Step 6: The Smoke Test
+
+Create `components/Smoke.stories.tsx` to verify the setup.
+
+```tsx
+import React from 'react';
+import { View, Text } from 'react-native';
+
+export default { title: 'Health/SmokeTest' };
+
+export const Basic = () => (
+  <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+    <Text style={{ fontSize: 20 }}>Storybook is healthy! 🚀</Text>
+  </View>
+);
+```
+
+### Troubleshooting Checklist for AI
+
+* **"Module not found: .../preview"** -> The addon is in `main.ts` but not installed. Install it, run `storybook:generate`, and start with `-c`.
+* **"Missing required default export in _layout.tsx"** -> This is often a ghost error masking a native crash. Check if a native UI element (like `RNCDatePicker`) was requested but the app wasn't rebuilt.
+* **Gradle Build Failure on AsyncStorage** -> The user has a bleeding-edge version. `npm uninstall @react-native-async-storage/async-storage`, then `npx expo install` it, clean the android build folder, and recompile.
