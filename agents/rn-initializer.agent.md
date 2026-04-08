@@ -18,7 +18,7 @@ tools:
   - vscode/askQuestions
   - agent
 agents:
-  - Explore
+  - RN Explore
 ---
 
 <role>
@@ -122,7 +122,7 @@ working before spec-driven development begins:
 
 ## Step 1 — Locate the project root
 
-Use Explore to find `package.json`. Record:
+Use RN Explore to find `package.json`. Record:
 - Package manager in use (npm / yarn / pnpm / bun). If ambiguous, ask via
   askQuestions before installing anything.
 - Existing `scripts` block.

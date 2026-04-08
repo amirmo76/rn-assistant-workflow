@@ -29,16 +29,16 @@ FOLDER_MAP = {
 # references installed across upgrades while preserving unrelated user files.
 MANAGED_FILES = {
     "agents": {
-        "explore.agent.md",
-        "initializer.agent.md",
-        "planner.agent.md",
-        "reviewer.agent.md",
-        "tasker.agent.md",
-        "worker.agent.md",
-        "ui-architect.agent.md",
-        "ui-researcher.agent.md",
-        "ui-spec-writer.agent.md",
-        "ui-assistant.agent.md",
+        "rn-explore.agent.md",
+        "rn-initializer.agent.md",
+        "rn-planner.agent.md",
+        "rn-reviewer.agent.md",
+        "rn-tasker.agent.md",
+        "rn-worker.agent.md",
+        "rn-architect.agent.md",
+        "rn-researcher.agent.md",
+        "rn-spec-writer.agent.md",
+        "rn-assistant.agent.md",
     },
     "references": {
         "agent-report.md",

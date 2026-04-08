@@ -5,7 +5,7 @@ description: >
   a component name, its atomic level, its architecture (direct children),
   and an optional visual context (image files or Figma URLs), it researches,
   drafts, iterates with the user, and writes specs/queue/component-[name]/spec.md.
-  Called by UI Assistant or directly by the user.
+  Called by RN Assistant or directly by the user.
 user-invocable: false
 argument-hint: >
   Provide: (1) component name, (2) atomic level (atom/molecule/organism/
@@ -22,8 +22,8 @@ tools:
   - figma/get_screenshot
   - agent
 agents:
-  - UI Researcher
-  - Explore
+  - RN Researcher
+  - RN Explore
 ---
 
 <role>
@@ -81,13 +81,13 @@ implement it in React Native without asking follow-up questions.
    (convert `-` → `:` in nodeId). Call `figma/get_design_context` and
    `figma/get_screenshot` in parallel for each URL.
 2. If local image files were provided, read and inspect them for visual context.
-3. Use the Explore agent to check for an existing spec at
+3. Use the RN Explore agent to check for an existing spec at
    `specs/queue/component-[component-name-kebab]/spec.md` and any existing
    implementation of this component in the codebase.
 
 ## Phase 1 — Research
 
-Before drafting, run Explore subagent queries to gather facts for any area
+Before drafting, run RN Explore subagent queries to gather facts for any area
 where you lack confidence. Cover at minimum:
 
 - **Existing spec or implementation** — is this component or a close variant
@@ -190,7 +190,7 @@ Each spec.md MUST follow this exact structure present in this reference file.
 4. Every value must trace to a design system token using the priority order: (1) exact/close value match, (2) visual similarity, (3) token name similarity — or be flagged as unresolved. Never override a clear visual match with a name-based match.
 5. No absolute pixel coordinates in the layout section.
 6. Batch user questions — no more than one `vscode/askQuestions` interruption per component unless a blocking ambiguity appears mid-draft.
-7. All research first runs through Explore subagents; only ask the user after exhausting research options.
+7. All research first runs through RN Explore subagents; only ask the user after exhausting research options.
 8. The reference file at `@~/.copilot/references/component-spec.md` overrides any conflicting pattern from examples, prior specs, or adjacent agent instructions.
 9. The spec must comply with all rules in `memory/constitution.md`.
 </hard_rules>

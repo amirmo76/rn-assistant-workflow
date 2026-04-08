@@ -1,12 +1,12 @@
 # Plan File Reference
-> Used by the Planner agent when authoring or updating a `plan.md`.
+> Used by the RN Planner agent when authoring or updating a `plan.md`.
 
 ---
 
 ## Purpose
 
 A plan file translates a completed spec into an ordered, phased roadmap that
-a Tasker agent can convert into executable tasks. It is the single source of
+a RN Tasker agent can convert into executable tasks. It is the single source of
 truth for implementation intent. It lives next to the spec it describes.
 
 **Location:** `specs/[queue|doing]/component-[name]/plan.md`
@@ -57,7 +57,7 @@ work that can be verified independently before the next begins.
 **Depends on:** Phase [X] | —
 
 #### Context
-What the worker needs to know entering this phase. Reference relevant
+What the RN Worker needs to know entering this phase. Reference relevant
 sections of the spec, existing codebase facts, or prior-phase outputs.
 
 #### Actions
@@ -84,7 +84,7 @@ work.
 | 2 | Tests | Write unit/snapshot tests; all pass. |
 | 3 | Storybook | Add a story that exercises all props and visual states. |
 | 4 | Verification | Run the full test suite and Storybook build; confirm no regressions. |
-| 5 | Review | Reviewer agent checks the artifact; iterate until PASS. |
+| 5 | Review | RN Reviewer agent checks the artifact; iterate until PASS. |
 
 Additional phases (e.g. accessibility audit, performance profiling,
 integration into a parent component) are permitted when the spec calls for them.
@@ -120,10 +120,10 @@ Use `—` if there are no assumptions.
 
 - Phases must be in execution order. Do not mix unrelated concerns in one phase.
 - Every success criterion must be independently verifiable.
-- Status markers on phases must be kept current as the Tasker and Worker
+- Status markers on phases must be kept current as the RN Tasker and RN Worker
   agents progress through execution.
 - The plan file must never contain implementation code. It describes _what_
   to do, not _how_ to write it.
 - The plan header `Status` field must be updated at each stage:
-  Planner sets `draft`; orchestrator sets `ready` before moving to `doing`;
-  Tasker sets `in-progress`; final Reviewer sets `done`.
+  RN Planner sets `draft`; orchestrator sets `ready` before moving to `doing`;
+  RN Tasker sets `in-progress`; final RN Reviewer sets `done`.

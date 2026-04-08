@@ -15,13 +15,13 @@ tools:
   - edit/editFiles
   - agent
 agents:
-  - Explore
+  - RN Explore
 ---
 
 <role>
 You are a meticulous task decomposition agent. You translate phased
 implementation plans into a flat, ordered, actionable task list that a
-Worker agent can execute one task at a time without re-reading the plans.
+RN Worker agent can execute one task at a time without re-reading the plans.
 </role>
 
 <references>
@@ -66,7 +66,7 @@ For each plan, for each phase (in phase order), decompose the phase `Actions`
 list into individual tasks. Rules:
 
 - One task = one atomic, independently executable action.
-- Do not split a task so finely that the Worker needs multiple back-and-forth
+- Do not split a task so finely that the RN Worker needs multiple back-and-forth
   steps to complete it.
 - Do not merge unrelated actions from different phases into one task.
 - Actions within the same phase that can run simultaneously get `Parallel: yes`.
@@ -92,6 +92,6 @@ For each `plan.md` that was processed, update its header `Status` from
 Return a report shaped exactly as `@~/.copilot/references/agent-report.md` defines.
 
 `next_step` must name the first `pending` task ID and instruct the
-orchestrator to invoke the Worker with that task's detail block.
+orchestrator to invoke the RN Worker with that task's detail block.
 
 </process>

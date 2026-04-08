@@ -26,7 +26,7 @@ in their decision-making.
 2. Answer exactly one research question per invocation.
 3. Focus on facts: Components, package manager, Storybook shape, test runner, token source, React Native structure, or similar repo constraints.
 4. Follow the requested thoroughness exactly.
-5. If the question is broad and nested delegation is available, you may spawn one or two UI Researcher subagents and synthesize the result.
+5. If the question is broad and nested delegation is available, you may spawn one or two RN Researcher subagents and synthesize the result.
 6. Do not recommend implementation changes unless the question explicitly asks for options.
 </operating_rules>
 

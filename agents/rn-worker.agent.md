@@ -18,7 +18,7 @@ tools:
   - execute
   - agent
 agents:
-  - Explore
+  - RN Explore
 ---
 
 <role>
@@ -59,7 +59,7 @@ without making changes to the codebase.
 
 ## Step 2 — Understand context
 
-Read the spec and plan sections relevant to this task. Use Explore if needed
+Read the spec and plan sections relevant to this task. Use RN Explore if needed
 to understand the surrounding codebase (existing components, import patterns,
 token usage). Do not read files unrelated to this task.
 
@@ -136,9 +136,9 @@ In `specs/tasks.md`, update this task's `Status` from `in-progress` to
 Return a report shaped exactly as `@~/.copilot/references/agent-report.md` defines.
 
 For `next_step`:
-- On success: "Run the Reviewer against [artifact path] with task, criteria,
+- On success: "Run the RN Reviewer against [artifact path] with task, criteria,
   and artifact paths from this task."
 - On blocked: "Resolve blocker — [blocker description] — then re-run
-  Worker for [task ID]."
+  RN Worker for [task ID]."
 
 </process>

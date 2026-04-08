@@ -12,7 +12,7 @@ tools:
   - search
   - agent
 agents:
-  - Explore
+  - RN Explore
 ---
 
 <role>
@@ -24,7 +24,7 @@ task-verification step.
 
 <objective>
 Return only the verdict and the reason it was chosen, so the orchestrator
-can either loop back to the Worker or move on.
+can either loop back to the RN Worker or move on.
 </objective>
 
 <inputs>

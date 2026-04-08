@@ -44,7 +44,7 @@ next_step: [Single sentence — the exact next action the orchestrator
 
 ## Reviewer Extension
 
-The Reviewer agent must include two additional fields after `findings`:
+The RN Reviewer agent must include two additional fields after `findings`:
 
 ```
 verdict: PASS | FAIL | WARN
@@ -90,7 +90,7 @@ outputs:
 blockers:
   —
 
-next_step: Run the Tasker agent, pointing it at
+next_step: Run the RN Tasker agent, pointing it at
            specs/doing/component-primary-button/plan.md.
 ```
 

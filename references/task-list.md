@@ -1,5 +1,5 @@
 # Task List Reference
-> Used by the Tasker agent when authoring or updating `specs/tasks.md`.
+> Used by the RN Tasker agent when authoring or updating `specs/tasks.md`.
 
 ---
 
@@ -53,7 +53,7 @@ plan. Batches are listed in execution order across all active doing plans.
 
 ## Task Detail Block
 
-After the table, include a detail block for every task. The Worker agent
+After the table, include a detail block for every task. The RN Worker agent
 reads this block to execute the task.
 
 ```markdown
@@ -75,8 +75,8 @@ or plan that apply specifically to this task.]
 - [Verifiable condition 2]
 
 **Acceptance check:**
-Run Reviewer against: [what file or artifact to review]
-Criteria: [short criteria string the Reviewer uses to evaluate]
+Run RN Reviewer against: [what file or artifact to review]
+Criteria: [short criteria string the RN Reviewer uses to evaluate]
 ```
 
 ---
@@ -86,11 +86,11 @@ Criteria: [short criteria string the Reviewer uses to evaluate]
 - There is exactly one `tasks.md` at `specs/tasks.md`. Never create a second
   task file in a subdirectory.
 - IDs are global and never reused. When a task is removed, its ID is retired.
-- When new doing plans are added, the Tasker appends new batches to the
+- When new doing plans are added, the RN Tasker appends new batches to the
   existing file and updates the header.
 - A `done` task must never be removed from the file. Mark it `done` and leave
   the row in place so the history is preserved.
-- The `Parallel: yes` marker means the Worker may delegate this task to a
+- The `Parallel: yes` marker means the RN Worker may delegate this task to a
   parallel subagent alongside the previous task. The orchestrator decides
   whether to use parallelism.
 - Every task's `Status` column and detail block must be kept in sync as work

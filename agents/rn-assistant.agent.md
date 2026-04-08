@@ -3,8 +3,8 @@ name: RN Assistant
 description: >
   Orchestrator for React Native UI component tasks. Given a request to build
   or update a component, it collects context iteratively, explores the current
-  codebase state, optionally drives UI Architect for structural design, then
-  delegates to UI Component Spec Writer to produce or update the component
+  codebase state, optionally drives RN Architect for structural design, then
+  delegates to RN Component Spec Writer to produce or update the component
   spec. Single entry point for all component-level UI work.
 user-invocable: true
 argument-hint: >
@@ -20,14 +20,14 @@ tools:
   - figma/get_screenshot
   - agent
 agents:
-  - Explore
-  - UI Architect
-  - UI Component Spec Writer
-  - Initializer
-  - Planner
-  - Tasker
-  - Worker
-  - Reviewer
+  - RN Explore
+  - RN Architect
+  - RN Component Spec Writer
+  - RN Initializer
+  - RN Planner
+  - RN Tasker
+  - RN Worker
+  - RN Reviewer
 ---
 
 <role>
@@ -67,7 +67,7 @@ Execute these steps in order before taking any workflow action:
      current_phase: 0
      current_step: "Starting workflow"
      status: in-progress
-     next_step_requires: "Initializer must complete successfully"
+    next_step_requires: "RN Initializer must complete successfully"
      initializer_run: false
      components_in_progress: []
      components_done: []
