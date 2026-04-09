@@ -1,4 +1,6 @@
 # Component Spec Reference
+> Used by **RN Component Spec Writer** at Step 0 (component mode).
+> Defines the required structure and rules for `specs/components/[component-name]/spec.md`.
 
 Permanent source-of-truth format for `specs/components/[component-name]/spec.md`.
 

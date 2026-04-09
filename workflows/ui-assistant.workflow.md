@@ -24,7 +24,7 @@ One UI objective moves through this workflow at a time.
 
 3. Run `RN Initializer`.
 
-4. Create the objective spec in `specs/queue/[name]/spec.md`. Run `RN Architect` first and finalize the full architecture before finalizing the rest of the objective spec. Ask only for information required to make the objective spec unambiguous.
+4. Create the objective spec in `specs/queue/[name]/spec.md`. Run `RN Architect` first and finalize the full architecture before finalizing the rest of the objective spec. The architecture is not finalized until every component in the tree — at every level — is recursively resolved to atoms; every non-atom component must have its own approved dependency list before its parent is considered done. Ask only for information required to make the objective spec unambiguous.
 
 5. Read every existing component spec affected by the objective. Update each affected file in `specs/components/` so it matches the new objective. If a component architecture is unclear or must change, run `RN Architect` for that component and get approval on the final architecture before rewriting its spec. Each component-spec change needs explicit user approval.
 
@@ -45,3 +45,4 @@ One UI objective moves through this workflow at a time.
 - Architecture is the first priority. Do not finalize an objective spec before the architecture is approved.
 - Component specs are rewritten as current source-of-truth files. Do not append loose notes.
 - Planning is objective-level, not component-by-component micro-planning.
+- Never pause the workflow with plain-text approval requests or questions. All questions and approvals must go through `vscode/askQuestions`. The workflow runs continuously until final approval at step 11.

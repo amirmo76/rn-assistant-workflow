@@ -41,6 +41,7 @@ Read `@~/.copilot/workflows/ui-assistant.workflow.md` before acting and follow i
 - Use one objective-level plan and one `specs/tasks.md` file.
 - Spawn exactly one `RN Worker` per task. Execute sequentially unless parallel is explicitly allowed. After `RN Worker` succeeds, get user approval before moving to the next task.
 - When all tasks are approved, get final approval and move the objective to `specs/done/[name]/`.
+- Never stop mid-workflow. Never use plain text to request approvals or ask questions. All questions and approvals must go through `vscode/askQuestions`. Only terminate after the final approval at the last step.
 </rules>
 
 <handoffs>

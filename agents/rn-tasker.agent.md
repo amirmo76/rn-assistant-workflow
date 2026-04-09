@@ -26,6 +26,7 @@ Rewrite `specs/tasks.md` from the current objective plan.
 </objective>
 
 <process>
+0. Read the reference files listed above (`plan.md` and `task-list.md`) before doing anything else.
 1. Read the plan.
 2. Convert each phase into one task batch.
 3. Keep tasks as meaningful execution units.

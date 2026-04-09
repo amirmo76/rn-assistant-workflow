@@ -27,6 +27,7 @@ Write `plan.md` next to the approved objective spec.
 </objective>
 
 <process>
+0. Read the reference files listed above (`objective-spec.md` and `plan.md`) before doing anything else.
 1. Read the objective spec and every affected component spec it references.
 2. Inspect only the codebase context needed to plan accurately.
 3. Write one objective-level plan in dependency order.

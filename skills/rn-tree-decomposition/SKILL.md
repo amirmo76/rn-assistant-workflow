@@ -52,6 +52,7 @@ Omit `Notes:` when there is nothing to add.
 - Reuse repeated structures instead of cloning near-identical components.
 - Delegate complex OS-level structures (e.g., Navigation Stacks, Swipeable Drawers) to standard libraries (like React Navigation). Do not decompose them as custom UI components.
 - Do not include styling, spacing, tokens, or business logic.
+- Every branch must terminate at atoms. Any molecule, organism, or template in the tree must itself be decomposed — recursively — until all its leaves are atoms. No non-atom component may remain opaque in the final architecture.
 
 ## Canonical Leaves
 

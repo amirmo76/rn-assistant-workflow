@@ -1,65 +1,74 @@
 # Update
 
-Update the workflow and the required agent/reference files to support a two-spec model.
+Update the workflow and the required agent/reference files to support these requirements.
 
-Keep every file compact. Remove anything that does not belong to this workflow. Do not add extra explanation, duplicated steps, or obsolete process details.
+Update smart so everything is clear, do not spam rules.
 
-## Spec model
+## Requirement 1: RN Assistant Must Never Stop Early
 
-There are two kinds of specs:
+RN Assistant should never terminate mid-workflow. All approvals and questions must go through `vscode/askQuestions`. Only after final approval of the last step will it terminate.
 
-1. Component specs
-   - Each component has exactly one source-of-truth spec at `specs/components/[component-name]/spec.md`.
-   - A component spec describes the current visual and behavioural contract clearly enough to implement the component without follow-up questions.
-   - Component specs are permanent source-of-truth files.
-   - Component specs are not queued, planned, taskified, or moved through workflow states.
+Current problem: it stopped mid-flow and asked for approval using plain text instead of `vscode/askQuestions`. The workflow must keep flowing continuously — no breaks, no plain-text approval requests.
 
-2. Objective specs
-   - An objective spec represents the current UI objective: a new component, a component update, or a bug fix.
-   - Objective specs move through the workflow stages `queue -> doing -> plan -> tasks -> execute -> approve -> done`.
-   - The objective spec file is created in `specs/queue/[name]/`, moved to `specs/doing/[name]/` after approval, stays there while plan/tasks/execution happen, and is moved to `specs/done/[name]` only after final approval.
+## Requirement 2: RN Architect Must Resolve All Required Component Architectures
 
-## Workflow
+Update the RN Architect agent, the `rn-tree-decomposition` skill, and the workflow to support the following behavior.
 
-1. Start from a UI objective, usually supported by visuals, files, or Figma URLs.
-2. Ask clarifying questions with `vscode/askQuestions` only when needed.
-3. Run the initializer.
-4. Build the objective spec in `specs/queue`.
-   - Use the architect agent to define the full component architecture first.
-   - Architecture is the first priority and must be clarified and approved before the rest of the objective spec is finalized.
-   - The architect agent must support review, discussion, and finalization of the architecture.
-   - Ask about anything else needed to make the objective spec unambiguous.
-   - The rn-tree-decomposition skill reference file must be updated to match this format.
-5. Check the existing component specs related to the objective.
-   - Update every affected component spec so it matches the new objective.
-   - If a component architecture is unclear or needs to change, use the architect agent for that component and get approval on the final architecture.
-   - Rewrite component specs as needed so each one remains the current source of truth. Do not just append loose notes.
-   - The user must approve each component-spec change.
-6. Get final user approval for the objective spec.
-7. Move the objective spec to `specs/doing/[name]`.
-8. Build one overall plan for the objective spec.
-   - The plan must focus on the objective, not on tiny component-by-component micro-steps.
-   - The plan should follow the implementation path from lower-level dependencies upward where that helps execution order.
-   - The plan must be phase-based and dependency-aware.
-   - The planner should explicitly identify which work can run in parallel and which work must stay sequential.
-   - Parallelism should be used when it is justified by clear dependency independence. Do not force parallelism when dependencies are uncertain.
-   - As soon as a component has everything it needs, it may be planned for parallel implementation with other ready components.
-   - Any component creation or change must include tests and story coverage.
-   - The plan reference file must be updated to match this format.
-9. Create `specs/tasks.md` from the plan.
-   - Tasks must preserve the dependency and parallel structure of the plan.
-   - Tasks should group work by meaningful execution units, not by arbitrary tiny edits.
-   - The task-list reference file must be updated to match this format.
-10. The orchestrator assigns tasks to workers one by one.
-    - Each worker completes the assigned task, runs typecheck, lint, and tests, fixes issues until clean, and reports back.
-    - The user approves each task result before the next task is considered complete.
-11. When the objective is fully complete, get final user approval and move the objective spec to `specs/done/[name]`.
+**Do not fine-tune for this example. Use it to understand the intent only.**
 
-## Cleanup
+Example — Objective: implement a `LoginCard` component that accepts a username and password and submits.
 
-- Remove the reviewer agent from the workflow completely.
-- Update the remaining agents so they support only this workflow and only contain what they need.
-- Update skill files so they are in `skills/[skill-name-kebab]/SKILL.md`.
-- Update the `install.py`.
-- Remove obsolete content from workflow, agent, and reference files.
-- Keep the resulting files short, explicit, and unambiguous.
+Proposed architecture (by the user):
+`LoginCard -> Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter, Button, Field, Input, Label`
+
+Intended tree structure (not an implementation — just to communicate the shape):
+
+```jsx
+<Card>
+  <CardHeader>
+    <CardTitle />
+    <CardDescription />
+  </CardHeader>
+  <CardContent>
+    <Field>
+      <Label />
+      <Input />
+    </Field>
+    <Field>
+      <Label />
+      <Input />
+    </Field>
+  </CardContent>
+  <CardFooter>
+    <Button />
+  </CardFooter>
+</Card>
+```
+
+RN Architect must understand which components the objective depends on and clarify the full dependency tree through discussion — not write implementations or specs. The output architecture must be explicit: the graph, the atomic levels, and the complete dependency list.
+
+The architecture follows atomic design. Every component must be broken down until all leaves are atoms. If any component in the tree is a molecule or above, its internal structure must also be defined — recursively — until every branch terminates at atoms. No molecule, organism, or template may remain opaque.
+
+When a required component's architecture is unclear or does not yet exist, RN Architect must ask and discuss through `vscode/askQuestions` until that component's architecture is finalized and approved — exactly as it does for the objective itself. This repeats for every non-atom component in the tree until all architectures, at every level, are approved.
+
+**A component spec must include an explicit, complete list of its direct dependencies.**
+
+**If a dependency itself does not have an explicit architecture, it must be finalized before the parent is considered done.**
+
+**An objective spec is not ready until every dependent component spec is fully ready.**
+
+## Requirement 3: Reference Files Must Declare Their Consumers
+
+All reference files should include a usage header at the top declaring which agent uses them and at which step:
+
+```markdown
+# Reference Title
+> Used by [Agent Name] at Step N [and by [Agent Name] at Step N].
+> Defines [what it defines].
+```
+
+Adjust the wording to the current workflow agents and step numbers. Do not copy this example literally.
+
+## Requirement 4: Agents Must Load Their Reference as Step 0
+
+Any agent that has a defined process and depends on a reference file must load and read that reference as its first step (step 0) before doing anything else.

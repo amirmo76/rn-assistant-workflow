@@ -35,13 +35,13 @@ Write or update exactly one spec file.
 </paths>
 
 <process>
-1. Read the correct reference for the requested mode.
-2. Read the existing target file, related specs, and only the code needed for context.
-3. If Figma URLs are provided, fetch design context and screenshots.
-4. Ask one consolidated question batch only if the spec would otherwise be ambiguous.
-5. Write the file in full.
-6. Ask for approval. If the user requests changes, update the file and repeat.
-7. Finish only after explicit approval.
+0. Read the correct reference for the requested mode (`objective-spec.md` or `component-spec.md`) before doing anything else.
+1. Read the existing target file, related specs, and only the code needed for context.
+2. If Figma URLs are provided, fetch design context and screenshots.
+3. Ask one consolidated question batch only if the spec would otherwise be ambiguous.
+4. Write the file in full.
+5. Ask for approval. If the user requests changes, update the file and repeat.
+6. Finish only after explicit approval.
 </process>
 
 <rules>

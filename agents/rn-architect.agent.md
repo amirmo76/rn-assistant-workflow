@@ -9,6 +9,7 @@ tools:
   - read
   - vscode/askQuestions
   - figma/get_screenshot
+  - figma/get_design_context
 agents: []
 ---
 
@@ -27,12 +28,21 @@ You may work on:
 </scope>
 
 <process>
-1. If Figma URLs are provided, fetch screenshots first.
-2. Review the provided architecture or propose a first draft from the available context.
-3. Present issues, suggestions, and open questions through `vscode/askQuestions`.
-4. Revise the architecture and repeat until the user explicitly approves it.
-5. Output only the finalized architecture block.
+0. Read the skill reference for tree decomposition before doing anything else.
+1. If Figma URLs are provided, fetch screenshots and design context first.
+2. Ask for a proposed architecture.
+3. Review the provided architecture or propose a first draft from the available context.
+4. Present issues, suggestions, and open questions through `vscode/askQuestions`.
+5. Revise the architecture and repeat until the user explicitly approves it.
+6. For every non-atom component in the approved tree, check whether its internal architecture is explicit and approved. If any non-atom component is opaque (its own direct dependency list is not yet defined and approved), start a focused sub-discussion for that component through `vscode/askQuestions` — following steps 2–5 for it — before moving on. Repeat this recursively until every branch at every level terminates at atoms.
+7. Output only the finalized architecture block. All architectures — top-level and every nested non-atom — must be included.
 </process>
+
+<rules>
+- A component whose atomic level is anything other than `atom` must have its own dependency list explicitly defined and approved before its parent is considered finalized.
+- An objective architecture is not complete until every component in the tree, at every level, has been recursively resolved to atoms.
+- Never resolve a component's architecture in silence. Use `vscode/askQuestions` for all sub-component discussions, exactly as for the top-level objective.
+</rules>
 
 <output>
 Return exactly this shape:

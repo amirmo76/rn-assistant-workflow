@@ -1,4 +1,6 @@
 # Task List Reference
+> Used by **RN Tasker** at Step 0.
+> Defines the required structure and rules for `specs/tasks.md`.
 
 Reference for `specs/tasks.md`.
 
