@@ -51,4 +51,6 @@ Write or update exactly one spec file.
 - Rewrite changed component specs cleanly; do not append loose notes.
 - Keep the file compact and unambiguous.
 - Treat page components as "dumb" Presenters (UI-only, receiving data via props) to support Storybook testing.
+- Prefer design system tokens. Use hardcoded values only when necessary.
+- To detect design tokens, highest priority is value match and visual correctness, then semantic name.
 </rules>
