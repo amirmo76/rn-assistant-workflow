@@ -50,4 +50,5 @@ Write or update exactly one spec file.
 - Component specs stay focused on the permanent current contract.
 - Rewrite changed component specs cleanly; do not append loose notes.
 - Keep the file compact and unambiguous.
+- Treat page components as "dumb" Presenters (UI-only, receiving data via props) to support Storybook testing.
 </rules>
