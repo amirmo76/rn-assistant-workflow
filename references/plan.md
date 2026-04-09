@@ -1,129 +1,57 @@
-# Plan File Reference
-> Used by the RN Planner agent when authoring or updating a `plan.md`.
+# Objective Plan Reference
 
----
-
-## Purpose
-
-A plan file translates a completed spec into an ordered, phased roadmap that
-a RN Tasker agent can convert into executable tasks. It is the single source of
-truth for implementation intent. It lives next to the spec it describes.
-
-**Location:** `specs/[queue|doing]/component-[name]/plan.md`
-
----
+Reference for `specs/doing/[objective-name]/plan.md`.
 
 ## Required Sections
-
-All sections must appear in every plan, in this order. Sections with no
-content use the `_Not applicable_` marker — never omit them.
-
----
 
 ### 1. Header
 
 ```markdown
-# Plan: [Component Name]
+# Plan: [Objective Name]
 
-**Spec:** [relative path to spec.md]
+**Spec:** specs/doing/[objective-name]/spec.md
 **Status:** draft | ready | in-progress | done
-**Created:** [ISO date]
-**Updated:** [ISO date]
 ```
 
-- `draft` — plan is written but not yet reviewed or approved for execution.
-- `ready` — plan is reviewed; spec dir may be moved to `doing`.
-- `in-progress` — tasker has consumed this plan; tasks are being executed.
-- `done` — all phases completed and verified.
+### 2. Delivery Order
 
----
-
-### 2. Objective
-
-One short paragraph. What the plan achieves when complete. Must match the
-intent of the spec without repeating it verbatim.
-
----
+Short explanation of the dependency order.
 
 ### 3. Phases
 
-Number phases sequentially starting from 1. Each phase is a logical unit of
-work that can be verified independently before the next begins.
+Use numbered phases in execution order.
 
 ```markdown
 ### Phase [N] — [Short Name]
 
-**Status:** pending | in-progress | done | skipped
-**Depends on:** Phase [X] | —
+**Depends on:** — | Phase [X], Phase [Y]
+**Execution:** sequential | parallel
 
-#### Context
-What the RN Worker needs to know entering this phase. Reference relevant
-sections of the spec, existing codebase facts, or prior-phase outputs.
+**Scope**
+- What this phase covers.
 
-#### Actions
-Ordered bullet list of the concrete steps to perform in this phase.
+**Work**
+- Meaningful execution units only.
 
-#### Expected Outcome
-One sentence. What the codebase looks like when this phase finishes.
+**Coverage**
+- Tests to add or update.
+- Stories to add or update.
 
-#### Success Criteria
-Bullet list of verifiable conditions. Each criterion must be checkable
-without subjective judgment — a test passes, a file exists, a command
-succeeds.
+**Exit Criteria**
+- Verifiable conditions for phase completion.
 ```
 
-#### Mandatory phases for a component build
+### 4. Parallel Notes
 
-Include at minimum these phases when building a new component from spec.
-Adapt names and details to the actual spec; do not add phases that have no
-work.
+Call out only justified parallel work and the dependency that makes it safe.
 
-| Phase | Name | Typical content |
-|-------|------|-----------------|
-| 1 | Implementation | Create the component file; wire props and design tokens per spec. |
-| 2 | Tests | Write unit/snapshot tests; all pass. |
-| 3 | Storybook | Add a story that exercises all props and visual states. |
-| 4 | Verification | Run the full test suite and Storybook build; confirm no regressions. |
-| 5 | Review | RN Reviewer agent checks the artifact; iterate until PASS. |
+### 5. Risks / Assumptions
 
-Additional phases (e.g. accessibility audit, performance profiling,
-integration into a parent component) are permitted when the spec calls for them.
-
----
-
-### 4. Open Questions
-
-```markdown
-### Open Questions
-
-- [ID: Q1] [Question text] — raised by Planner, [date]
-- [ID: Q2] [Question text] — raised by Planner, [date]
-```
-
-Use `—` if there are no open questions.
-
----
-
-### 5. Assumptions
-
-```markdown
-### Assumptions
-
-- [Assumption text, and the consequence if it turns out to be wrong.]
-```
-
-Use `—` if there are no assumptions.
-
----
+Use `- None.` when there are none.
 
 ## Rules
 
-- Phases must be in execution order. Do not mix unrelated concerns in one phase.
-- Every success criterion must be independently verifiable.
-- Status markers on phases must be kept current as the RN Tasker and RN Worker
-  agents progress through execution.
-- The plan file must never contain implementation code. It describes _what_
-  to do, not _how_ to write it.
-- The plan header `Status` field must be updated at each stage:
-  RN Planner sets `draft`; orchestrator sets `ready` before moving to `doing`;
-  RN Tasker sets `in-progress`; final RN Reviewer sets `done`.
+- Plan the objective as one delivery path, not as disconnected per-component micro-plans.
+- Follow dependency order from lower-level prerequisites upward when it matters.
+- Mark work as parallel only when the dependency boundary is clear.
+- Any component change includes tests and story coverage.

@@ -1,14 +1,13 @@
 ---
 name: RN Explore
 description: >
-  Fast read-only exploration agent for focused codebase questions. Searches,
-  reads, and summarizes findings without editing or recommending changes.
-argument-hint: Describe WHAT you're looking for and desired thoroughness (quick/medium/thorough)
+  Fast read-only exploration agent for focused repository questions.
+argument-hint: Describe what to look for and the desired thoroughness.
 model: GPT-5.4 mini
 tools:
   - read
   - search
-  - web
+  - web/fetch
 ---
 
 <role>

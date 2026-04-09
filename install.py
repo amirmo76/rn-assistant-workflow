@@ -1,10 +1,5 @@
 #!/usr/bin/env python3
-"""Install UI agents files into the user's ~/.copilot folder.
-
-Supports Windows, macOS, and Linux — auto-detects the correct path.
-Also patches VS Code settings.json so Copilot discovers the installed
-agents and prompts automatically.
-"""
+"""Install this workflow into the user's ~/.copilot directory."""
 
 import json
 import os
@@ -15,47 +10,44 @@ import sys
 import tempfile
 from pathlib import Path
 
-# Folders to copy and their destination subdirectories inside .copilot
 FOLDER_MAP = {
     "agents": "agents",
     "references": "references",
     "workflows": "workflows",
-    "prompts": "prompts",
     "skills": "skills",
 }
 
-# Legacy and current SDD-managed files that may need pruning when they no longer
-# exist in the source repository. This avoids leaving outdated agents and
-# references installed across upgrades while preserving unrelated user files.
-MANAGED_FILES = {
+MANAGED_ENTRIES = {
     "agents": {
+        "rn-assistant.agent.md",
+        "rn-architect.agent.md",
         "rn-explore.agent.md",
         "rn-initializer.agent.md",
         "rn-planner.agent.md",
-        "rn-reviewer.agent.md",
+        "rn-spec-writer.agent.md",
         "rn-tasker.agent.md",
         "rn-worker.agent.md",
-        "rn-architect.agent.md",
         "rn-researcher.agent.md",
-        "rn-spec-writer.agent.md",
-        "rn-assistant.agent.md",
+        "rn-reviewer.agent.md",
     },
     "references": {
-        "agent-report.md",
         "component-spec.md",
-        "plan.md", 
-        "task-list.md"
+        "objective-spec.md",
+        "plan.md",
+        "task-list.md",
+        "agent-report.md",
     },
     "workflows": {"ui-assistant.workflow.md"},
-    "prompts": set(),
     "skills": {
+        "rn-tree-decomposition",
+        "rn-testing-setup",
+        "rn-storybook-setup",
         "rn-tree-decomposition.skill.md",
         "rn-testing-setup.skill.md",
-        "rn-storybook-setup.skill.md"
+        "rn-storybook-setup.skill.md",
     },
 }
 
-# Available models for agent configuration
 AVAILABLE_MODELS = {
     "1": "GPT-5.4",
     "2": "Claude Sonnet 4.6",
@@ -65,27 +57,22 @@ AVAILABLE_MODELS = {
 }
 
 MODEL_PRESETS = {
-    "1": ("Premium orchestrator (GPT-5.4 orchestrator, GPT-5 mini workers)", "GPT-5.4"),
-    "2": ("Claude orchestrator (Claude Sonnet 4.6 orchestrator, GPT-5 mini workers)", "Claude Sonnet 4.6"),
-    "3": ("Budget (all GPT-5 mini — not recommended for orchestrator)", "GPT-5 mini"),
-    "4": ("Default (keep current per-agent defaults)", None),
-    "5": ("Custom (choose per agent)", None),
+    "1": ("Premium orchestrator", "GPT-5.4"),
+    "2": ("Claude orchestrator", "Claude Sonnet 4.6"),
+    "3": ("Budget", "GPT-5 mini"),
+    "4": ("Default", None),
+    "5": ("Custom", None),
 }
 
-# Pattern to match the model line in agent YAML frontmatter
 MODEL_LINE_RE = re.compile(r"^(model:\s*)(.+)$", re.MULTILINE)
-
-# The orchestrator agent file
-ORCHESTRATOR_AGENT = "sdd"
+ORCHESTRATOR_AGENT = "rn-assistant"
 
 
 def get_source_dir() -> Path:
-    """Return the directory where this script lives."""
     return Path(__file__).resolve().parent
 
 
 def detect_os() -> str:
-    """Return normalised OS name: 'windows', 'macos', or 'linux'."""
     system = platform.system().lower()
     if system == "darwin":
         return "macos"
@@ -95,7 +82,6 @@ def detect_os() -> str:
 
 
 def get_dest_root() -> Path:
-    """Return the .copilot directory for the current OS."""
     override = os.environ.get("COPILOT_HOME")
     if override:
         return Path(override)
@@ -111,7 +97,6 @@ def get_dest_root() -> Path:
 
 
 def get_vscode_settings_path() -> Path:
-    """Return the VS Code user settings.json path for the current OS."""
     current_os = detect_os()
     if current_os == "windows":
         appdata = os.environ.get("APPDATA")
@@ -124,25 +109,20 @@ def get_vscode_settings_path() -> Path:
 
 
 def patch_vscode_settings(dest_root: Path, dry_run: bool = False) -> None:
-    """Add agent and prompt paths to VS Code settings.json if not already present."""
     settings_path = get_vscode_settings_path()
-
     agents_path = str(dest_root / "agents")
-    prompts_path = str(dest_root / "prompts")
 
     required = {
         "chat.agent.enabled": True,
-        "chat.promptFiles": True,
     }
     location_settings = {
         "chat.agent.locations": {agents_path: True},
-        "chat.promptFiles.locations": {prompts_path: True},
     }
 
     if not settings_path.exists():
         print(f"VS Code settings not found at {settings_path}")
         if dry_run:
-            print("  Would create settings.json with agent/prompt paths")
+            print("  Would create settings.json with the agent path")
             return
         settings_path.parent.mkdir(parents=True, exist_ok=True)
         settings = {}
@@ -152,7 +132,7 @@ def patch_vscode_settings(dest_root: Path, dry_run: bool = False) -> None:
             settings = json.loads(raw) if raw.strip() else {}
         except (json.JSONDecodeError, OSError) as exc:
             print(f"  WARN  Could not parse {settings_path}: {exc}")
-            print("  Skipping VS Code settings patch — fix the file manually.")
+            print("  Skipping VS Code settings patch.")
             return
 
     changed = False
@@ -168,18 +148,18 @@ def patch_vscode_settings(dest_root: Path, dry_run: bool = False) -> None:
         if not isinstance(existing, dict):
             existing = {}
         for path, enabled in entries.items():
-            if path not in existing:
+            if existing.get(path) != enabled:
                 print(f"  ADD    {key} += {path}")
                 existing[path] = enabled
                 changed = True
         settings[key] = existing
 
     if not changed:
-        print("  VS Code settings already configured — no changes needed.")
+        print("  VS Code settings already configured.")
         return
 
     if dry_run:
-        print("  Would write updated settings to", settings_path)
+        print(f"  Would write updated settings to {settings_path}")
         return
 
     settings_path.write_text(
@@ -189,12 +169,26 @@ def patch_vscode_settings(dest_root: Path, dry_run: bool = False) -> None:
     print(f"  Updated {settings_path}")
 
 
+def remove_path(path: Path) -> None:
+    if path.is_dir() and not path.is_symlink():
+        shutil.rmtree(path)
+    elif path.exists() or path.is_symlink():
+        path.unlink()
+
+
+def copy_entry(source: Path, target: Path) -> None:
+    if source.is_dir():
+        shutil.copytree(source, target)
+    else:
+        shutil.copy2(source, target)
+
+
 def discover_agents(src_root: Path) -> dict[str, tuple[Path, str]]:
-    """Scan agent files and return {agent_name: (path, current_model)}."""
     agents_dir = src_root / "agents"
     if not agents_dir.is_dir():
         return {}
-    result = {}
+
+    result: dict[str, tuple[Path, str]] = {}
     for file in sorted(agents_dir.iterdir()):
         if not file.is_file() or not file.name.endswith(".agent.md"):
             continue
@@ -207,14 +201,9 @@ def discover_agents(src_root: Path) -> dict[str, tuple[Path, str]]:
 
 
 def prompt_model_selection(agents: dict[str, tuple[Path, str]]) -> dict[str, str]:
-    """Interactively ask the user which model to use for each agent."""
     print("=" * 60)
-    print("  SDD MODEL CONFIGURATION")
+    print("  MODEL CONFIGURATION")
     print("=" * 60)
-    print()
-    print("  Architecture:")
-    print("    Orchestrator (smart model) → handles all reasoning")
-    print("    Workers (GPT-5 mini)       → execute focused tasks")
     print()
     print("Current agent models:")
     for name, (_path, model) in agents.items():
@@ -243,35 +232,29 @@ def prompt_model_selection(agents: dict[str, tuple[Path, str]]) -> dict[str, str
         print("\nChoose a model for each agent:")
         print("  [1] GPT-5.4  [2] Claude Sonnet 4.6  [3] GPT-5 mini  [4] Claude Haiku 4.5  [5] Raptor mini  [Enter] keep\n")
         for name, (_path, current) in agents.items():
-            role = " (orchestrator)" if name == ORCHESTRATOR_AGENT else ""
-            pick = input(f"  {name}{role:<20} [{current}]: ").strip()
+            pick = input(f"  {name:<30} [{current}]: ").strip()
             if pick in AVAILABLE_MODELS:
                 chosen = AVAILABLE_MODELS[pick]
                 if chosen != current:
                     overrides[name] = chosen
-            elif pick == "":
-                pass
-            else:
+            elif pick and pick not in AVAILABLE_MODELS:
                 print(f"    Invalid input '{pick}', keeping {current}")
-    else:
-        # Presets 1-3: set orchestrator to preset_model, keep workers as GPT-5 mini
-        for name, (_path, current) in agents.items():
-            if name == ORCHESTRATOR_AGENT:
-                if current != preset_model:
-                    overrides[name] = preset_model
-            else:
-                # Workers stay GPT-5 mini (or force them if not already)
-                if current != "GPT-5 mini" and choice != "3":
-                    pass  # Keep worker defaults (already GPT-5 mini)
+        return overrides
+
+    for name, (_path, current) in agents.items():
+        if name == ORCHESTRATOR_AGENT:
+            if current != preset_model:
+                overrides[name] = preset_model
+        elif choice == "3" and current != "GPT-5 mini":
+            overrides[name] = "GPT-5 mini"
 
     if overrides:
         print("\nModel changes to apply:")
         for name, model in overrides.items():
-            original = agents[name][1]
-            print(f"  {name:<30} {original}  →  {model}")
+            print(f"  {name:<30} {agents[name][1]}  ->  {model}")
+        print()
     else:
-        print("\nNo model changes needed.")
-    print()
+        print("\nNo model changes needed.\n")
 
     return overrides
 
@@ -281,7 +264,6 @@ def apply_model_overrides(
     agents: dict[str, tuple[Path, str]],
     overrides: dict[str, str],
 ) -> Path | None:
-    """Create a temp copy with model overrides applied."""
     if not overrides:
         return None
 
@@ -301,17 +283,16 @@ def apply_model_overrides(
         content = tmp_path.read_text(encoding="utf-8")
         content = MODEL_LINE_RE.sub(rf"\g<1>{new_model}", content, count=1)
         tmp_path.write_text(content, encoding="utf-8")
-        print(f"  PATCH  {original_path.name}  model → {new_model}")
+        print(f"  PATCH  {original_path.name}  model -> {new_model}")
 
     return tmp_dir
 
 
 def install(dry_run: bool = False) -> None:
-    current_os = detect_os()
     src_root = get_source_dir()
     dest_root = get_dest_root()
 
-    print(f"OS detected : {current_os} ({platform.system()} {platform.release()})")
+    print(f"OS detected : {detect_os()} ({platform.system()} {platform.release()})")
     print(f"Source      : {src_root}")
     print(f"Destination : {dest_root}")
     print()
@@ -339,34 +320,32 @@ def install(dry_run: bool = False) -> None:
         dest_path = dest_root / dest_folder
 
         if not src_path.is_dir():
-            print(f"  SKIP  {src_folder}/ (not found in source)")
+            print(f"  SKIP    {src_folder}/ (not found in source)")
             continue
 
         if not dest_path.exists():
-            print(f"  CREATE {dest_path}")
+            print(f"  CREATE  {dest_path}")
             if not dry_run:
                 dest_path.mkdir(parents=True, exist_ok=True)
 
-        source_files = {
-            file.name for file in sorted(src_path.iterdir()) if file.is_file()
-        }
-        managed_names = MANAGED_FILES.get(src_folder, set())
+        source_entries = {entry.name for entry in src_path.iterdir()}
+        managed_entries = MANAGED_ENTRIES.get(src_folder, set())
 
-        for stale_name in sorted(managed_names - source_files):
+        for stale_name in sorted(managed_entries - source_entries):
             stale_path = dest_path / stale_name
             if stale_path.exists():
-                print(f"  REMOVE     {stale_name}  ->  {dest_path.relative_to(dest_root)}/")
+                print(f"  REMOVE  {stale_name}  ->  {dest_path.relative_to(dest_root)}/")
                 if not dry_run:
-                    stale_path.unlink()
+                    remove_path(stale_path)
 
-        for file in sorted(src_path.iterdir()):
-            if not file.is_file():
-                continue
-            target = dest_path / file.name
-            action = "OVERWRITE" if target.exists() else "COPY"
-            print(f"  {action:>9}  {file.name}  ->  {dest_path.relative_to(dest_root)}/")
+        for entry in sorted(src_path.iterdir()):
+            target = dest_path / entry.name
+            action = "SYNC" if target.exists() else "COPY"
+            print(f"  {action:<6} {entry.name}  ->  {dest_path.relative_to(dest_root)}/")
             if not dry_run:
-                shutil.copy2(file, target)
+                if target.exists():
+                    remove_path(target)
+                copy_entry(entry, target)
             copied += 1
 
     if tmp_dir and tmp_dir.exists():
@@ -374,11 +353,11 @@ def install(dry_run: bool = False) -> None:
 
     print()
     if dry_run:
-        print(f"Dry run complete — {copied} file(s) would be copied to {dest_root}")
+        print(f"Dry run complete - {copied} entries would be installed to {dest_root}")
     else:
-        print(f"Done — {copied} file(s) installed to {dest_root}")
+        print(f"Done - {copied} entries installed to {dest_root}")
 
-    print("\nConfiguring VS Code settings …")
+    print("\nConfiguring VS Code settings ...")
     patch_vscode_settings(dest_root, dry_run=dry_run)
 
 
@@ -387,4 +366,3 @@ if __name__ == "__main__":
     if dry:
         print("=== DRY RUN (no files will be written) ===\n")
     install(dry_run=dry)
-
