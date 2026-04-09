@@ -42,7 +42,7 @@ Omit `Notes:` when there is nothing to add.
 - `molecule`: small focused composition of atoms
 - `organism`: larger section composed of molecules and atoms
 - `template`: layout skeleton
-- `page`: full screen or routed view
+- `page`: full screen or routed view (Presentor only)
 
 ## Rules
 
@@ -50,7 +50,7 @@ Omit `Notes:` when there is nothing to add.
 - Treat variants and content changes as props, not new component names.
 - Split on responsibility boundaries, not on Figma layer boundaries.
 - Reuse repeated structures instead of cloning near-identical components.
-- Do not include implementation wrappers such as `SafeAreaView`, `ScrollView`, or `KeyboardAvoidingView`.
+- Delegate complex OS-level structures (e.g., Navigation Stacks, Swipeable Drawers) to standard libraries (like React Navigation). Do not decompose them as custom UI components.
 - Do not include styling, spacing, tokens, or business logic.
 
 ## Canonical Leaves
