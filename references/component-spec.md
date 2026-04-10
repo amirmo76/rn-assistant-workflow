@@ -24,6 +24,12 @@ Props, callbacks, and named slots, if any.
 
 - Children prop is always optional even when the component expects a child.
 
+### 4. Internal State
+
+Internal state management.
+
+If none: _No Internal_
+
 ### 4. Visual Contract
 
 Describe only the current UI contract.
