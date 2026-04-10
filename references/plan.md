@@ -1,4 +1,5 @@
 # Objective Plan Reference
+
 > Used by **RN Planner** at Step 0 and by **RN Tasker** at Step 0.
 > Defines the required structure and rules for `specs/doing/[objective-name]/plan.md`.
 
@@ -17,7 +18,7 @@ Reference for `specs/doing/[objective-name]/plan.md`.
 
 ### 2. Delivery Order
 
-Short explanation of the dependency order.
+Short explanation of the bottom-to-top dependency order.
 
 ### 3. Phases
 
@@ -55,5 +56,7 @@ Use `- None.` when there are none.
 
 - Plan the objective as one delivery path, not as disconnected per-component micro-plans.
 - Follow dependency order from lower-level prerequisites upward when it matters.
+- Read the objective spec and every in-scope component changelog before planning.
 - Mark work as parallel only when the dependency boundary is clear.
+- Batch unrelated or dependency-independent component work together when they sit at the same layer.
 - Any component change includes tests and story coverage.

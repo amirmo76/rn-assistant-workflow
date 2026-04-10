@@ -54,33 +54,60 @@ One UI objective moves through these steps at a time.
 
 ---
 
-## Step 4 — Specify Components
+## Step 4 — Order Components
 
-- For each component in the objective scope, spawn exactly one `RN Component Spec Writer` with a complete brief:
+- Reorder the in-scope components from most primitive to most complex before any component spec writing begins.
+- Use a bottom-to-top dependency view: lower-level building blocks first, composition layers after.
+- Save the ordered list in /memories/session/ui-state.md and mark it as the required execution order for Step 5 and Step 7.
+- Keep both the original detected scope and the ordered scope in state when useful, but the ordered scope is the source of truth for downstream execution.
+
+**Exit criteria:** /memories/session/ui-state.md contains the approved bottom-to-top component order for this objective.
+
+---
+
+## Step 5 — Specify Components
+
+- For each component in the ordered objective scope, spawn exactly one `RN Component Spec Writer` with a complete brief:
   - mode: `component`
   - component name and file path
   - overall objective description
   - `tree.yaml` path
   - relevant visuals or Figma URLs
 - The spec writer creates or updates `specs/components/[component-name]/spec.md` and `changelog.md`.
+- Follow the saved bottom-to-top order strictly.
 - Gate on explicit user approval for each component spec before moving to the next.
-- After approval update /memories/sessions/ui-state.md.
-- Do not proceed to Step 4 until all component specs are approved.
+- After approval update /memories/session/ui-state.md.
+- Do not proceed to Step 6 until all component specs are approved.
 
 **Exit criteria:** every component in scope has an approved spec and updated changelog.
 
 ---
 
-## Step 5 — Review
+## Step 6 — Review
 
 - Spawn `RN Review` with:
   - path to the objective spec
   - paths to all affected component specs and their changelogs
 - `RN Review` checks that every required change listed in the objective spec is explicitly present in the matching component spec.
-- On **FAIL**: return to Step 4 for each failed component. Then re-run Step 5.
-- On **PASS**: the workflow is complete.
+- On **FAIL**: return to Step 5 for each failed component. Then re-run Step 6.
+- On **PASS**: proceed to Step 7.
 
 **Exit criteria:** `RN Review` returns PASS.
+
+---
+
+## Step 7 — Plan Implementation
+
+- Spawn `RN Planner` with:
+  - path to the approved objective spec
+  - ordered bottom-to-top component scope from /memories/session/ui-state.md
+  - paths to all affected component changelogs
+- `RN Planner` writes `plan.md` beside the objective `spec.md`.
+- The plan must consider the objective spec and every affected component changelog in scope.
+- The plan must flow from primitive components upward.
+- Components or workstreams that do not depend on each other must be batched into parallel phases or parallel work within a phase.
+
+**Exit criteria:** `plan.md` exists beside the approved objective spec and reflects bottom-to-top, dependency-aware execution with justified parallel batching.
 
 ---
 
@@ -89,6 +116,8 @@ One UI objective moves through these steps at a time.
 - First thing you do is to detect component scop of the objective using the script.
 - The workflow is not done unless all of the components in the scope have `done` status.
 - objective spec is written before the comopnent specs.
+- Component ordering must be decided before component spec writing starts.
+- Component spec writing and planning both follow the saved bottom-to-top order.
 - Component specs describe the current contract. Rewrite them cleanly; do not append loose notes.
 - Never pause the workflow with plain-text approval requests or questions. All questions and approvals must go through `vscode/askQuestions`.
-- The workflow runs continuously until `RN Review` returns PASS.
+- The workflow runs continuously until `plan.md` is written after a passing review.
