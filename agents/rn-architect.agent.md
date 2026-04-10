@@ -45,4 +45,5 @@ When analyzing the YAML, apply these strict definitions:
 - If asked about "direct dependencies" or "what X uses", list every component the top-level node imports (Composition Tree).
 - If asked "how/where is X used", answer based on the visual nesting (e.g., "Inside CardHeader").
 - Do not assume a component uses all of its descendants. Only the components it directly imports in the composition tree.
+- Additional information about a component or an instance of a component is written in parentheses after the component name (e.g., `CardHeader (with title and image)`). This does not affect dependencies, it is just extra information about that instance or the component in general.
 </rules>
