@@ -15,6 +15,7 @@ FOLDER_MAP = {
     "references": "references",
     "workflows": "workflows",
     "skills": "skills",
+    "scripts": "scripts",
 }
 
 MANAGED_ENTRIES = {
@@ -40,6 +41,7 @@ MANAGED_ENTRIES = {
         "rn-changelog.md"
     },
     "workflows": {"ui-assistant.workflow.md"},
+    "scripts": {"rn-architect.py"},
     "skills": {
         "rn-tree-decomposition",
         "rn-testing-setup",

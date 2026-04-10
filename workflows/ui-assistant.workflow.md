@@ -19,7 +19,7 @@ One UI objective moves through these steps at a time.
 ## Step 1 — Receive Objective
 
 - Accept the UI objective from the user along with any supporting visuals, files, or Figma URLs.
-- Read `/memories/session/sdd-state.md` to detect a resume path.
+- Read /memories/session/ui-state.md to detect a resume path.
   - If resuming: re-anchor to the correct step and continue.
   - If fresh: create the state file and proceed to Step 2.
 - Ask clarifying questions with `vscode/askQuestions` only when the objective is ambiguous.
@@ -30,7 +30,7 @@ One UI objective moves through these steps at a time.
 
 ## Step 2 — Parse Architecture
 
-- Spawn `RN Architect` with `tree.yaml` and ask it to list every component in scope of the objective.
+- Run `python ~/.copilot/scripts/rn-architect.py --file <tree.yaml-path> --list-components` to get all components in scope.
 - Present the component list to the user and confirm the scope via `vscode/askQuestions`.
 - Do not proceed until the scope is confirmed.
 
@@ -43,8 +43,8 @@ One UI objective moves through these steps at a time.
 - Spawn one `RN Component Spec Writer` with a complete brief:
   - mode: `objective`
   - overall objective description
+  - Confirmed components in the scope.
   - `tree.yaml` path
-  - paths to all affected component specs
   - relevant visuals or Figma URLs
 - The spec writer creates or updates `specs/queue/[objective-name]/spec.md`.
 - Gate on explicit user approval.

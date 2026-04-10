@@ -11,9 +11,9 @@ tools:
   - vscode/askQuestions
   - figma/get_design_context
   - figma/get_screenshot
+  - execute
   - agent
 agents:
-  - RN Architect
   - RN Explore
 ---
 
@@ -37,11 +37,8 @@ Write or update exactly one spec file and a changelog.md file for one component 
 <process>
 0. Read the correct reference for the requested mode (`objective-spec.md` or `component-spec.md`) and read the `rn-changelog.md` before doing anything else.
 1. Read brief, exact visuals or Figma URLs, exact file paths in the scope, related specs, and only the code needed for context.
-2. If it is a component spec, spawn the RN Architect agent with `tree.yaml` and ask it to clarify:
-  a. What are the direct dependencies of this component? (components that are directly imported and used inside it)
-  b. If the parent is expected to use this component with other components as its children, those components are NOT dependencies of this component — confirm this is understood.
-  c. How and why is this component using each of its direct dependencies?
-3. If it is an objective spec, spawn the RN Architect agent with `tree.yaml` and ask it to detect the exact components in the scope of the objective.
+2. If it is a component spec, run `python ~/.copilot/scripts/rn-architect.py --file <tree.yaml-path> --deps <component-name>` to get the direct dependency list. Treat the script output as the source of truth for the dependency list. Read `tree.yaml` for additional context only (how each dependency is used/positioned) — if any conclusion drawn from reading the tree conflicts with the script output, the script wins.
+3. If it is an objective spec, run `python ~/.copilot/scripts/rn-architect.py --file <tree.yaml-path> --list-components` to get all components in scope. Never omit any component from this list.
 4. If Figma URLs are provided, fetch design context and screenshots.
 5. If visuals are provided, analyze them.
 6. Ask questions via vscode/askQuestions if anything is ambiguous or missing in the brief.
@@ -52,8 +49,7 @@ Write or update exactly one spec file and a changelog.md file for one component 
 </process>
 
 <rules>
-- NEVER parse or read `tree.yaml` directly. Always spawn the RN Architect agent with `tree.yaml` and ask your architectural questions through it.
-- Ask architect agent for architectural questions.
+- Use `python ~/.copilot/scripts/rn-architect.py` as the source of truth for dependency lists and component scope. Read `tree.yaml` for additional context (usage patterns, how dependencies are nested) but never let a manual tree reading override the script output.
 - Each component spec component dependency list must be exact and complete.
 - A dependency is a component that is directly imported and rendered/used inside this component's own implementation. Components that a parent composes around or inside this component are NOT its dependencies.
 
@@ -97,4 +93,5 @@ When in doubt about a classification, ask the RN Architect agent.
 - Prefer design system tokens. Use hardcoded values only when necessary.
 - To detect design tokens, highest priority is value match and visual correctness, then semantic name.
 - Use hardcoded values when you can not infer a design token with high confidence. If you use hardcoded values, be specific and exact.
+- Resolve design values related to this component. Do not resolve values that are controlled by a component you depend on.
 </rules>

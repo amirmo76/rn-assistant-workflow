@@ -1,19 +1,25 @@
 LoginCard:
-  Card
-    CardHeader
-      CardTitle
-      CardSubtitle
-    CardContent
-      Field
-        Label
-        Input
-      Field
-        Label
-        Input
-    CardFooter
-      Button
+  - Card:
+      - CardHeader:
+          - CardTitle
+          - CardSubtitle
+      - CardContent:
+          - Field:
+              - Label
+              - InputGroup:
+                  - InputGroupInput
+                  - InputGroupAddon:
+                      - Icon
+          - Field:
+              - Label
+              - InputGroup:
+                  - InputGroupInput
+                  - InputGroupAddon:
+                      - Button (variant="ghost", size="icon-sm", icon="eye"):
+      - CardFooter:
+          - Button (variant="primary", size="lg")
 
 ---
 
-Field:
-  Icon
+Button:
+  - Icon
