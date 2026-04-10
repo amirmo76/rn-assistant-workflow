@@ -1,5 +1,5 @@
 # Objective Spec Reference
-> Used by **RN Component Spec Writer** at Step 0 (objective mode) and by **RN Planner** at Step 0.
+> Used by **RN Component Spec Writer** at Step 3 (objective mode).
 > Defines the required structure and rules for `specs/[queue|doing|done]/[objective-name]/spec.md`.
 
 Reference for `specs/[queue|doing|done]/[objective-name]/spec.md`.
@@ -21,42 +21,27 @@ One short paragraph describing the UI outcome.
 
 ### 3. Inputs
 
-Relevant visuals, files, Figma URLs, or existing code references.
-
-### 4. Approved Architecture
-
-Final architecture from `RN Architect`.
-
-```text
-Root: [ComponentName]
-
-Levels:
-- ComponentName: page
-- ChildA: organism
-
-Graph:
-ComponentName -> ChildA, ChildB
-ChildA -> LeafA, LeafB
-ChildB
-LeafA
-LeafB
-```
+Relevant visuals, files, tree.yml, Figma URLs, or existing code references.
 
 ### 5. Scope
 
-- **In scope**
+- **In scope**:
+  - A list of all the components in the scope.
+  - Everything else that is considered to be in the scope.
 - **Out of scope**
+  - What is considered to be outside of the scope of this objective.
 
-### 6. Affected Component Specs
+### 6. User Stories
 
-| Component | Spec path | Action | Notes |
-|-----------|-----------|--------|-------|
-
-`Action` is `create | update | confirm-no-change`.
+If any is possible.
 
 ### 7. Required Changes
 
 What must be true in the final UI. Group by meaningful work area, not by implementation file.
+
+### 9. Edge Cases
+
+Any edge case scenario in the objective if any.
 
 ### 8. Acceptance Criteria
 
@@ -68,6 +53,6 @@ Use `- None.` when there are no open questions.
 
 ## Rules
 
-- Finalize the architecture before finalizing the rest of the objective spec.
+- Components in the scope must be clear.
 - Keep the objective spec focused on the objective. Full component contracts belong in component specs.
 - The objective spec must be clear enough to plan and execute without follow-up questions.

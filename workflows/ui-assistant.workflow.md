@@ -1,6 +1,6 @@
 # UI Assistant Workflow
 
-One UI objective moves through this workflow at a time.
+One UI objective moves through these steps at a time.
 
 ## Spec Model
 
@@ -8,41 +8,84 @@ One UI objective moves through this workflow at a time.
 
 - Path: `specs/components/[component-name]/spec.md`
 - Permanent source of truth for one component's current visual and behavioural contract.
-- Never queued, planned, taskified, or moved through workflow states.
 
 ### Objective spec
 
-- Path: `specs/[queue|doing|done]/[objective-name]/spec.md`
+- Path: `specs/queue/[objective-name]/spec.md`
 - Describes the current UI objective: new component, update, or bug fix.
-- Lifecycle: `queue -> doing -> plan -> tasks -> execute -> approve -> done`
 
-## Flow
+---
 
-1. Start from the UI objective and any supporting visuals, files, or Figma URLs.
+## Step 1 — Receive Objective
 
-2. Ask clarifying questions with `vscode/askQuestions` only when needed.
+- Accept the UI objective from the user along with any supporting visuals, files, or Figma URLs.
+- Read `/memories/session/sdd-state.md` to detect a resume path.
+  - If resuming: re-anchor to the correct step and continue.
+  - If fresh: create the state file and proceed to Step 2.
+- Ask clarifying questions with `vscode/askQuestions` only when the objective is ambiguous.
 
-3. Run `RN Initializer`.
+**Exit criteria:** objective is clear and the route (fresh or resume) is decided.
 
-4. Create the objective spec in `specs/queue/[name]/spec.md`. Run `RN Architect` first and finalize the full architecture before finalizing the rest of the objective spec. The architecture is not finalized until every component in the tree — at every level — is recursively resolved to atoms; every non-atom component must have its own approved dependency list before its parent is considered done. Ask only for information required to make the objective spec unambiguous.
+---
 
-5. Read every existing component spec affected by the objective. Update each affected file in `specs/components/` so it matches the new objective. If a component architecture is unclear or must change, run `RN Architect` for that component and get approval on the final architecture before rewriting its spec. Each component-spec change needs explicit user approval.
+## Step 2 — Parse Architecture
 
-6. Get final approval for the objective spec.
+- Spawn `RN Architect` with `tree.yaml` and ask it to list every component in scope of the objective.
+- Present the component list to the user and confirm the scope via `vscode/askQuestions`.
+- Do not proceed until the scope is confirmed.
 
-7. Move the objective directory from `specs/queue/[name]/` to `specs/doing/[name]/`.
+**Exit criteria:** user has confirmed the full list of components in scope.
 
-8. Run `RN Planner` to create one objective-level plan at `specs/doing/[name]/plan.md`. The plan is phase-based, dependency-aware, and explicit about sequential work vs justified parallel work. Any component creation or change includes tests and story coverage.
+---
 
-9. Run `RN Tasker` to create `specs/tasks.md` from that plan. Tasks preserve the plan's dependency order and parallel structure and group meaningful execution units.
+## Step 3 — Specify Objective
 
-10. Assign tasks to `RN Worker` one at a time. The worker completes the assigned task, runs typecheck, lint, and tests, fixes direct issues, and reports back. The user approves each task result before the next task is treated as complete.
+- Spawn one `RN Component Spec Writer` with a complete brief:
+  - mode: `objective`
+  - overall objective description
+  - `tree.yaml` path
+  - paths to all affected component specs
+  - relevant visuals or Figma URLs
+- The spec writer creates or updates `specs/queue/[objective-name]/spec.md`.
+- Gate on explicit user approval.
 
-11. When the objective is complete, get final approval and move the objective directory to `specs/done/[name]/`.
+**Exit criteria:** objective spec is approved by the user.
+
+---
+
+## Step 4 — Specify Components
+
+- For each confirmed component in scope, spawn exactly one `RN Component Spec Writer` with a complete brief:
+  - mode: `component`
+  - component name and file path
+  - overall objective description
+  - `tree.yaml` path
+  - relevant visuals or Figma URLs
+- The spec writer creates or updates `specs/components/[component-name]/spec.md` and `changelog.md`.
+- Gate on explicit user approval for each component spec before moving to the next.
+- Do not proceed to Step 4 until all component specs are approved.
+
+**Exit criteria:** every component in scope has an approved spec and updated changelog.
+
+---
+
+## Step 5 — Review
+
+- Spawn `RN Review` with:
+  - path to the objective spec
+  - paths to all affected component specs and their changelogs
+- `RN Review` checks that every required change listed in the objective spec is explicitly present in the matching component spec.
+- On **FAIL**: return to Step 3 for each failed component. Re-run Step 4 if the objective spec also needs updating. Then re-run Step 5.
+- On **PASS**: the workflow is complete.
+
+**Exit criteria:** `RN Review` returns PASS.
+
+---
 
 ## Rules
 
-- Architecture is the first priority. Do not finalize an objective spec before the architecture is approved.
-- Component specs are rewritten as current source-of-truth files. Do not append loose notes.
-- Planning is objective-level, not component-by-component micro-planning.
-- Never pause the workflow with plain-text approval requests or questions. All questions and approvals must go through `vscode/askQuestions`. The workflow runs continuously until final approval at step 11.
+- Architecture is the first priority. Confirm scope before writing any spec.
+- objective spec is written before the comopnent specs.
+- Component specs describe the current contract. Rewrite them cleanly; do not append loose notes.
+- Never pause the workflow with plain-text approval requests or questions. All questions and approvals must go through `vscode/askQuestions`.
+- The workflow runs continuously until `RN Review` returns PASS.

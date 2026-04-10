@@ -29,6 +29,7 @@ MANAGED_ENTRIES = {
         "rn-worker.agent.md",
         "rn-researcher.agent.md",
         "rn-reviewer.agent.md",
+        "rn-review.agent.md",
     },
     "references": {
         "component-spec.md",

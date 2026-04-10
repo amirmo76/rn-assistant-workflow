@@ -1,5 +1,5 @@
 # Component Spec Reference
-> Used by **RN Component Spec Writer** at Step 0 (component mode).
+> Used by **RN Component Spec Writer** at Step 4 (component mode).
 > Defines the required structure and rules for `specs/components/[component-name]/spec.md`.
 
 Permanent source-of-truth format for `specs/components/[component-name]/spec.md`.
@@ -13,13 +13,7 @@ One short paragraph describing the component's role and where it is used.
 ### 2. Architecture
 
 - **Atomic level:** `atom | molecule | organism | template | page`
-- **Direct children:** arrow notation for the current contract.
-
-```text
-ComponentName -> ChildA, ChildB
-ChildA
-ChildB
-```
+- **Component Dependencies:** a list of all the directly imported and dependent components.
 
 ### 3. Public Contract
 
@@ -32,7 +26,7 @@ Props, callbacks, and named slots, if any.
 
 Describe only the current UI contract.
 
-- **Layout:** structure, alignment, and sizing rules.
+- **Layout:** structure, alignment, and sizing rules. psuedo layout explanation.
 - **Tokens/Values:** design tokens and justified hard coded values.
 - **assets:** static assets used by the component.
 - **Variants:** what changes between variants.
@@ -57,4 +51,3 @@ Observable facts that confirm the component matches this spec.
 - This file describes the component's current contract, not a change request.
 - Rewrite the file when the contract changes. Do not append change notes.
 - Keep implementation detail out unless it affects the public, visual, or behavioural contract.
-- Keep tokens and component names canonical.
