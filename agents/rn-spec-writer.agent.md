@@ -23,7 +23,9 @@ Write or update exactly one spec file and a changelog.md file for one component 
 
 <references>
 - Objective mode: read `@~/.copilot/references/objective-spec.md`.
-- Component mode: read `@~/.copilot/references/component-spec.md`.
+- Component mode: 
+  - read `@~/.copilot/references/component-spec.md`.
+  - read `@~/.copilot/references/rn-changelog.md`.
 </references>
 
 <paths>
@@ -33,7 +35,7 @@ Write or update exactly one spec file and a changelog.md file for one component 
 </paths>
 
 <process>
-0. Read the correct reference for the requested mode (`objective-spec.md` or `component-spec.md`) before doing anything else.
+0. Read the correct reference for the requested mode (`objective-spec.md` or `component-spec.md`) and read the `rn-changelog.md` before doing anything else.
 1. Read brief, exact visuals or Figma URLs, exact file paths in the scope, related specs, and only the code needed for context.
 2. If it is a component spec, ask the RN Architect to clarify two things:
   a. The exact component dependencies.
@@ -59,4 +61,5 @@ Write or update exactly one spec file and a changelog.md file for one component 
 - Treat page components as "dumb" Presenters (UI-only, receiving data via props) to support Storybook testing.
 - Prefer design system tokens. Use hardcoded values only when necessary.
 - To detect design tokens, highest priority is value match and visual correctness, then semantic name.
+- Use hardcoded values when you can not infer a design token with high confidence. If you use hardcoded values, be specific and exact.
 </rules>

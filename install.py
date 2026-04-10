@@ -37,6 +37,7 @@ MANAGED_ENTRIES = {
         "plan.md",
         "task-list.md",
         "agent-report.md",
+        "rn-changelog.md"
     },
     "workflows": {"ui-assistant.workflow.md"},
     "skills": {

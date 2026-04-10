@@ -26,12 +26,52 @@ Props, callbacks, and named slots, if any.
 
 Describe only the current UI contract.
 
-- **Layout:** structure, alignment, and sizing rules. psuedo layout explanation.
-- **Tokens/Values:** design tokens and justified hard coded values.
-- **assets:** static assets used by the component.
-- **Variants:** what changes between variants.
-- **States:** default, disabled, loading, error, focused, pressed, or any other visible state.
-- **Animations/Gestures:** gesture and animations details if any.
+#### Values and Design System Tokens
+
+|  Case | Resolved Token | Hard Coded Value |
+|-------|----------------|------------------|
+
+Example:
+
+|         Case              | Resolved Token  | Hard Coded Value |
+| Border color of the input | `colors.border` |        -         |
+| Border width of the input |        -        |       1px        |
+
+- Case is a usage instance.
+- A case resolves to either a resolved design system token or a hardcoded value.
+- A case can not have both resolved token and hard coded value
+
+#### Layout
+
+structure, alignment, and sizing rules. psuedo layout explanation.
+
+#### Assets
+
+static assets used by the component.
+
+If none: _No Assets_
+
+#### Variants
+
+|  Variant | What is different |
+|----------|-------------------|
+
+If none: _No variants_
+
+#### Visual States
+
+default, disabled, loading, error, focused, pressed, or any other visible state.
+
+|  State | Trigger | Difference |
+|--------|---------|------------|
+
+If none: _No Visual State_
+
+#### Animations/Gestures
+
+gesture and animations details if any.
+
+If none: _No Animation or Gesture_
 
 ### 5. Behaviour Contract
 

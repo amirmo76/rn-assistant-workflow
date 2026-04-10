@@ -22,6 +22,7 @@ One short paragraph describing the UI outcome.
 ### 3. Inputs
 
 Relevant visuals, files, tree.yml, Figma URLs, or existing code references.
+- use relative path for anything inside the project.
 
 ### 5. Scope
 
