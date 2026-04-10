@@ -28,22 +28,11 @@ One UI objective moves through these steps at a time.
 
 ---
 
-## Step 2 — Parse Architecture
-
-- Run `python ~/.copilot/scripts/rn-architect.py --file <tree.yaml-path> --list-components` to get all components in scope.
-- Present the component list to the user and confirm the scope via `vscode/askQuestions`.
-- Do not proceed until the scope is confirmed.
-
-**Exit criteria:** user has confirmed the full list of components in scope.
-
----
-
-## Step 3 — Specify Objective
+## Step 2 — Specify Objective
 
 - Spawn one `RN Component Spec Writer` with a complete brief:
   - mode: `objective`
   - overall objective description
-  - Confirmed components in the scope.
   - `tree.yaml` path
   - relevant visuals or Figma URLs
 - The spec writer creates or updates `specs/queue/[objective-name]/spec.md`.
@@ -53,7 +42,7 @@ One UI objective moves through these steps at a time.
 
 ---
 
-## Step 4 — Specify Components
+## Step 3 — Specify Components
 
 - For each confirmed component in scope, spawn exactly one `RN Component Spec Writer` with a complete brief:
   - mode: `component`
@@ -69,7 +58,7 @@ One UI objective moves through these steps at a time.
 
 ---
 
-## Step 5 — Review
+## Step 4 — Review
 
 - Spawn `RN Review` with:
   - path to the objective spec
@@ -84,7 +73,6 @@ One UI objective moves through these steps at a time.
 
 ## Rules
 
-- Architecture is the first priority. Confirm scope before writing any spec.
 - objective spec is written before the comopnent specs.
 - Component specs describe the current contract. Rewrite them cleanly; do not append loose notes.
 - Never pause the workflow with plain-text approval requests or questions. All questions and approvals must go through `vscode/askQuestions`.

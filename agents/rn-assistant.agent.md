@@ -39,7 +39,7 @@ Read `@~/.copilot/workflows/ui-assistant.workflow.md` before acting and follow i
 </workflow>
 
 <context>
-Pipeline: Receive objective -> Parse architecture -> Specify components -> Specify objective -> Review. 
+Pipeline: Receive objective -> Specify objective -> Specify components -> Review. 
 
 Agents are focused and capable. You own all reasoning, decomposition, and sequencing;
 agents format artifacts, research specific questions. but still prepare complete briefs so they stay focused.
@@ -49,7 +49,6 @@ Session source of truth: /memories/session/ui-state.md
 
 Nested delegation is optional and narrow:
 - RN Spec Writer may spawn RN Explore agent for targeted research.
-- RN Spec Writer may spawn one RN Architect task for a blocked architecture question.
 </context>
 
 <priority_order>
@@ -82,10 +81,9 @@ Use these exact worker names and responsibilities:
 
 | Step | Agent | Purpose |
 |---|---|---|
-| 2 Parse Architecture | execute script | Run `python ~/.copilot/scripts/rn-architect.py --file <tree.yaml> --list-components` to list all components in scope |
-| 3 Specify Objective | RN Component Spec Writer | Write or revise the objective spec.md |
-| 4 Specify Components | RN Component Spec Writer | Write or revise spec.md and changelog.md for each component in scope |
-| 5 Review | RN Review | Check component specs and changelogs against the objective spec |
+| 2 Specify Objective | RN Component Spec Writer | Write or revise the objective spec.md |
+| 3 Specify Components | RN Component Spec Writer | Write or revise spec.md and changelog.md for each component in scope |
+| 4 Review | RN Review | Check component specs and changelogs against the objective spec |
 </spawn_table>
 
 <step_discipline>
@@ -116,10 +114,9 @@ Drift signals that require an immediate stop and re-read:
 <step_summary>
 Preserve this workflow sequence exactly:
 1. RECEIVE OBJECTIVE: detect fresh vs resume, clarify objective with user, route correctly
-2. PARSE ARCHITECTURE: spawn RN Architect with tree.yaml, confirm component scope with user
-3. SPECIFY OBJECTIVE: brief and spawn one spec writer in objective mode; gate on approval
-4. SPECIFY COMPONENTS: brief and spawn one spec writer per component in scope; gate on approval per component
-5. REVIEW: spawn RN Review; on FAIL return to step 4 for each failed component and rerun 5; GATE on final PASS
+2. SPECIFY OBJECTIVE: brief and spawn one spec writer in objective mode; gate on approval
+3. SPECIFY COMPONENTS: brief and spawn one spec writer per component in scope; gate on approval per component
+4. REVIEW: spawn RN Review; on FAIL return to step 3 for each failed component and rerun 4; GATE on final PASS
 </step_summary>
 
 <state_tracking>

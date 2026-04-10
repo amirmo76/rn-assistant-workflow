@@ -32,12 +32,13 @@ Write or update exactly one spec file and a changelog.md file for one component 
 - Objective spec: `specs/queue/[name]/spec.md`, unless the caller provides an existing `queue`, `doing`, or `done` path to update.
 - Component spec: `specs/components/[component-name]/spec.md`.
 - Component Changelog: `specs/components/[component-name]/changelog.md`, Objective specs do not have changelogs.
+- Architect script for dependencies: `python ~/.copilot/scripts/rn-architect.py --file <tree.yaml-path> --deps <component-name>` for component specs, `python ~/.copilot/scripts/rn-architect.py --file <tree.yaml-path> --list-components` for objective specs.
 </paths>
 
 <process>
 0. Read the correct reference for the requested mode (`objective-spec.md` or `component-spec.md`) and read the `rn-changelog.md` before doing anything else.
 1. Read brief, exact visuals or Figma URLs, exact file paths in the scope, related specs, and only the code needed for context.
-2. If it is a component spec, run `python ~/.copilot/scripts/rn-architect.py --file <tree.yaml-path> --deps <component-name>` to get the direct dependency list. Treat the script output as the source of truth for the dependency list. Read `tree.yaml` for additional context only (how each dependency is used/positioned) — if any conclusion drawn from reading the tree conflicts with the script output, the script wins.
+2. If it is a component spec, run `python ~/.copilot/scripts/rn-architect.py --file <tree.yaml-path> --deps <component-name>` to get the direct dependency list. Never omit any component.
 3. If it is an objective spec, run `python ~/.copilot/scripts/rn-architect.py --file <tree.yaml-path> --list-components` to get all components in scope. Never omit any component from this list.
 4. If Figma URLs are provided, fetch design context and screenshots.
 5. If visuals are provided, analyze them.
@@ -50,8 +51,10 @@ Write or update exactly one spec file and a changelog.md file for one component 
 
 <rules>
 - Use `python ~/.copilot/scripts/rn-architect.py` as the source of truth for dependency lists and component scope. Read `tree.yaml` for additional context (usage patterns, how dependencies are nested) but never let a manual tree reading override the script output.
-- Each component spec component dependency list must be exact and complete.
+- Each component spec dependency list must be exact and complete.
 - A dependency is a component that is directly imported and rendered/used inside this component's own implementation. Components that a parent composes around or inside this component are NOT its dependencies.
+- Treat the script output as the source of truth for the dependency list. Read `tree.yaml` for additional context only (how each dependency is used/positioned) — if any conclusion drawn from reading the tree conflicts with the script output, the script wins.
+- A component dependency list should be exactly as the script output.
 
 ## Atomic Design Classification
 
@@ -83,7 +86,6 @@ Classify every component into exactly one atomic design type using these rules:
 - Treated as a "dumb" Presenter: receives all data via props, renders a Template filled with Organisms.
 - Has no direct data-fetching logic.
 
-When in doubt about a classification, ask the RN Architect agent.
 - Objective specs stay focused on the objective.
 - Component specs stay focused on the permanent current contract. Write them from the component's own perspective, as a standalone reusable unit. Do not let objective context, parent component names, or specific usage instances bleed into any section of the spec.
 - Rewrite changed component specs cleanly; do not append loose notes.
@@ -93,5 +95,5 @@ When in doubt about a classification, ask the RN Architect agent.
 - Prefer design system tokens. Use hardcoded values only when necessary.
 - To detect design tokens, highest priority is value match and visual correctness, then semantic name.
 - Use hardcoded values when you can not infer a design token with high confidence. If you use hardcoded values, be specific and exact.
-- Resolve design values related to this component. Do not resolve values that are controlled by a component you depend on.
+- The "Values and Design System Tokens" table must only contain design values that the current component directly controls — values applied to its own primitives (View, Text, Image, Pressable, etc.). Never include a value that is under the control of a dependency component. If a dependency component renders a surface, background, or border, those values belong in that dependency's spec, not here.
 </rules>
