@@ -37,10 +37,11 @@ Write or update exactly one spec file and a changelog.md file for one component 
 <process>
 0. Read the correct reference for the requested mode (`objective-spec.md` or `component-spec.md`) and read the `rn-changelog.md` before doing anything else.
 1. Read brief, exact visuals or Figma URLs, exact file paths in the scope, related specs, and only the code needed for context.
-2. If it is a component spec, ask the RN Architect to clarify two things:
-  a. The exact component dependencies.
-  b. Any architectural questions of how to use those those dependencies in the component.
-3. If it is an objective spec, ask the RN Architect to detect the exact components in the scope of the objective.
+2. If it is a component spec, spawn the RN Architect agent with `tree.yaml` and ask it to clarify:
+  a. What are the direct dependencies of this component? (components that are directly imported and used inside it)
+  b. If the parent is expected to use this component with other components as its children, those components are NOT dependencies of this component — confirm this is understood.
+  c. How and why is this component using each of its direct dependencies?
+3. If it is an objective spec, spawn the RN Architect agent with `tree.yaml` and ask it to detect the exact components in the scope of the objective.
 4. If Figma URLs are provided, fetch design context and screenshots.
 5. If visuals are provided, analyze them.
 6. Ask questions via vscode/askQuestions if anything is ambiguous or missing in the brief.
@@ -51,10 +52,44 @@ Write or update exactly one spec file and a changelog.md file for one component 
 </process>
 
 <rules>
+- NEVER parse or read `tree.yaml` directly. Always spawn the RN Architect agent with `tree.yaml` and ask your architectural questions through it.
 - Ask architect agent for architectural questions.
 - Each component spec component dependency list must be exact and complete.
+- A dependency is a component that is directly imported and rendered/used inside this component's own implementation. Components that a parent composes around or inside this component are NOT its dependencies.
+
+## Atomic Design Classification
+
+Classify every component into exactly one atomic design type using these rules:
+
+**Atom**
+- Has zero direct component dependencies (imports no other custom components).
+- May accept `children` as a prop — that does NOT make it a non-atom; the parent handles composition.
+- May use only primitives (View, Text, Image, Pressable, etc.) and design-system tokens.
+- Examples: Button, Icon, Badge, Divider, Avatar.
+
+**Molecule**
+- Has one or more direct component dependencies, all of which are Atoms.
+- Combines atoms into a small, self-contained UI unit.
+- Examples: ListItem (Avatar + Text).
+
+**Organism**
+- Has direct component dependencies that include at least one Molecule (or another Organism).
+- Represents a distinct, reusable section of UI.
+- Examples: Header (Logo + NavLinks + Button), ProductCard (Image + Title + Price + Button).
+
+**Template**
+- Defines the page-level layout skeleton.
+- Composes organisms and molecules into slot-based regions; contains no real content.
+- Examples: TwoColumnLayout, ModalTemplate.
+
+**Page**
+- The top-level screen component wired to a route.
+- Treated as a "dumb" Presenter: receives all data via props, renders a Template filled with Organisms.
+- Has no direct data-fetching logic.
+
+When in doubt about a classification, ask the RN Architect agent.
 - Objective specs stay focused on the objective.
-- Component specs stay focused on the permanent current contract.
+- Component specs stay focused on the permanent current contract. Write them from the component's own perspective, as a standalone reusable unit. Do not let objective context, parent component names, or specific usage instances bleed into any section of the spec.
 - Rewrite changed component specs cleanly; do not append loose notes.
 - Changelogs must be exact and complete, but also concise. List only the changed contract points, not every detail of the change.
 - Keep the file unambiguous.

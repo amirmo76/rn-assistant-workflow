@@ -8,7 +8,7 @@ Permanent source-of-truth format for `specs/components/[component-name]/spec.md`
 
 ### 1. Summary
 
-One short paragraph describing the component's role and where it is used.
+One short paragraph describing the component's standalone role, purpose, and behaviour. Write from the component's perspective, not from any specific usage context. Do not reference the objective, parent components, or screens that triggered its creation.
 
 ### 2. Architecture
 
@@ -21,6 +21,8 @@ Props, callbacks, and named slots, if any.
 
 | Name | Type | Required | Default | Notes |
 |------|------|----------|---------|-------|
+
+- Children prop is always optional even when the component expects a child.
 
 ### 4. Visual Contract
 
@@ -91,3 +93,4 @@ Observable facts that confirm the component matches this spec.
 - This file describes the component's current contract, not a change request.
 - Rewrite the file when the contract changes. Do not append change notes.
 - Keep implementation detail out unless it affects the public, visual, or behavioural contract.
+- Write every section as if the component is standalone and reusable. Do not name specific parent components, screens, objectives, or usage instances unless that reference provides essential permanent reusability context that cannot be expressed any other way.
