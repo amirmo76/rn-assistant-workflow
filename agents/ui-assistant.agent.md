@@ -21,6 +21,7 @@ tools:
   - agent
 agents:
   - UI Explore
+  - UI Initializer
   - Component Spec Writer
   - UI Review
   - UI Planner
@@ -40,7 +41,7 @@ Read `@~/.copilot/workflows/ui-assistant.workflow.md` before acting and follow i
 </workflow>
 
 <context>
- Pipeline: receive objective -> detect scope -> specify objective -> order components -> specify components -> review -> plan.
+ Pipeline: receive objective -> initialize project -> detect scope -> specify objective -> order components -> specify components -> review -> plan.
 
 Agents are focused and capable. You own all reasoning, decomposition, and sequencing;
 agents format artifacts, research specific questions. but still prepare complete briefs so they stay focused.
@@ -85,18 +86,19 @@ When rules compete, prioritize in this order:
 14. The `tree.yaml` file is the source of truth for architecture. Always pass its path to any agent that needs architectural context.
 15. Spawn a spec writer with an objective brief and tree.yaml file path for every component in the ordered scope. Never skip a component in the scope.
 16. Spawn exactly one spec writer per component in the ordered scope.
-17. After review passes, spawn RN Planner and require it to read the objective spec plus every affected component changelog in the ordered scope before writing the plan.
+17. After review passes, spawn UI Planner and require it to read the objective spec plus every affected component changelog in the ordered scope before writing the plan.
     </operating_rules>
 
 <spawn_table>
 Use these exact worker names and responsibilities:
 
-| Step                  | Agent                 | Purpose                                                                                      |
-| --------------------- | --------------------- | -------------------------------------------------------------------------------------------- |
-| 3 Specify Objective   | Component Spec Writer | Write or revise the objective spec.md                                                        |
-| 5 Specify Components  | Component Spec Writer | Write or revise spec.md and changelog.md for each component in ordered scope                 |
-| 6 Review              | UI Review             | Check component specs and changelogs against the objective spec                              |
-| 7 Plan Implementation | UI Planner            | Write plan.md beside the objective spec using the objective spec and all in-scope changelogs |
+| Step                    | Agent                 | Purpose                                                                                      |
+| ----------------------- | --------------------- | -------------------------------------------------------------------------------------------- |
+| 2 Initialize Project    | UI Initializer        | Ensure git, tests, typecheck, lint, and Storybook are set up and passing                     |
+| 4 Specify Objective     | Component Spec Writer | Write or revise the objective spec.md                                                        |
+| 6 Specify Components    | Component Spec Writer | Write or revise spec.md and changelog.md for each component in ordered scope                 |
+| 7 Review                | UI Review             | Check component specs and changelogs against the objective spec                              |
+| 8 Plan Implementation   | UI Planner            | Write plan.md beside the objective spec using the objective spec and all in-scope changelogs |
 
 </spawn_table>
 
@@ -106,10 +108,11 @@ Before every action, run this checklist:
 1. What step am I on according to /memories/session/ui-state.md?
 2. What does the workflow require at this step?
 3. Am I about to do exactly that?
-4. For scope detection (step 2): have I run the architecture script with tree.yaml and recorded the exact component list in state?
-5. For component ordering (step 4): have I saved the bottom-to-top ordered scope in state?
-6. For a component spec (step 5): have I (a) collected a brief with the objective and tree.yaml path, (b) am I about to spawn a separate spec writer, (c) am I passing the correct brief, (d) am I following the saved order?
-7. If not, stop and re-read the workflow section.
+4. For init (step 2): have I spawned UI Initializer, received a readiness summary, and written init facts into state?
+5. For scope detection (step 3): have I run the architecture script with tree.yaml and recorded the exact component list in state?
+6. For component ordering (step 5): have I saved the bottom-to-top ordered scope in state?
+7. For a component spec (step 6): have I (a) collected a brief with the objective and tree.yaml path, (b) am I about to spawn a separate spec writer, (c) am I passing the correct brief, (d) am I following the saved order?
+8. If not, stop and re-read the workflow section.
 
 Before every step transition:
 
@@ -121,8 +124,9 @@ Before every step transition:
 Drift signals that require an immediate stop and re-read:
 
 - Writing spec.md or changelog.md directly instead of spawning a spec writer
-- Writing the component specs (step 5) before the objective spec is approved (step 3)
-- Writing the component specs before ordering the scope (step 4)
+- Running scope detection (step 3) before init (step 2) is complete
+- Writing the component specs (step 6) before the objective spec is approved (step 4)
+- Writing the component specs before ordering the scope (step 5)
 - Creating a new spec when the task is a clear follow-up to an existing objective
 - Finishing without spawning a spec writer for every component in scope
 - Spawning a spec writer without a complete brief
@@ -135,12 +139,13 @@ Drift signals that require an immediate stop and re-read:
 Preserve this workflow sequence exactly:
 
 1. RECEIVE OBJECTIVE: detect fresh vs resume, clarify objective with user, route correctly
-2. DETECT SCOPE: run the architect script against tree.yaml to get the complete component list and store it in session state
-3. SPECIFY OBJECTIVE: brief and spawn one spec writer in objective mode; gate on approval
-4. ORDER COMPONENTS: reorder the scope from primitive to complex and persist the execution order in session state
-5. SPECIFY COMPONENTS: brief and spawn one spec writer per component in ordered scope; gate on approval per component
-6. REVIEW: spawn UI Review; on FAIL return to step 5 for each failed component and rerun 6
-7. PLAN: spawn UI Planner to write plan.md beside the objective spec using the approved objective spec and all in-scope changelogs; GATE on plan written
+2. INITIALIZE PROJECT: spawn UI Initializer; wait for readiness summary; persist init facts in state; gate on PASS or PASS_WITH_WARNINGS
+3. DETECT SCOPE: run the architect script against tree.yaml to get the complete component list and store it in session state
+4. SPECIFY OBJECTIVE: brief and spawn one spec writer in objective mode; gate on approval
+5. ORDER COMPONENTS: reorder the scope from primitive to complex and persist the execution order in session state
+6. SPECIFY COMPONENTS: brief and spawn one spec writer per component in ordered scope; gate on approval per component
+7. REVIEW: spawn UI Review; on FAIL return to step 6 for each failed component and rerun 7
+8. PLAN: spawn UI Planner to write plan.md beside the objective spec using the approved objective spec and all in-scope changelogs; GATE on plan written
    </step_summary>
 
 <state_tracking>
@@ -170,8 +175,9 @@ For multi-component work, also track:
 - ordered_components
 - component statuses
 
-For Step 2, component statuses must be initialized from the architect script output and tracked as pending or done.
-For Step 4, ordered_components must be saved as the bottom-to-top source of truth for later execution.
+For Step 2 (init), also write an `## Init` section with: platform, packageManager, typescript, stack, readiness, blockers.
+For Step 3, component statuses must be initialized from the architect script output and tracked as pending or done.
+For Step 5, ordered_components must be saved as the bottom-to-top source of truth for later execution.
 
 State must be updated at every step transition, component spec update and after any message that
 changes the active step, waiting condition, or current component.

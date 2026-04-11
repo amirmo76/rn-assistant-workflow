@@ -28,10 +28,27 @@ One UI objective moves through these steps at a time.
 
 ---
 
-## Step 2 — Detect Scope
+## Step 2 — Initialize Project
+
+- Spawn `UI Initializer` with the project root (infer from `tree.yaml` location or ask if ambiguous).
+- Wait for the initializer to complete and return its readiness summary.
+- If the initializer reports a blocker that cannot be auto-resolved, surface it to the user via `vscode/askQuestions` before continuing.
+- Write the following key facts from the initializer brief into `/memories/session/ui-state.md` under an `## Init` section:
+  - `platform` (e.g. React Native / Expo, Next.js, React)
+  - `packageManager` (e.g. yarn, npm, pnpm)
+  - `typescript` (true/false)
+  - `stack` summary (notable libraries / framework flags)
+  - `readiness` (PASS / PASS_WITH_WARNINGS / BLOCKED)
+  - `blockers` list (empty when clean)
+
+**Exit criteria:** project is ready for the workflow and init facts are persisted in `/memories/session/ui-state.md`.
+
+---
+
+## Step 3 — Detect Scope
 
 - Call `python @~/.copilot/scripts/rn-architect.py --file <tree.yaml-path> --list-components` to get a full list of all the components in the scope of this objective.
-- This is the list you will spawn spec writer agents per each in step 3.
+- This is the list you will spawn spec writer agents per each in step 4.
 - fully internalize the list.
 - save the list in /memories/session/ui-state.md with status indicator for each component whether it is `pending`, `done`.
 
@@ -39,7 +56,7 @@ One UI objective moves through these steps at a time.
 
 ---
 
-## Step 3 — Specify Objective
+## Step 4 — Specify Objective
 
 - Spawn one `Component Spec Writer` with a complete brief:
   - mode: `objective`
@@ -54,18 +71,18 @@ One UI objective moves through these steps at a time.
 
 ---
 
-## Step 4 — Order Components
+## Step 5 — Order Components
 
 - Reorder the in-scope components from most primitive to most complex before any component spec writing begins.
 - Use a bottom-to-top dependency view: lower-level building blocks first, composition layers after.
-- Save the ordered list in /memories/session/ui-state.md and mark it as the required execution order for Step 5 and Step 7.
+- Save the ordered list in /memories/session/ui-state.md and mark it as the required execution order for Step 6 and Step 8.
 - Keep both the original detected scope and the ordered scope in state when useful, but the ordered scope is the source of truth for downstream execution.
 
 **Exit criteria:** /memories/session/ui-state.md contains the approved bottom-to-top component order for this objective.
 
 ---
 
-## Step 5 — Specify Components
+## Step 6 — Specify Components
 
 - For each component in the ordered objective scope, spawn exactly one `Component Spec Writer` with a complete brief:
   - mode: `component`
@@ -77,26 +94,26 @@ One UI objective moves through these steps at a time.
 - Follow the saved bottom-to-top order strictly.
 - Gate on explicit user approval for each component spec before moving to the next.
 - After approval update /memories/session/ui-state.md.
-- Do not proceed to Step 6 until all component specs are approved.
+- Do not proceed to Step 7 until all component specs are approved.
 
 **Exit criteria:** every component in scope has an approved spec and updated changelog.
 
 ---
 
-## Step 6 — Review
+## Step 7 — Review
 
 - Spawn `UI Review` with:
   - path to the objective spec
   - paths to all affected component specs and their changelogs
 - `UI Review` checks that every required change listed in the objective spec is explicitly present in the matching component spec.
-- On **FAIL**: return to Step 5 for each failed component. Then re-run Step 6.
-- On **PASS**: proceed to Step 7.
+- On **FAIL**: return to Step 6 for each failed component. Then re-run Step 7.
+- On **PASS**: proceed to Step 8.
 
 **Exit criteria:** `RN Review` returns PASS.
 
 ---
 
-## Step 7 — Plan Implementation
+## Step 8 — Plan Implementation
 
 - Spawn `UI Planner` with:
   - path to the approved objective spec
@@ -113,9 +130,10 @@ One UI objective moves through these steps at a time.
 
 ## Rules
 
-- First thing you do is to detect component scop of the objective using the script.
+- Initialize the project (Step 2) before doing any scope detection or spec work.
+- First thing after init is to detect component scope of the objective using the script.
 - The workflow is not done unless all of the components in the scope have `done` status.
-- objective spec is written before the comopnent specs.
+- Objective spec is written before the component specs.
 - Component ordering must be decided before component spec writing starts.
 - Component spec writing and planning both follow the saved bottom-to-top order.
 - Component specs describe the current contract. Rewrite them cleanly; do not append loose notes.
