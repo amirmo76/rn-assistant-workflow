@@ -1,5 +1,5 @@
 # Component Spec Reference
-> Used by **RN Component Spec Writer** at Step 4 (component mode).
+> Used by **Component Spec Writer** at Step 4 (component mode).
 > Defines the required structure and rules for `specs/components/[component-name]/spec.md`.
 
 Permanent source-of-truth format for `specs/components/[component-name]/spec.md`.
@@ -48,7 +48,7 @@ Example:
 - Case is a usage instance.
 - A case resolves to either a resolved design system token or a hardcoded value.
 - A case can not have both resolved token and hard coded value.
-- **Only include design values that this component directly controls** — i.e. values applied to primitives (View, Text, Image, etc.) rendered inside this component's own JSX. Do not include values that belong to a dependency component's own rendering (e.g. a Card's background color belongs in Card's spec, not in a component that merely renders a Card).
+- **Only include design values that this component directly controls** — i.e. values applied to platform primitives rendered inside this component's own JSX. Do not include values that belong to a dependency component's own rendering (e.g. a Card's background color belongs in Card's spec, not in a component that merely renders a Card).
 
 #### Layout
 

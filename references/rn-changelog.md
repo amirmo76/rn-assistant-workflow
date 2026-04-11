@@ -1,5 +1,5 @@
 # Changelog Reference
-> Used by **RN Component Spec Writer** at Step 3 (component mode).
+> Used by **Component Spec Writer** at Step 3 (component mode).
 > Defines the required structure and rules for `specs/components/[component-name]/changelog.md`.
 
 ## [Objective Name] - [Date]

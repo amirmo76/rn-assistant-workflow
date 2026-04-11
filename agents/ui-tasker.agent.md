@@ -1,5 +1,5 @@
 ---
-name: RN Tasker
+name: UI Tasker
 description: >
   Converts one objective plan into `specs/tasks.md` while preserving phase
   order, dependencies, and justified parallel work.
@@ -12,7 +12,7 @@ tools:
   - edit/editFiles
   - agent
 agents:
-  - RN Explore
+  - UI Explore
 ---
 
 <references>

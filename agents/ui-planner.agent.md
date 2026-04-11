@@ -1,5 +1,5 @@
 ---
-name: RN Planner
+name: UI Planner
 description: >
   Reads an approved objective spec and writes one dependency-aware,
   phase-based objective plan with explicit sequential and parallel work,
@@ -14,7 +14,7 @@ tools:
   - edit/editFiles
   - agent
 agents:
-  - RN Explore
+  - UI Explore
 ---
 
 <references>

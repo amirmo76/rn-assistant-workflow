@@ -1,6 +1,6 @@
 # Objective Plan Reference
 
-> Used by **RN Planner** at Step 0 and by **RN Tasker** at Step 0.
+> Used by **UI Planner** at Step 0 and by **UI Tasker** at Step 0.
 > Defines the required structure and rules for `specs/doing/[objective-name]/plan.md`.
 
 Reference for `specs/doing/[objective-name]/plan.md`.

@@ -1,5 +1,5 @@
 # Objective Spec Reference
-> Used by **RN Component Spec Writer** at Step 3 (objective mode).
+> Used by **Component Spec Writer** at Step 3 (objective mode).
 > Defines the required structure and rules for `specs/[queue|doing|done]/[objective-name]/spec.md`.
 
 Reference for `specs/[queue|doing|done]/[objective-name]/spec.md`.

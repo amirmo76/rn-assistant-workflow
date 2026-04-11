@@ -41,7 +41,7 @@ One UI objective moves through these steps at a time.
 
 ## Step 3 — Specify Objective
 
-- Spawn one `RN Component Spec Writer` with a complete brief:
+- Spawn one `Component Spec Writer` with a complete brief:
   - mode: `objective`
   - overall objective description
   - component scope
@@ -67,7 +67,7 @@ One UI objective moves through these steps at a time.
 
 ## Step 5 — Specify Components
 
-- For each component in the ordered objective scope, spawn exactly one `RN Component Spec Writer` with a complete brief:
+- For each component in the ordered objective scope, spawn exactly one `Component Spec Writer` with a complete brief:
   - mode: `component`
   - component name and file path
   - overall objective description
@@ -85,10 +85,10 @@ One UI objective moves through these steps at a time.
 
 ## Step 6 — Review
 
-- Spawn `RN Review` with:
+- Spawn `UI Review` with:
   - path to the objective spec
   - paths to all affected component specs and their changelogs
-- `RN Review` checks that every required change listed in the objective spec is explicitly present in the matching component spec.
+- `UI Review` checks that every required change listed in the objective spec is explicitly present in the matching component spec.
 - On **FAIL**: return to Step 5 for each failed component. Then re-run Step 6.
 - On **PASS**: proceed to Step 7.
 
@@ -98,11 +98,11 @@ One UI objective moves through these steps at a time.
 
 ## Step 7 — Plan Implementation
 
-- Spawn `RN Planner` with:
+- Spawn `UI Planner` with:
   - path to the approved objective spec
   - ordered bottom-to-top component scope from /memories/session/ui-state.md
   - paths to all affected component changelogs
-- `RN Planner` writes `plan.md` beside the objective `spec.md`.
+- `UI Planner` writes `plan.md` beside the objective `spec.md`.
 - The plan must consider the objective spec and every affected component changelog in scope.
 - The plan must flow from primitive components upward.
 - Components or workstreams that do not depend on each other must be batched into parallel phases or parallel work within a phase.

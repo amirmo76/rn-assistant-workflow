@@ -1,5 +1,5 @@
 ---
-name: RN Explore
+name: UI Explore
 description: >
   Fast read-only exploration agent for focused repository questions.
 argument-hint: Describe what to look for and the desired thoroughness.

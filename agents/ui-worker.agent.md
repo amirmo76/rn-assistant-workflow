@@ -1,5 +1,5 @@
 ---
-name: RN Worker
+name: UI Worker
 description: >
   Executes one task from `specs/tasks.md`, runs typecheck, lint, and tests,
   updates task status, and reports the result.
@@ -14,7 +14,7 @@ tools:
   - execute
   - agent
 agents:
-  - RN Explore
+  - UI Explore
 ---
 
 <objective>

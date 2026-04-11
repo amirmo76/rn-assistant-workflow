@@ -1,5 +1,5 @@
 ---
-name: RN Review
+name: UI Review
 description: >
   Checks all affected component specs and changelogs against an objective spec
   to verify that every required change is present and correct.

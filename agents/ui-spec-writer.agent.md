@@ -1,5 +1,5 @@
 ---
-name: RN Component Spec Writer
+name: Component Spec Writer
 description: >
   Writes or updates one objective spec or one component spec, and loops until the file is approved.
 user-invocable: false
@@ -14,7 +14,7 @@ tools:
   - execute
   - agent
 agents:
-  - RN Explore
+  - UI Explore
 ---
 
 <objective>
@@ -63,7 +63,7 @@ Classify every component into exactly one atomic design type using these rules:
 **Atom**
 - Has zero direct component dependencies (imports no other custom components).
 - May accept `children` as a prop — that does NOT make it a non-atom; the parent handles composition.
-- May use only primitives (View, Text, Image, Pressable, etc.) and design-system tokens.
+- May use only platform primitives (e.g. `View`, `Text`, `Image`, `Pressable` for React Native; `div`, `span`, `button`, `img` for web) and design-system tokens.
 - Examples: Button, Icon, Badge, Divider, Avatar.
 
 **Molecule**
@@ -95,5 +95,5 @@ Classify every component into exactly one atomic design type using these rules:
 - Prefer design system tokens. Use hardcoded values only when necessary.
 - To detect design tokens, highest priority is value match and visual correctness, then semantic name.
 - Use hardcoded values when you can not infer a design token with high confidence. If you use hardcoded values, be specific and exact.
-- The "Values and Design System Tokens" table must only contain design values that the current component directly controls — values applied to its own primitives (View, Text, Image, Pressable, etc.). Never include a value that is under the control of a dependency component. If a dependency component renders a surface, background, or border, those values belong in that dependency's spec, not here.
+- The "Values and Design System Tokens" table must only contain design values that the current component directly controls — values applied to its own platform primitives. Never include a value that is under the control of a dependency component. If a dependency component renders a surface, background, or border, those values belong in that dependency's spec, not here.
 </rules>
