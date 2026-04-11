@@ -30,10 +30,15 @@ Make the target project ready for this workflow.
 </objective>
 
 <process>
-1. Find the project root and package manager. Detect the platform by inspecting `package.json` dependencies:
-   - React Native project: has `react-native` or `expo` as a dependency.
-   - Web project: has `react` and a web framework (e.g. `next`, `vite`, `react-scripts`) but no `react-native` or `expo`.
-   - If the platform cannot be confidently detected, ask via `vscode/askQuestions`.
+1. Run `python ~/.copilot/scripts/detect-project.py --project-dir <root>` to detect platform,
+   package manager, stack, and TypeScript usage. Parse the JSON output.
+   - Exit 0 → confident detection, use the result directly.
+   - Exit 1 → partial/low-confidence detection; review warnings and confirm with
+     `vscode/askQuestions` before continuing.
+   - Exit 2 → fatal error (no package.json, invalid JSON); surface the `error` field
+     and ask the user to confirm the project root.
+   - If the `platform` field is still `null` after any confirmation, ask the user
+     directly via `vscode/askQuestions`.
 2. Load the matching skill files for the detected platform (see `platform_skills`).
 3. Ensure the repo is initialized with git.
 4. Ensure test runner setup, smoke test, and test scripts using the platform skill as the source of truth.
