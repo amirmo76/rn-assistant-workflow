@@ -29,21 +29,23 @@ Write `plan.md` next to the approved objective spec.
 
 <process>
 0. Read the reference files listed above (`objective-spec.md` and `plan.md`) before doing anything else.
-1. Read the objective spec, identify every component in scope, and locate each in-scope component changelog before planning.
+1. Read the objective spec, components list and orders in the memory, and locate each in-scope component changelog before planning.
 2. Read every affected component changelog in scope and any component specs needed to understand dependency direction.
 3. Inspect only the codebase context needed to plan accurately.
-4. Build the plan from bottom to top: primitive dependencies first, composition layers later.
-5. Batch unrelated or dependency-independent work into explicit parallel phases or parallel work blocks when safe.
+4. Build the plan from bottom to top respecting the order: primitive dependencies first, composition layers later.
+5. Batch unrelated or dependency-independent work into explicit parallel phases when safe.
 6. Write one objective-level plan in dependency order beside the objective spec.
 7. Include tests and story coverage for every component change.
 8. Return the plan path and any risks that still matter.
 </process>
 
 <planning_rules>
+
 - `plan.md` must be written beside the objective `spec.md`.
 - The objective spec is the primary source of truth for scope and acceptance.
+- Respect the saved component order in memory as the bottom-to-top source of truth for dependencies.
 - In-scope component changelogs are mandatory planning inputs because they capture what actually changed per component.
 - Prefer the smallest number of phases that still makes dependency and parallel boundaries explicit.
 - When components are independent at the same layer, batch them together as parallel work instead of creating artificial sequence.
 - The overall delivery path must move from primitive components upward.
-</planning_rules>
+  </planning_rules>
