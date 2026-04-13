@@ -9,3 +9,4 @@
 **Change Title:** short change description.
 - Do not list details only overall changes.
 - Keep it compact but clear.
+- Another entry with the same objective name and date must be appended to the current section. Do not create a duplicate section with the same name and date.
