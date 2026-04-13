@@ -21,6 +21,7 @@ agents:
 Read these before planning:
 - `@~/.copilot/references/objective-spec.md`
 - `@~/.copilot/references/plan.md`
+- `@~/.copilot/references/rn-changelog.md`
 </references>
 
 <objective>
@@ -28,24 +29,58 @@ Write `plan.md` next to the approved objective spec.
 </objective>
 
 <process>
-0. Read the reference files listed above (`objective-spec.md` and `plan.md`) before doing anything else.
-1. Read the objective spec, components list and orders in the memory, and locate each in-scope component changelog before planning.
-2. Read every affected component changelog in scope and any component specs needed to understand dependency direction.
-3. Inspect only the codebase context needed to plan accurately.
-4. Build the plan from bottom to top respecting the order: primitive dependencies first, composition layers later.
-5. Batch unrelated or dependency-independent work into explicit parallel phases when safe.
-6. Write one objective-level plan in dependency order beside the objective spec.
-7. Include tests and story coverage for every component change.
-8. Return the plan path and any risks that still matter.
+0. Read all reference files listed above before doing anything else.
+
+1. **Extract all in-scope components** from the objective spec's Scope section.
+   This is your complete and fixed work list. Do not add or remove components from it.
+
+2. **Classify each in-scope component** by reading its changelog at
+   `specs/components/[component-name]/changelog.md`:
+   - `new` — component is being created from scratch.
+   - `updated` — existing component is being modified.
+   Record what specifically changed per component. This feeds directly into each phase's
+   component entries.
+
+3. **Build a dependency table** by reading each component's spec and any relevant
+   codebase context needed to confirm which in-scope components each one depends on.
+   Only list dependencies that are also in scope. External or unchanged dependencies
+   do not drive phase ordering.
+
+4. **Layer components bottom-to-top**:
+   - Layer 0: components with zero in-scope dependencies (primitives).
+   - Layer N: components whose in-scope dependencies are all in Layer N-1 or lower.
+   Each layer maps to one Phase in the Execution Map.
+
+5. **Design the phases**:
+   - One Phase per dependency layer. Phases run sequentially — Phase N must finish
+     before Phase N+1 begins.
+   - Every component inside a Phase runs in parallel. One component = one spawned worker.
+   - When the dependency relationship between two components is ambiguous, place the
+     potentially-dependent one in the next Phase. Never force unsafe parallelism.
+   - Target the minimum number of phases that correctly and safely expresses all
+     real dependency boundaries.
+
+6. **Build the Execution Map** before writing any phase detail.
+   Use the format defined in the reference. The map must be fully self-contained:
+   an orchestrator reading only the map must know exactly which components to spawn
+   in parallel per phase and the order of phases — without reading any other section.
+
+7. **Write the full plan file** next to the objective spec using the reference format.
+   Every component change must include tests and story coverage.
+
+8. Return the plan path and any risks.
 </process>
 
 <planning_rules>
-
+- The objective spec is the sole source of truth for what is in scope.
+- Changelogs are mandatory — classify every in-scope component as `new` or `updated`
+  before designing any phase. Never plan blindly.
+- Phases are synchronization barriers and always run sequentially.
+- Every component inside a Phase runs in parallel. One component = one spawned worker.
+- Layer 0 components (no in-scope deps) must all be in Phase 1.
+- When dependency direction is unclear, move the component to the next Phase. Safety over speed.
+- Target the minimum phase count that correctly expresses all real dependency boundaries.
+- The Execution Map must be self-sufficient for an orchestrator.
+- Every component change includes tests and story coverage.
 - `plan.md` must be written beside the objective `spec.md`.
-- The objective spec is the primary source of truth for scope and acceptance.
-- Respect the saved component order in memory as the bottom-to-top source of truth for dependencies.
-- In-scope component changelogs are mandatory planning inputs because they capture what actually changed per component.
-- Prefer the smallest number of phases that still makes dependency and parallel boundaries explicit.
-- When components are independent at the same layer, batch them together as parallel work instead of creating artificial sequence.
-- The overall delivery path must move from primitive components upward.
-  </planning_rules>
+</planning_rules>
