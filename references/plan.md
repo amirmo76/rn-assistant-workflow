@@ -1,6 +1,6 @@
 # Objective Plan Reference
 
-> Used by **UI Planner** and by **UI Tasker**.
+> Used by **UI Planner** to write `plan.md`, and by **UI Assistant** (orchestrator) to drive phase-by-phase execution.
 > Defines the required structure and rules for `specs/doing/[objective-name]/plan.md`.
 
 ## Orchestration Architecture

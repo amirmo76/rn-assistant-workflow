@@ -128,14 +128,44 @@ One UI objective moves through these steps at a time.
 
 ---
 
+## Step 9 — Execute
+
+Read the `Execution Map` from `plan.md`. Execute the plan phase by phase in strict sequence.
+
+### Per Phase
+
+1. Spawn one `UI Worker` per component listed in the phase — all in parallel.
+   Each worker receives:
+   - component name
+   - path to component spec (`specs/components/[component-name]/spec.md`)
+   - path to objective spec
+   - the phase's work items from `plan.md` scoped to that component
+   - project init facts from `/memories/session/ui-state.md` (package manager, stack)
+2. Wait for all workers in the phase to report `done` or `blocked`.
+3. After all workers complete, ask the user to verify the phase via `vscode/askQuestions`:
+   - **Approved** → update phase status in `/memories/session/ui-state.md`, proceed to next phase.
+   - **Change requested** → apply the requested change directly, then re-present for approval. Loop until explicit approval.
+
+### After All Phases
+
+- Update `/memories/session/ui-state.md` to mark the objective as complete.
+- Announce completion to the user.
+
+**Exit criteria:** every phase in the Execution Map is complete and approved by the user.
+
+---
+
 ## Rules
 
 - Initialize the project (Step 2) before doing any scope detection or spec work.
 - First thing after init is to detect component scope of the objective using the script.
-- The workflow is not done unless all of the components in the scope have `done` status.
+- The workflow is not done unless all phases of execution are approved and complete.
 - Objective spec is written before the component specs.
 - Component ordering must be decided before component spec writing starts.
 - Component spec writing and planning both follow the saved bottom-to-top order.
 - Component specs describe the current contract. Rewrite them cleanly; do not append loose notes.
 - Never pause the workflow with plain-text approval requests or questions. All questions and approvals must go through `vscode/askQuestions`.
-- The workflow runs continuously until `plan.md` is written after a passing review.
+- Execution begins directly after planning — no intermediate tasking step.
+- One worker per component per phase; workers within a phase run in parallel.
+- Phases run strictly sequentially; no phase begins until the previous is user-approved.
+- The workflow runs continuously until all execution phases are approved and complete.
