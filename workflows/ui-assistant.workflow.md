@@ -48,11 +48,11 @@ One UI objective moves through these steps at a time.
 ## Step 3 — Detect Scope
 
 - Call `python @~/.copilot/scripts/ui-architect.py --file <tree.yaml-path> --list-components` to get a full list of all the components in the scope of this objective.
-- This is the list you will spawn spec writer agents per each in step 4.
-- fully internalize the list.
-- save the list in /memories/session/ui-state.md with status indicator for each component whether it is `pending`, `done`.
+- For each component in the list, also call `python @~/.copilot/scripts/ui-architect.py --file <tree.yaml-path> --context <component-name>` to collect any available context. If the output is "No context found", skip silently — this is expected when no context annotations exist for that component.
+- Fully internalize both the component list and any context output.
+- Save the list in /memories/session/ui-state.md with a status indicator for each component (`pending` / `done`). If context was found for a component, note it briefly beside its entry so spec writers can reference it without re-running the script.
 
-**Exit criteria:** component scope is clear and /memories/session/ui-state.md knows the exact list and proper status.
+**Exit criteria:** component scope is clear, context is gathered, and /memories/session/ui-state.md knows the exact list and proper status.
 
 ---
 
@@ -158,7 +158,7 @@ Read the `Execution Map` from `plan.md`. Execute the plan phase by phase in stri
 ## Rules
 
 - Initialize the project (Step 2) before doing any scope detection or spec work.
-- First thing after init is to detect component scope of the objective using the script.
+- First thing after init is to detect component scope and context using the architect script (`--list-components` then `--context` per component).
 - The workflow is not done unless all phases of execution are approved and complete.
 - Objective spec is written before the component specs.
 - Component ordering must be decided before component spec writing starts.

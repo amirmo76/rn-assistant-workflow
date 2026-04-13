@@ -1,11 +1,12 @@
 _Context_:
-    Card: "Just a shell container"
-    CardHeader: "Just a layout wrapper which positions its children"
-    CardTitle: "Just a text element with some styling"
-    CardSubtitle: "Just a text element with some styling"
-    Field: "Just a layout wrapper which positions its children"
-    InputGroupInput: "The interactive input element which is used within an InputGroup"
-    InputGroupAddon: "The additional element which is used within an input group at the end or the beginning of the input and renders its children"
+  Card: "Just a shell container"
+  CardHeader: "Just a layout wrapper which positions its children"
+  CardTitle: "Just a text element with some styling"
+  CardSubtitle: "Just a text element with some styling"
+  Field: "Just a layout wrapper which positions its children"
+  InputGroupInput: "The interactive input element which is used within an InputGroup"
+  InputGroupAddon: "The additional element which is used within an input group at the end or the beginning of the input and renders its children"
+  Button: "The interactive button element which can be used in various contexts and supports different variants and sizes"
 ---
 LoginCard:
   - Card:
@@ -15,7 +16,7 @@ LoginCard:
       - CardContent:
           - Field:
               - Label:
-                - "@context: NO_CHANGE"
+                  - "@context: NO_CHANGE"
               - InputGroup:
                   - InputGroupInput
                   - InputGroupAddon:
@@ -26,7 +27,7 @@ LoginCard:
                   - InputGroupInput
                   - InputGroupAddon:
                       - Button:
-                        - "@context: variant=ghost, size=icon-sm, icon=eye-closed"
+                          - "@context: variant=ghost, size=icon-sm, icon=eye-closed"
       - CardFooter:
           - Button:
               - "@context: variant=primary, size=lg"

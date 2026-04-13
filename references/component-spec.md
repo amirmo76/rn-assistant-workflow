@@ -10,6 +10,8 @@ Permanent source-of-truth format for `specs/components/[component-name]/spec.md`
 
 One short paragraph describing the component's standalone role, purpose, and behaviour. Write from the component's perspective, not from any specific usage context. Do not reference the objective, parent components, or screens that triggered its creation.
 
+If `--context` returned a **global context** entry for this component (`=== Global Context ===`), use it to anchor the summary — it is the designer's concise statement of the component's intended scope and constraints. The summary must be consistent with that description.
+
 ### 2. Architecture
 
 - **Atomic level:** `atom | molecule | organism | template | page`
@@ -77,6 +79,8 @@ Example:
 | **Variant** | `outline` | How it changes |
 | **Variant** | `ghost` | How it changes |
 ```
+
+If `--context` returned **instance contexts** (`=== Instance Contexts ===`), cross-reference them when filling this table. Each `@context: variant=X, size=Y` entry is direct evidence of a real variant combination in use. Do not add variant rows that have no evidence in either the design or the instance contexts.
 
 If none: _No variants_
 

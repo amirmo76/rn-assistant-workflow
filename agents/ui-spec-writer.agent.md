@@ -33,24 +33,30 @@ Write or update exactly one spec file and a changelog.md file for one component 
 - Component spec: `specs/components/[component-name]/spec.md`.
 - Component Changelog: `specs/components/[component-name]/changelog.md`, Objective specs do not have changelogs.
 - Architect script for dependencies: `python ~/.copilot/scripts/ui-architect.py --file <tree.yaml-path> --deps <component-name>` for component specs, `python ~/.copilot/scripts/ui-architect.py --file <tree.yaml-path> --list-components` for objective specs.
+- Architect script for context: `python ~/.copilot/scripts/ui-architect.py --file <tree.yaml-path> --context <component-name>`.
 </paths>
 
 <process>
 0. Read the correct reference for the requested mode (`objective-spec.md` or `component-spec.md`) and read the `ui-changelog.md` before doing anything else.
 1. Read brief, exact visuals or Figma URLs, exact file paths in the scope, related specs, and only the code needed for context.
 2. If it is a component spec, run `python ~/.copilot/scripts/ui-architect.py --file <tree.yaml-path> --deps <component-name>` to get the direct dependency list. Never omit any component.
-3. If it is an objective spec, run `python ~/.copilot/scripts/ui-architect.py --file <tree.yaml-path> --list-components` to get all components in scope. Never omit any component from this list.
-4. If Figma URLs are provided, fetch design context and screenshots.
-5. If visuals are provided, analyze them.
-6. Ask questions via vscode/askQuestions if anything is ambiguous or missing in the brief.
-7. Write the file based on the reference.
-8. Ask for approval. If the user requests changes, update the file and repeat.
-9. After approval, if it is a component spec, update the changelog.md file with the exact changes made to the component spec.
-10. Finish only after explicit approval.
+3. If it is a component spec, also run `python ~/.copilot/scripts/ui-architect.py --file <tree.yaml-path> --context <component-name>` to get context information. This is optional output — use it when available to deepen component understanding (see rules below).
+4. If it is an objective spec, run `python ~/.copilot/scripts/ui-architect.py --file <tree.yaml-path> --list-components` to get all components in scope. Never omit any component from this list.
+5. If Figma URLs are provided, fetch design context and screenshots.
+6. If visuals are provided, analyze them.
+7. Ask questions via vscode/askQuestions if anything is ambiguous or missing in the brief.
+8. Write the file based on the reference.
+9. Ask for approval. If the user requests changes, update the file and repeat.
+10. After approval, if it is a component spec, update the changelog.md file with the exact changes made to the component spec.
+11. Finish only after explicit approval.
 </process>
 
 <rules>
 - Use `python ~/.copilot/scripts/ui-architect.py` as the source of truth for dependency lists and component scope. Read `tree.yaml` for additional context (usage patterns, how dependencies are nested) but never let a manual tree reading override the script output.
+- When `--context` output is available, use it as follows:
+  - **Global context** (`=== Global Context ===`): treat as a concise designer note about the component's intended role and constraints. Use it to sharpen the Summary section — confirm the component is scoped exactly as described, nothing more.
+  - **Instance contexts** (`=== Instance Contexts ===`): each entry shows one real usage site with extra context. Use this to undrestand extra information about a usage instance. Like variants and states. Instance paths also reveal the component's position in the composition hierarchy, which can inform the architectural context of the spec.
+  - If `--context` returns "No context found", continue without it — do not treat this as an error.
 - Each component spec dependency list must be exact and complete.
 - A dependency is a component that is directly imported and rendered/used inside this component's own implementation. Components that a parent composes around or inside this component are NOT its dependencies.
 - Treat the script output as the source of truth for the dependency list. Read `tree.yaml` for additional context only (how each dependency is used/positioned) — if any conclusion drawn from reading the tree conflicts with the script output, the script wins.
@@ -62,27 +68,32 @@ Write or update exactly one spec file and a changelog.md file for one component 
 Classify every component into exactly one atomic design type using these rules:
 
 **Atom**
+
 - Has zero direct component dependencies (imports no other custom components).
 - May accept `children` as a prop — that does NOT make it a non-atom; the parent handles composition.
 - May use only platform primitives (e.g. `View`, `Text`, `Image`, `Pressable` for React Native; `div`, `span`, `button`, `img` for web) and design-system tokens.
 - Examples: Button, Icon, Badge, Divider, Avatar.
 
 **Molecule**
+
 - Has one or more direct component dependencies, all of which are Atoms.
 - Combines atoms into a small, self-contained UI unit.
 - Examples: ListItem (Avatar + Text).
 
 **Organism**
+
 - Has direct component dependencies that include at least one Molecule (or another Organism).
 - Represents a distinct, reusable section of UI.
 - Examples: Header (Logo + NavLinks + Button), ProductCard (Image + Title + Price + Button).
 
 **Template**
+
 - Defines the page-level layout skeleton.
 - Composes organisms and molecules into slot-based regions; contains no real content.
 - Examples: TwoColumnLayout, ModalTemplate.
 
 **Page**
+
 - The top-level screen component wired to a route.
 - Treated as a "dumb" Presenter: receives all data via props, renders a Template filled with Organisms.
 - Has no direct data-fetching logic.
@@ -97,4 +108,4 @@ Classify every component into exactly one atomic design type using these rules:
 - To detect design tokens, highest priority is value match and visual correctness, then semantic name.
 - Use hardcoded values when you can not infer a design token with high confidence. If you use hardcoded values, be specific and exact.
 - The "Values and Design System Tokens" table must only contain design values that the current component directly controls — values applied to its own platform primitives. Never include a value that is under the control of a dependency component. If a dependency component renders a surface, background, or border, those values belong in that dependency's spec, not here.
-</rules>
+  </rules>
