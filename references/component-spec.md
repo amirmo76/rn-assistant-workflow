@@ -62,8 +62,21 @@ If none: _No Assets_
 
 #### Variants
 
-|  Variant | What is different |
-|----------|-------------------|
+|  Variant Group | Variance | What differs |
+|----------------|----------|--------------|
+
+Example:
+
+```markdown
+| Variant Group | Variance | What differs |
+| :--- | :--- | :--- |
+| **Size** | `lg` | How it changes |
+| **Size** | `md` | How it changes |
+| **Size** | `sm` | How it changes |
+| **Variant** | `primary` | How it changes |
+| **Variant** | `outline` | How it changes |
+| **Variant** | `ghost` | How it changes |
+```
 
 If none: _No variants_
 
