@@ -55,6 +55,7 @@ Write or update exactly one spec file and a changelog.md file for one component 
 - A dependency is a component that is directly imported and rendered/used inside this component's own implementation. Components that a parent composes around or inside this component are NOT its dependencies.
 - Treat the script output as the source of truth for the dependency list. Read `tree.yaml` for additional context only (how each dependency is used/positioned) — if any conclusion drawn from reading the tree conflicts with the script output, the script wins.
 - A component dependency list should be exactly as the script output.
+- Only include project instructions that make macro level effects on the component's implementation. Do not rewrite the instructions in a micro level inside the spec as well. (eg. not using `any` type is a project instruction that should be followed, but it does not need to be repeated in the spec's "Props" section for every prop.)
 
 ## Atomic Design Classification
 
