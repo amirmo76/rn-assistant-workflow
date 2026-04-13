@@ -21,7 +21,7 @@ agents:
 Read these before planning:
 - `@~/.copilot/references/objective-spec.md`
 - `@~/.copilot/references/plan.md`
-- `@~/.copilot/references/rn-changelog.md`
+- `@~/.copilot/references/ui-changelog.md`
 </references>
 
 <objective>

@@ -25,21 +25,21 @@ Write or update exactly one spec file and a changelog.md file for one component 
 - Objective mode: read `@~/.copilot/references/objective-spec.md`.
 - Component mode: 
   - read `@~/.copilot/references/component-spec.md`.
-  - read `@~/.copilot/references/rn-changelog.md`.
+  - read `@~/.copilot/references/ui-changelog.md`.
 </references>
 
 <paths>
 - Objective spec: `specs/queue/[name]/spec.md`, unless the caller provides an existing `queue`, `doing`, or `done` path to update.
 - Component spec: `specs/components/[component-name]/spec.md`.
 - Component Changelog: `specs/components/[component-name]/changelog.md`, Objective specs do not have changelogs.
-- Architect script for dependencies: `python ~/.copilot/scripts/rn-architect.py --file <tree.yaml-path> --deps <component-name>` for component specs, `python ~/.copilot/scripts/rn-architect.py --file <tree.yaml-path> --list-components` for objective specs.
+- Architect script for dependencies: `python ~/.copilot/scripts/ui-architect.py --file <tree.yaml-path> --deps <component-name>` for component specs, `python ~/.copilot/scripts/ui-architect.py --file <tree.yaml-path> --list-components` for objective specs.
 </paths>
 
 <process>
-0. Read the correct reference for the requested mode (`objective-spec.md` or `component-spec.md`) and read the `rn-changelog.md` before doing anything else.
+0. Read the correct reference for the requested mode (`objective-spec.md` or `component-spec.md`) and read the `ui-changelog.md` before doing anything else.
 1. Read brief, exact visuals or Figma URLs, exact file paths in the scope, related specs, and only the code needed for context.
-2. If it is a component spec, run `python ~/.copilot/scripts/rn-architect.py --file <tree.yaml-path> --deps <component-name>` to get the direct dependency list. Never omit any component.
-3. If it is an objective spec, run `python ~/.copilot/scripts/rn-architect.py --file <tree.yaml-path> --list-components` to get all components in scope. Never omit any component from this list.
+2. If it is a component spec, run `python ~/.copilot/scripts/ui-architect.py --file <tree.yaml-path> --deps <component-name>` to get the direct dependency list. Never omit any component.
+3. If it is an objective spec, run `python ~/.copilot/scripts/ui-architect.py --file <tree.yaml-path> --list-components` to get all components in scope. Never omit any component from this list.
 4. If Figma URLs are provided, fetch design context and screenshots.
 5. If visuals are provided, analyze them.
 6. Ask questions via vscode/askQuestions if anything is ambiguous or missing in the brief.
@@ -50,7 +50,7 @@ Write or update exactly one spec file and a changelog.md file for one component 
 </process>
 
 <rules>
-- Use `python ~/.copilot/scripts/rn-architect.py` as the source of truth for dependency lists and component scope. Read `tree.yaml` for additional context (usage patterns, how dependencies are nested) but never let a manual tree reading override the script output.
+- Use `python ~/.copilot/scripts/ui-architect.py` as the source of truth for dependency lists and component scope. Read `tree.yaml` for additional context (usage patterns, how dependencies are nested) but never let a manual tree reading override the script output.
 - Each component spec dependency list must be exact and complete.
 - A dependency is a component that is directly imported and rendered/used inside this component's own implementation. Components that a parent composes around or inside this component are NOT its dependencies.
 - Treat the script output as the source of truth for the dependency list. Read `tree.yaml` for additional context only (how each dependency is used/positioned) — if any conclusion drawn from reading the tree conflicts with the script output, the script wins.

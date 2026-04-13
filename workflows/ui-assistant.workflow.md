@@ -47,7 +47,7 @@ One UI objective moves through these steps at a time.
 
 ## Step 3 — Detect Scope
 
-- Call `python @~/.copilot/scripts/rn-architect.py --file <tree.yaml-path> --list-components` to get a full list of all the components in the scope of this objective.
+- Call `python @~/.copilot/scripts/ui-architect.py --file <tree.yaml-path> --list-components` to get a full list of all the components in the scope of this objective.
 - This is the list you will spawn spec writer agents per each in step 4.
 - fully internalize the list.
 - save the list in /memories/session/ui-state.md with status indicator for each component whether it is `pending`, `done`.

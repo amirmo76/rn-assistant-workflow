@@ -20,35 +20,27 @@ FOLDER_MAP = {
 
 MANAGED_ENTRIES = {
     "agents": {
-        "rn-assistant.agent.md",
-        "rn-architect.agent.md",
-        "rn-explore.agent.md",
-        "rn-initializer.agent.md",
-        "rn-planner.agent.md",
-        "rn-spec-writer.agent.md",
-        "rn-tasker.agent.md",
-        "rn-worker.agent.md",
-        "rn-researcher.agent.md",
-        "rn-reviewer.agent.md",
-        "rn-review.agent.md",
+        "ui-assistant.agent.md",
+        "ui-explore.agent.md",
+        "ui-initializer.agent.md",
+        "ui-planner.agent.md",
+        "ui-review.agent.md",
+        "ui-spec-writer.agent.md",
+        "ui-worker.agent.md",
     },
     "references": {
         "component-spec.md",
         "objective-spec.md",
         "plan.md",
-        "task-list.md",
-        "agent-report.md",
-        "rn-changelog.md"
+        "ui-changelog.md",
     },
     "workflows": {"ui-assistant.workflow.md"},
-    "scripts": {"rn-architect.py", "detect-project.py", "tests"},
+    "scripts": {"ui-architect.py", "detect-project.py", "tests"},
     "skills": {
-        "rn-tree-decomposition",
         "rn-testing-setup",
         "rn-storybook-setup",
-        "rn-tree-decomposition.skill.md",
-        "rn-testing-setup.skill.md",
-        "rn-storybook-setup.skill.md",
+        "web-testing-setup",
+        "web-storybook-setup",
     },
 }
 
@@ -69,7 +61,7 @@ MODEL_PRESETS = {
 }
 
 MODEL_LINE_RE = re.compile(r"^(model:\s*)(.+)$", re.MULTILINE)
-ORCHESTRATOR_AGENT = "rn-assistant"
+ORCHESTRATOR_AGENT = "ui-assistant"
 
 
 def get_source_dir() -> Path:

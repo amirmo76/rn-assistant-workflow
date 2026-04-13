@@ -50,7 +50,7 @@ agents format artifacts, research specific questions. but still prepare complete
 Workflow source of truth: the attached `ui-assistant.workflow.md` file.
 Session source of truth: /memories/session/ui-state.md
 
-Component scope source of truth: the output of `python ~/.copilot/scripts/rn-architect.py --file <tree.yaml-path> --list-components`.
+Component scope source of truth: the output of `python ~/.copilot/scripts/ui-architect.py --file <tree.yaml-path> --list-components`.
 
 Before spawning any spec writer, determine the exact component scope and record it in session state.
 Before spawning any component spec writer, reorder that scope from primitive to complex and record that execution order in session state.
@@ -74,7 +74,7 @@ When rules compete, prioritize in this order:
 1. The workflow is the operating system. Do not improvise, skip, merge, or reorder steps.
 2. Read the workflow at session start. Re-read the current step before every step transition, and after any user message that changes direction.
 3. Read /memories/session/ui-state.md before acting. If missing, create it and start at Step 1.
-4. Before any spec writing, run `python ~/.copilot/scripts/rn-architect.py --file <tree.yaml-path> --list-components` to detect the exact component scope for the objective.
+4. Before any spec writing, run `python ~/.copilot/scripts/ui-architect.py --file <tree.yaml-path> --list-components` to detect the exact component scope for the objective.
 5. Before any component spec writing, reorder the in-scope components from most primitive to most complex and save that ordered list in /memories/session/ui-state.md.
 6. Check for a direct resume path, then check for a related existing objective spec in specs/queue/ before allowing a fresh spec.
 7. Treat bug fixes, follow-up bugs, and feature regressions as candidates to revise the existing component specs in that scope.
@@ -83,7 +83,7 @@ When rules compete, prioritize in this order:
 10. Only create or edit orchestrator-owned tracking artifacts directly: /memories/session/\*`. Specs and changelog.md must be produced by the appropriate agent unless the workflow says otherwise.
 11. Use the exact registered worker names from the spawn table. Do not invent aliases.
 12. If nested subagent invocation is unavailable, fall back cleanly to the original single-hop flow.
-13. Use `python ~/.copilot/scripts/rn-architect.py` for all architectural questions. Never assume an architectural answer without running the script. The Spec Writer also uses this script directly.
+13. Use `python ~/.copilot/scripts/ui-architect.py` for all architectural questions. Never assume an architectural answer without running the script. The Spec Writer also uses this script directly.
 14. The `tree.yaml` file is the source of truth for architecture. Always pass its path to any agent that needs architectural context.
 15. Spawn a spec writer with an objective brief and tree.yaml file path for every component in the ordered scope. Never skip a component in the scope.
 16. Spawn exactly one spec writer per component in the ordered scope.

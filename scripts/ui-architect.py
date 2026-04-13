@@ -1,10 +1,10 @@
 #!/usr/bin/env python3
 """
-rn-architect.py — Component tree YAML parser for architectural queries.
+ui-architect.py — Component tree YAML parser for architectural queries.
 
 Usage:
-  python rn-architect.py --file tree.yaml --list-components
-  python rn-architect.py --file tree.yaml --deps LoginCard
+    python ui-architect.py --file tree.yaml --list-components
+    python ui-architect.py --file tree.yaml --deps LoginCard
 
 Two modes:
   --list-components   Print every unique component name found anywhere in the file.
