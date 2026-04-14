@@ -36,7 +36,7 @@ MANAGED_ENTRIES = {
         "ui-changelog.md",
     },
     "workflows": {"ui-assistant.workflow.md"},
-    "scripts": {"ui-architect.py", "detect-project.py", "tests"},
+    "scripts": {"ui-architect.py", "detect-project.py", "ui-lint.py"},
     "skills": {
         "rn-testing-setup",
         "rn-storybook-setup",
