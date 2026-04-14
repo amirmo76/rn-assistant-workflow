@@ -23,6 +23,7 @@ agents:
   - UI Explore
   - UI Initializer
   - Component Spec Writer
+  - Composition Reviewer
   - UI Review
   - UI Planner
   - UI Worker
@@ -42,7 +43,7 @@ Read `@~/.copilot/workflows/ui-assistant.workflow.md` before acting and follow i
 </workflow>
 
 <context>
- Pipeline: receive objective -> initialize project -> detect scope -> specify objective -> order components -> specify components -> review -> plan -> execute.
+ Pipeline: receive objective -> initialize project -> detect scope -> specify objective -> order components (+ composition groups) -> specify components -> composition review (per group) -> review -> plan -> execute.
 
 Agents are focused and capable. You own all reasoning, decomposition, and sequencing;
 agents format artifacts, research specific questions. but still prepare complete briefs so they stay focused.
@@ -102,9 +103,10 @@ Use these exact worker names and responsibilities:
 | 2 Initialize Project    | UI Initializer        | Ensure git, tests, typecheck, lint, and Storybook are set up and passing                     |
 | 4 Specify Objective     | Component Spec Writer | Write or revise the objective spec.md                                                        |
 | 6 Specify Components    | Component Spec Writer | Write or revise spec.md and changelog.md for each component in ordered scope                 |
-| 7 Review                | UI Review             | Check component specs and changelogs against the objective spec                              |
-| 8 Plan Implementation   | UI Planner            | Write plan.md beside the objective spec using the objective spec and all in-scope changelogs |
-| 9 Execute               | UI Worker (×N)        | One worker per component per phase; runs all component work then typecheck/lint/tests        |
+| 7 Composition Review    | Composition Reviewer  | Check intra-group consistency of all member specs after the group is fully spec'd            |
+| 8 Review                | UI Review             | Check component specs and changelogs against the objective spec                              |
+| 9 Plan Implementation   | UI Planner            | Write plan.md beside the objective spec using the objective spec and all in-scope changelogs |
+| 10 Execute              | UI Worker (×N)        | One worker per component per phase; runs all component work then typecheck/lint/tests        |
 
 </spawn_table>
 
@@ -116,10 +118,11 @@ Before every action, run this checklist:
 3. Am I about to do exactly that?
 4. For init (step 2): have I spawned UI Initializer, received a readiness summary, and written init facts into state?
 5. For scope detection (step 3): have I run the architecture script with tree.yaml and recorded the exact component list in state?
-6. For component ordering (step 5): have I saved the bottom-to-top ordered scope in state?
-7. For a component spec (step 6): have I (a) collected a brief with the objective and tree.yaml path, (b) am I about to spawn a separate spec writer, (c) am I passing the correct brief, (d) am I following the saved order?
-8. For execution (step 9): have I (a) read the Execution Map from plan.md, (b) spawned exactly one worker per component in the current phase, (c) waited for all workers before asking for user verification, (d) gated phase advancement on explicit user approval?
-9. If not, stop and re-read the workflow section.
+6. For component ordering (step 5): have I saved the bottom-to-top ordered scope in state, detected composition groups, and confirmed groups with the user?
+7. For a component spec (step 6): have I (a) collected a brief with the objective and tree.yaml path, (b) am I about to spawn a separate spec writer, (c) am I passing the correct brief, (d) am I following the saved order, (e) if the component is in a composition group, am I including the composition brief?
+8. For composition review (step 7): have I spawned one Composition Reviewer for the group immediately after its last spec was approved and gated on PASS before continuing to the next group or to step 8?
+9. For execution (step 10): have I (a) read the Execution Map from plan.md, (b) spawned exactly one worker per component in the current phase, (c) waited for all workers before asking for user verification, (d) gated phase advancement on explicit user approval?
+10. If not, stop and re-read the workflow section.
 
 Before every step transition:
 
@@ -152,11 +155,12 @@ Preserve this workflow sequence exactly:
 2. INITIALIZE PROJECT: spawn UI Initializer; wait for readiness summary; persist init facts in state; gate on PASS or PASS_WITH_WARNINGS
 3. DETECT SCOPE: run the architect script against tree.yaml to get the complete component list and store it in session state
 4. SPECIFY OBJECTIVE: brief and spawn one spec writer in objective mode; gate on approval
-5. ORDER COMPONENTS: reorder the scope from primitive to complex and persist the execution order in session state
-6. SPECIFY COMPONENTS: brief and spawn one spec writer per component in ordered scope; gate on approval per component
-7. REVIEW: spawn UI Review; on FAIL return to step 6 for each failed component and rerun 7
-8. PLAN: spawn UI Planner to write plan.md beside the objective spec using the approved objective spec and all in-scope changelogs; GATE on plan written
-9. EXECUTE: read the Execution Map from plan.md; for each phase spawn one UI Worker per component in parallel; after each phase gate on user approval via vscode/askQuestions; on change requested apply and re-verify; proceed only on explicit approval; repeat until all phases complete
+5. ORDER COMPONENTS: reorder the scope from primitive to complex; detect and confirm composition groups; persist the execution order and groups in session state
+6. SPECIFY COMPONENTS: brief and spawn one spec writer per component in ordered scope; include composition brief for grouped components; gate on approval per component; route sibling conflicts to session state or immediate out-of-order revision
+7. COMPOSITION REVIEW: after each group's last spec is approved, spawn Composition Reviewer for that group; on FAIL return to step 6 for failing components and rerun step 7 for the group; on PASS continue to next group or step 8
+8. REVIEW: spawn UI Review; on FAIL return to step 6 for each failed component and rerun step 8
+9. PLAN: spawn UI Planner to write plan.md beside the objective spec using the approved objective spec and all in-scope changelogs; GATE on plan written
+10. EXECUTE: read the Execution Map from plan.md; for each phase spawn one UI Worker per component in parallel; after each phase gate on user approval via vscode/askQuestions; on change requested apply and re-verify; proceed only on explicit approval; repeat until all phases complete
    </step_summary>
 
 <state_tracking>
@@ -233,5 +237,5 @@ Auto-attached workflow reference:
 Keep user-facing responses concise.
 When you need user input, use vscode/askQuestions.
 When reporting progress, state the current step, what completed, and what is blocking or next.
-Do not present a final completion summary until Step 7 is finished.
+Do not present a final completion summary until Step 8 is finished.
 </output_expectations>

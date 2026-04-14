@@ -78,7 +78,22 @@ One UI objective moves through these steps at a time.
 - Save the ordered list in /memories/session/ui-state.md and mark it as the required execution order for Step 6 and Step 8.
 - Keep both the original detected scope and the ordered scope in state when useful, but the ordered scope is the source of truth for downstream execution.
 
-**Exit criteria:** /memories/session/ui-state.md contains the approved bottom-to-top component order for this objective.
+### Composition Group Detection
+
+After the bottom-to-top order is determined, detect composition groups within the in-scope components before spec writing begins.
+
+**Detection method:** infer groups from component naming patterns (shared prefix, e.g. `Card`, `CardHeader`, `CardFooter`, `CardBody`). Also use the component list and any available `--context` output to reason about likely groupings.
+
+Present proposed composition groups to the user via `vscode/askQuestions` for approval. The user can accept, edit, or reject any grouping. Components not part of any group remain in the individual order unchanged.
+
+**Restructure the ordered list in `/memories/session/ui-state.md`:**
+
+- The **overall order remains bottom-to-top**, driven by hard dependencies — the same rule as before.
+- A composition group is treated as a **unit** placed at the position of its most foundational member.
+- **Within a composition group**, members are ordered foundational-first: the container or root member first, then members that depend on or extend it.
+- Groups are listed under a named group header in session state so the boundary is visually clear.
+
+**Exit criteria:** composition groups are approved by the user and recorded in `/memories/session/ui-state.md`. The ordered list (including groups) is the source of truth for Step 6.
 
 ---
 
@@ -90,30 +105,60 @@ One UI objective moves through these steps at a time.
   - overall objective description
   - `tree.yaml` path
   - relevant visuals or Figma URLs
+  - if the component belongs to a composition group: a **composition brief** containing:
+    - the name of the composition group
+    - the list of all member components in the group
+    - each member's distinct responsibility within the composition (draft; spec writer may refine)
+    - any known shared contracts: shared React Context, shared design tokens, shared spacing or border strategy
+  - if session state records a sibling conflict for this component: include it in the brief so it is addressed during spec writing
 - The spec writer creates or updates `specs/components/[component-name]/spec.md` and `changelog.md`.
+- If the spec writer reports a **sibling conflict** in its output:
+  - **Sibling not yet spec'd** (upcoming in order): record the conflict in session state beside the sibling's entry. Include it in the sibling's spec writer brief when its turn arrives.
+  - **Sibling already spec'd** (turn already passed): after the current spec is user-approved, immediately spawn a spec writer for the sibling — out of normal order — to apply the specific adjustment. Gate on user approval of the updated spec. Then resume the original order. Track resolution in session state.
 - Follow the saved bottom-to-top order strictly.
+- After all component specs in a composition group are approved, proceed to Step 7 (Composition Review) for that group before continuing to the next group.
 - Gate on explicit user approval for each component spec before moving to the next.
 - After approval update /memories/session/ui-state.md.
-- Do not proceed to Step 7 until all component specs are approved.
+- Do not proceed to Step 8 until all component specs are approved and all composition groups have passed Step 7.
 
-**Exit criteria:** every component in scope has an approved spec and updated changelog.
+**Exit criteria:** every component in scope has an approved spec and updated changelog; every composition group conflict is resolved and recorded in session state.
 
 ---
 
-## Step 7 — Review
+## Step 7 — Composition Review
+
+After all component specs in a composition group are approved, spawn a `Composition Reviewer` for that group before moving to the next group or to the global review step.
+
+**Trigger:** immediately after the last component spec in a composition group is user-approved.
+
+- Spawn `Composition Reviewer` with:
+  - the name of the composition group
+  - paths to all member component specs
+  - the objective spec path
+- Wait for the result: `PASS` or `FAIL` with a specific, actionable list of issues keyed to component name and spec section.
+- On **FAIL**: route failing components back through Step 6 (spec writing), then re-run Step 7 for that group.
+- On **PASS**: continue to the next group, or to Step 8 once all groups have passed.
+
+If there are no composition groups in scope, this step is a no-op; proceed directly to Step 8.
+
+**Exit criteria:** every composition group has a `PASS` from the Composition Reviewer.
+
+---
+
+## Step 8 — Review
 
 - Spawn `UI Review` with:
   - path to the objective spec
   - paths to all affected component specs and their changelogs
 - `UI Review` checks that every required change listed in the objective spec is explicitly present in the matching component spec.
-- On **FAIL**: return to Step 6 for each failed component. Then re-run Step 7.
-- On **PASS**: proceed to Step 8.
+- On **FAIL**: return to Step 6 for each failed component. Then re-run Step 8.
+- On **PASS**: proceed to Step 9.
 
 **Exit criteria:** `RN Review` returns PASS.
 
 ---
 
-## Step 8 — Plan Implementation
+## Step 9 — Plan Implementation
 
 - Spawn `UI Planner` with:
   - path to the approved objective spec
@@ -128,7 +173,7 @@ One UI objective moves through these steps at a time.
 
 ---
 
-## Step 9 — Execute
+## Step 10 — Execute
 
 Read the `Execution Map` from `plan.md`. Execute the plan phase by phase in strict sequence.
 
@@ -162,7 +207,10 @@ Read the `Execution Map` from `plan.md`. Execute the plan phase by phase in stri
 - The workflow is not done unless all phases of execution are approved and complete.
 - Objective spec is written before the component specs.
 - Component ordering must be decided before component spec writing starts.
+- Composition group detection (Step 5) must run after ordering and before spec writing (Step 6).
 - Component spec writing and planning both follow the saved bottom-to-top order.
+- Component Spec Writer must never modify sibling spec files. Sibling conflicts must be reported in the spec writer's output and routed by the assistant.
+- Composition Review (Step 7) fires per group after the group's last spec is approved. It does not replace the global Review step (Step 8).
 - Component specs describe the current contract. Rewrite them cleanly; do not append loose notes.
 - Never pause the workflow with plain-text approval requests or questions. All questions and approvals must go through `vscode/askQuestions`.
 - Execution begins directly after planning — no intermediate tasking step.

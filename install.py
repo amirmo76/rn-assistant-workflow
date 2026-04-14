@@ -27,6 +27,7 @@ MANAGED_ENTRIES = {
         "ui-review.agent.md",
         "ui-spec-writer.agent.md",
         "ui-worker.agent.md",
+        "ui-composition-reviewer.agent.md"
     },
     "references": {
         "component-spec.md",

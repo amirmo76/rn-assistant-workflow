@@ -17,7 +17,16 @@ If `--context` returned a **global context** entry for this component (`=== Glob
 - **Atomic level:** `atom | molecule | organism | template | page`
 - **Component Dependencies:** a list of all the directly imported and dependent components.
 
-### 3. Public Contract
+### 3. Composition
+
+Only required when the component belongs to a composition group. If this component is not part of a composition group: _Not part of a composition group._
+
+- **Composition Group:** the name of the group this component belongs to.
+- **Role:** one sentence describing this component's specific job within the composition and what it explicitly does **not** own (so there is no ambiguity with siblings).
+- **Produced:** values, context, or styling this component is the sole owner of and surfaces to sibling consumers (e.g. provides `InputGroupContext` with `variant`; owns left/right border radius).
+- **Consumed:** values or context this component receives from a sibling or the group container (e.g. reads `variant` from `InputGroupContext`; relies on `InputGroup` for outer border).
+
+### 4. Public Contract
 
 Props, callbacks, and named slots, if any.
 
@@ -26,13 +35,13 @@ Props, callbacks, and named slots, if any.
 
 - Children prop is always optional even when the component expects a child.
 
-### 4. Internal State
+### 5. Internal State
 
 Internal state management.
 
 If none: _No Internal_
 
-### 4. Visual Contract
+### 5. Visual Contract
 
 Describe only the current UI contract.
 
@@ -99,16 +108,16 @@ gesture and animations details if any.
 
 If none: _No Animation or Gesture_
 
-### 5. Behaviour Contract
+### 6. Behaviour Contract
 
 Interaction rules, possible user stories, controlled vs local state, accessibility requirements, and edge cases.
 
-### 6. Coverage Contract
+### 7. Coverage Contract
 
 - Required story coverage.
 - Required test coverage.
 
-### 7. Acceptance Criteria
+### 8. Acceptance Criteria
 
 Observable facts that confirm the component matches this spec.
 

@@ -45,10 +45,12 @@ Write or update exactly one spec file and a changelog.md file for one component 
 5. If Figma URLs are provided, fetch design context and screenshots.
 6. If visuals are provided, analyze them.
 7. Ask questions via vscode/askQuestions if anything is ambiguous or missing in the brief.
-8. Write the file based on the reference.
-9. Ask for approval. If the user requests changes, update the file and repeat.
-10. After approval, if it is a component spec, update the changelog.md file with the exact changes made to the component spec.
-11. Finish only after explicit approval.
+8. If a composition brief is included, plan how to fill the Composition section of the spec. Identify any potential conflicts with sibling specs that are already approved — note them for reporting after spec approval.
+9. Write the file based on the reference.
+10. Ask for approval. If the user requests changes, update the file and repeat.
+11. After approval, if it is a component spec, update the changelog.md file with the exact changes made to the component spec.
+12. If sibling conflicts were identified during spec writing, report them explicitly in the final output, keyed to sibling component name and spec section. Do NOT modify sibling spec files.
+13. Finish only after explicit approval.
 </process>
 
 <rules>
@@ -108,4 +110,6 @@ Classify every component into exactly one atomic design type using these rules:
 - To detect design tokens, highest priority is value match and visual correctness, then semantic name.
 - Use hardcoded values when you can not infer a design token with high confidence. If you use hardcoded values, be specific and exact.
 - The "Values and Design System Tokens" table must only contain design values that the current component directly controls — values applied to its own platform primitives. Never include a value that is under the control of a dependency component. If a dependency component renders a surface, background, or border, those values belong in that dependency's spec, not here.
+- If a composition brief is provided, write the Composition section of the spec as defined in `references/component-spec.md`. Use the brief to describe the component's role, produced values, and consumed values accurately.
+- Never modify sibling component spec files. If a conflict with a sibling's already-approved spec is discovered, report it in the final output (step 12) keyed to the sibling's component name and the specific spec section affected. Do not silently carry the conflict forward.
   </rules>
