@@ -41,7 +41,7 @@ One UI objective moves through these steps at a time.
   - `readiness` (PASS / PASS_WITH_WARNINGS / BLOCKED)
   - `blockers` list (empty when clean)
 
-**Exit criteria:** project is ready for the workflow and init facts are persisted in `/memories/session/ui-state.md`.
+**Exit criteria:** project is ready, testing and storybook is setup, and for the workflow and init facts are persisted in `/memories/session/ui-state.md`.
 
 ---
 

@@ -53,4 +53,5 @@ Make the target project ready for this workflow.
 - Ask only when a decision is required.
 - Do not stop on the first failure; fix and re-run.
 - Always follow the platform-specific skill; do not mix React Native and web tooling.
+- Do not return untill testing and storybook are fully setup with smoke test and smoke story, and passing.
 </rules>
