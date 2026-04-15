@@ -13,6 +13,7 @@ tools:
   - figma/get_screenshot
   - execute
   - agent
+  - shadcn/*
 agents:
   - UI Explore
 ---
@@ -34,14 +35,28 @@ Write or update exactly one spec file and a changelog.md file for one component 
 - Component Changelog: `specs/components/[component-name]/changelog.md`, Objective specs do not have changelogs.
 - Architect script for dependencies: `python ~/.copilot/scripts/ui-architect.py --file <tree.yaml-path> --deps <component-name>` for component specs, `python ~/.copilot/scripts/ui-architect.py --file <tree.yaml-path> --list-components` for objective specs.
 - Architect script for context: `python ~/.copilot/scripts/ui-architect.py --file <tree.yaml-path> --context <component-name>`.
+- Architect script for source: `python ~/.copilot/scripts/ui-architect.py --file <tree.yaml-path> --source <component-name>`.
+- Shadcn skill: `~/.copilot/skills/shadcn/SKILL.md`.
 </paths>
 
 <process>
 0. Read the correct reference for the requested mode (`objective-spec.md` or `component-spec.md`) and read the `ui-changelog.md` before doing anything else.
+0.5. **Shadcn branch check (component mode only):** before step 1, determine whether the component follows the delta spec path.
+    - Run `python ~/.copilot/scripts/ui-architect.py --file <tree.yaml-path> --source <component-name>`.
+    - If the output is `none` OR the component is not a Primitive → proceed with the steps below unchanged (full spec path).
+    - If the output is `shadcn/<component-id>` AND the component is a Primitive → enter the **delta spec path**:
+      1. Load `~/.copilot/skills/shadcn/SKILL.md` for tool and registry context.
+      2. Call shadcn MCP with the component id to retrieve the registry definition: default props, variants, visual tokens, and behaviour.
+      3. Compare the registry definition against the desired contract from the brief (Figma URL, visual spec, objective spec scope). Identify every deviation.
+      4. Write the delta spec using the **Shadcn-Backed Primitive Spec (delta format)** from `references/component-spec.md`.
+      5. Write the changelog entry using the shadcn entry format from `references/ui-changelog.md`.
+      6. If shadcn MCP is unavailable or returns an error, fall back to the full spec process and note `[shadcn MCP unavailable — full spec written]` in the changelog.
+      7. Ask for approval. Loop until approved. Sibling conflict rules are unchanged.
+      8. After approval, stop — do not continue through the steps below (they apply to the full spec path only).
 1. Read brief, exact visuals or Figma URLs, exact file paths in the scope, related specs, and only the code needed for context.
 2. If it is a component spec, run `python ~/.copilot/scripts/ui-architect.py --file <tree.yaml-path> --deps <component-name>` to get the direct dependency list. Never omit any component.
 3. If it is a component spec, also run `python ~/.copilot/scripts/ui-architect.py --file <tree.yaml-path> --context <component-name>` to get context information. This is optional output — use it when available to deepen component understanding (see rules below).
-4. If it is an objective spec, run `python ~/.copilot/scripts/ui-architect.py --file <tree.yaml-path> --list-components` to get all components in scope. Never omit any component from this list.
+4. If it is an objective spec, run `python ~/.copilot/scripts/ui-architect.py --file <tree.yaml-path> --list-components` to get all components in scope. The output is tab-separated (`ComponentName<TAB>source`); extract the component names (first column) for the scope list. Never omit any component from this list.
 5. If Figma URLs are provided, fetch design context and screenshots.
 6. If visuals are provided, analyze them.
 7. Ask questions via vscode/askQuestions if anything is ambiguous or missing in the brief.
@@ -65,40 +80,34 @@ Write or update exactly one spec file and a changelog.md file for one component 
 - A component dependency list should be exactly as the script output.
 - Only include project instructions that make macro level effects on the component's implementation. Do not rewrite the instructions in a micro level inside the spec as well. (eg. not using `any` type is a project instruction that should be followed, but it does not need to be repeated in the spec's "Props" section for every prop.)
 
-## Atomic Design Classification
+## Component Tier Classification
 
-Classify every component into exactly one atomic design type using these rules:
+Classify every component into exactly one tier using these rules:
 
-**Atom**
+**Primitive**
 
-- Has zero direct component dependencies (imports no other custom components).
-- May accept `children` as a prop — that does NOT make it a non-atom; the parent handles composition.
-- May use only platform primitives (e.g. `View`, `Text`, `Image`, `Pressable` for React Native; `div`, `span`, `button`, `img` for web) and design-system tokens.
-- Examples: Button, Icon, Badge, Divider, Avatar.
+- Has zero direct custom component dependencies (imports no other project components).
+- May use only platform primitives (e.g. `div`, `button`, `input` for web; `View`, `Pressable`, `Text` for React Native), design-system tokens, and third-party headless or UI libraries.
+- May accept `children` as a prop — that does NOT make it non-primitive; the parent handles composition.
+- Handles its own internal UI state (e.g. `isOpen`, `focused`) but never app-level state.
+- 100% reusable across completely different projects.
+- Examples: Button, Icon, Badge, Modal, DropdownMenu, Tooltip, TextInput, Avatar.
 
-**Molecule**
+**Composite**
 
-- Has one or more direct component dependencies, all of which are Atoms.
-- Combines atoms into a small, self-contained UI unit.
-- Examples: ListItem (Avatar + Text).
+- Has one or more direct custom component dependencies.
+- All such dependencies are Primitives or other Composites.
+- Contains no domain knowledge — no business entities, API data shapes, or domain terminology.
+- Reusable within the design system, not necessarily across unrelated projects.
+- Examples: SearchBar (TextInput + Icon + Button), FormField (Label + TextInput + HelperText), Pagination (Button + Icon + Text).
 
-**Organism**
+**Domain**
 
-- Has direct component dependencies that include at least one Molecule (or another Organism).
-- Represents a distinct, reusable section of UI.
-- Examples: Header (Logo + NavLinks + Button), ProductCard (Image + Title + Price + Button).
-
-**Template**
-
-- Defines the page-level layout skeleton.
-- Composes organisms and molecules into slot-based regions; contains no real content.
-- Examples: TwoColumnLayout, ModalTemplate.
-
-**Page**
-
-- The top-level screen component wired to a route.
-- Treated as a "dumb" Presenter: receives all data via props, renders a Template filled with Organisms.
-- Has no direct data-fetching logic.
+- Specific to this project's domain.
+- References business entities, API data shapes, or domain-specific terminology in its props, state, or structure.
+- Composed of Primitives and Composites.
+- Page-level route components are Domain. Treat them as dumb Presenters: UI-only, receiving all data via props, no direct data-fetching logic. This rule is unchanged from the previous Page classification.
+- Examples: UserProfileCard, LoginForm, OrderSummary, CheckoutPage.
 
 - Objective specs stay focused on the objective.
 - Component specs stay focused on the permanent current contract. Write them from the component's own perspective, as a standalone reusable unit. Do not let objective context, parent component names, or specific usage instances bleed into any section of the spec.

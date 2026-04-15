@@ -20,9 +20,12 @@ _spec.loader.exec_module(_mod)  # type: ignore[union-attr]
 list_components = _mod.list_components
 list_deps = _mod.list_deps
 get_context = _mod.get_context
+get_source = _mod.get_source
 _is_context_anno = _mod._is_context_anno
+_is_source_anno = _mod._is_source_anno
 _extract_context_value = _mod._extract_context_value
 _get_instance_context = _mod._get_instance_context
+_get_root_source = _mod._get_root_source
 
 # ---------------------------------------------------------------------------
 # Shared YAML fixtures (written to tmp_path in each fixture)
@@ -140,6 +143,35 @@ Button:
 """
 
 
+# Has @source annotation on root blocks
+TREE_WITH_SOURCE = """\
+Button:
+  - "@source: shadcn/button"
+  - Icon
+---
+Label:
+  - "@source: shadcn/label"
+---
+LoginCard:
+  - Button
+  - Label
+"""
+
+# Has @source on one root block, none on others
+TREE_MIXED_SOURCE = """\
+Button:
+  - "@source: shadcn/button"
+  - Icon
+---
+Icon:
+  - null
+---
+LoginCard:
+  - Button
+  - Icon
+"""
+
+
 def _write(tmp_path: Path, content: str) -> Path:
     f = tmp_path / "tree.yaml"
     f.write_text(content, encoding="utf-8")
@@ -206,12 +238,22 @@ class TestGetInstanceContext:
 
 
 class TestListComponents:
+    def _names(self, result):
+        """Extract just the component names from list_components output."""
+        return [name for name, _source in result]
+
+    def _sources(self, result):
+        """Extract a name->source dict from list_components output."""
+        return {name: source for name, source in result}
+
     def test_returns_sorted_unique_names(self, tmp_path):
-        names = list_components(_write(tmp_path, TREE_PLAIN))
+        result = list_components(_write(tmp_path, TREE_PLAIN))
+        names = self._names(result)
         assert names == sorted(set(names))
 
     def test_includes_root_and_nested_components(self, tmp_path):
-        names = list_components(_write(tmp_path, TREE_PLAIN))
+        result = list_components(_write(tmp_path, TREE_PLAIN))
+        names = self._names(result)
         assert "LoginCard" in names
         assert "Card" in names
         assert "CardHeader" in names
@@ -220,33 +262,59 @@ class TestListComponents:
         assert "Icon" in names
 
     def test_excludes_context_block_key(self, tmp_path):
-        names = list_components(_write(tmp_path, TREE_FULL))
+        result = list_components(_write(tmp_path, TREE_FULL))
+        names = self._names(result)
         assert "_Context_" not in names
 
     def test_excludes_global_context_values(self, tmp_path):
-        # "A shell container" and "A pressable element" must not appear as names
-        names = list_components(_write(tmp_path, TREE_FULL))
-        for n in names:
+        result = list_components(_write(tmp_path, TREE_FULL))
+        for n in self._names(result):
             assert "shell" not in n.lower()
             assert "pressable" not in n.lower()
 
     def test_excludes_context_annotations(self, tmp_path):
-        names = list_components(_write(tmp_path, TREE_WITH_INSTANCE_CONTEXT))
-        for n in names:
+        result = list_components(_write(tmp_path, TREE_WITH_INSTANCE_CONTEXT))
+        for n in self._names(result):
             assert not n.startswith("@context")
             assert not n.startswith("variant=")
             assert not n.startswith("size=")
 
     def test_no_duplicates(self, tmp_path):
-        names = list_components(_write(tmp_path, TREE_DEEP))
+        result = list_components(_write(tmp_path, TREE_DEEP))
+        names = self._names(result)
         assert len(names) == len(set(names))
 
     def test_deep_tree_all_components(self, tmp_path):
-        names = list_components(_write(tmp_path, TREE_DEEP))
+        result = list_components(_write(tmp_path, TREE_DEEP))
+        names = self._names(result)
         for expected in ["LoginCard", "Card", "CardHeader", "CardTitle", "CardSubtitle",
                          "CardContent", "Field", "Label", "InputGroup", "InputGroupInput",
                          "InputGroupAddon", "Icon", "Button", "CardFooter"]:
             assert expected in names, f"Expected '{expected}' in component list"
+
+    def test_source_annotation_returned(self, tmp_path):
+        result = list_components(_write(tmp_path, TREE_WITH_SOURCE))
+        sources = self._sources(result)
+        assert sources["Button"] == "shadcn/button"
+        assert sources["Label"] == "shadcn/label"
+
+    def test_no_source_returns_none_string(self, tmp_path):
+        result = list_components(_write(tmp_path, TREE_PLAIN))
+        sources = self._sources(result)
+        for name in sources:
+            assert sources[name] == "none"
+
+    def test_mixed_source_annotation(self, tmp_path):
+        result = list_components(_write(tmp_path, TREE_MIXED_SOURCE))
+        sources = self._sources(result)
+        assert sources["Button"] == "shadcn/button"
+        assert sources["LoginCard"] == "none"
+
+    def test_source_annotation_not_in_names(self, tmp_path):
+        result = list_components(_write(tmp_path, TREE_WITH_SOURCE))
+        for name, _source in result:
+            assert not name.startswith("@source")
+            assert not name.startswith("shadcn")
 
 
 # ---------------------------------------------------------------------------
@@ -445,3 +513,79 @@ class TestGetContextDeepTree:
     def test_component_not_in_global_context(self, tmp_path):
         result = get_context(_write(tmp_path, TREE_DEEP), "CardContent")
         assert result["global"] is None
+
+
+# ---------------------------------------------------------------------------
+# @source annotation helpers
+# ---------------------------------------------------------------------------
+
+
+class TestIsSourceAnno:
+    def test_valid(self):
+        assert _is_source_anno("@source: shadcn/button")
+
+    def test_valid_no_value(self):
+        assert _is_source_anno("@source:")
+
+    def test_case_insensitive(self):
+        assert _is_source_anno("@Source: shadcn/label")
+
+    def test_plain_component_name(self):
+        assert not _is_source_anno("Button")
+
+    def test_context_is_not_source(self):
+        assert not _is_source_anno("@context: variant=primary")
+
+    def test_empty_string(self):
+        assert not _is_source_anno("")
+
+
+class TestGetRootSource:
+    def test_finds_source(self):
+        children = ["@source: shadcn/button", "Icon"]
+        assert _get_root_source(children) == "shadcn/button"
+
+    def test_returns_none_when_absent(self):
+        children = ["Icon", "Label"]
+        assert _get_root_source(children) is None
+
+    def test_returns_none_for_non_list(self):
+        assert _get_root_source(None) is None
+        assert _get_root_source("string") is None
+
+    def test_ignores_context_sibling(self):
+        children = ["@context: variant=primary", "Icon"]
+        assert _get_root_source(children) is None
+
+
+# ---------------------------------------------------------------------------
+# get_source
+# ---------------------------------------------------------------------------
+
+
+class TestGetSource:
+    def test_returns_source_value(self, tmp_path):
+        assert get_source(_write(tmp_path, TREE_WITH_SOURCE), "Button") == "shadcn/button"
+
+    def test_returns_source_for_label(self, tmp_path):
+        assert get_source(_write(tmp_path, TREE_WITH_SOURCE), "Label") == "shadcn/label"
+
+    def test_returns_none_string_when_absent(self, tmp_path):
+        assert get_source(_write(tmp_path, TREE_PLAIN), "Button") == "none"
+
+    def test_returns_none_string_for_unknown(self, tmp_path):
+        assert get_source(_write(tmp_path, TREE_PLAIN), "NonExistent") == "none"
+
+    def test_child_only_component_returns_none(self, tmp_path):
+        # Icon appears only as a child of Button, so it has no root block with @source
+        assert get_source(_write(tmp_path, TREE_WITH_SOURCE), "Icon") == "none"
+
+    def test_mixed_source_no_annotation_component(self, tmp_path):
+        assert get_source(_write(tmp_path, TREE_MIXED_SOURCE), "LoginCard") == "none"
+
+    def test_source_not_treated_as_dependency(self, tmp_path):
+        # @source must not appear in the dependency list for Button
+        deps = list_deps(_write(tmp_path, TREE_WITH_SOURCE), "Button")
+        for d in deps:
+            assert not d.startswith("@source")
+            assert not d.startswith("shadcn")

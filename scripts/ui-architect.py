@@ -6,15 +6,19 @@ Usage:
     python ui-architect.py --file tree.yaml --list-components
     python ui-architect.py --file tree.yaml --deps LoginCard
     python ui-architect.py --file tree.yaml --context Button
+    python ui-architect.py --file tree.yaml --source Button
 
-Three modes:
-  --list-components       Print every unique component name found in the file.
+Four modes:
+  --list-components       Print every unique component name with its source annotation
+                          (tab-separated: ComponentName<TAB>shadcn/<id> or none).
   --deps COMPONENT        Print the direct dependencies of COMPONENT (all unique
                           components that are imported and used by it, as declared
                           in its composition block).
   --context COMPONENT     Print all context for COMPONENT: global description from
                           the optional _Context_ front-matter block, and every
                           instance-level @context annotation with its path trace.
+  --source COMPONENT      Print the @source value for COMPONENT if declared on its
+                          root block (e.g. "shadcn/button"), or "none" if absent.
 
 YAML format rules:
   • The optional first document may be a global front-matter block whose single
@@ -26,6 +30,10 @@ YAML format rules:
     direct dependency of the root component, not of intermediate nodes.
   • A `@context: ...` string inside a component's children list is an
     instance-level annotation for that component and is NOT a component name.
+  • A `@source: shadcn/<id>` string inside a root component's children list
+    declares that the component is installed from the shadcn registry. It is
+    metadata only and does not affect the dependency list. Only valid on root
+    component blocks (the top-level key of a YAML document).
   • Parentheses after a component name are contextual annotations and do not
     change the component identity.
   • If a component appears multiple times it is still one dependency.
@@ -50,6 +58,9 @@ _PAREN_RE = re.compile(r"\s*\([^)]*\)\s*$")
 # Matches @context annotations, e.g. "@context: variant=primary, size=lg"
 _CONTEXT_ANNO_RE = re.compile(r"^@context:\s*(.*)", re.IGNORECASE)
 
+# Matches @source annotations, e.g. "@source: shadcn/button"
+_SOURCE_ANNO_RE = re.compile(r"^@source:\s*(.*)", re.IGNORECASE)
+
 
 def _strip_parens(name: str) -> str:
     """Remove trailing parenthetical annotation and whitespace from a name."""
@@ -61,9 +72,26 @@ def _is_context_anno(s: str) -> bool:
     return bool(_CONTEXT_ANNO_RE.match(s.strip()))
 
 
+def _is_source_anno(s: str) -> bool:
+    """Return True if the string is a @source annotation."""
+    return bool(_SOURCE_ANNO_RE.match(s.strip()))
+
+
+def _is_annotation(s: str) -> bool:
+    """Return True if the string is any known annotation (@context, @source)."""
+    stripped = s.strip()
+    return _is_context_anno(stripped) or _is_source_anno(stripped)
+
+
 def _extract_context_value(s: str) -> str:
     """Extract the value part from a @context annotation string."""
     m = _CONTEXT_ANNO_RE.match(s.strip())
+    return m.group(1).strip() if m else ""
+
+
+def _extract_source_value(s: str) -> str:
+    """Extract the value part from a @source annotation string."""
+    m = _SOURCE_ANNO_RE.match(s.strip())
     return m.group(1).strip() if m else ""
 
 
@@ -77,13 +105,23 @@ def _get_instance_context(children: object) -> "str | None":
     return None
 
 
+def _get_root_source(children: object) -> "str | None":
+    """Return the @source annotation value from a root component's children list, or None."""
+    if not isinstance(children, list):
+        return None
+    for item in children:
+        if isinstance(item, str) and _is_source_anno(item):
+            return _extract_source_value(item)
+    return None
+
+
 def _collect(node: object, result: set) -> None:
     """Recursively collect all component names from a parsed YAML node.
 
-    Skips @context annotation strings so they are never treated as names.
+    Skips @context and @source annotation strings so they are never treated as names.
     """
     if isinstance(node, str):
-        if _is_context_anno(node):
+        if _is_annotation(node):
             return
         name = _strip_parens(node)
         if name:
@@ -94,7 +132,7 @@ def _collect(node: object, result: set) -> None:
     elif isinstance(node, dict):
         for key, value in node.items():
             s_key = str(key)
-            if _is_context_anno(s_key):
+            if _is_annotation(s_key):
                 continue
             name = _strip_parens(s_key)
             if name:
@@ -118,7 +156,7 @@ def _collect_instances(
     including) the current node.
     """
     if isinstance(node, str):
-        if _is_context_anno(node):
+        if _is_annotation(node):
             return
         name = _strip_parens(node)
         if name == target:
@@ -129,7 +167,7 @@ def _collect_instances(
     elif isinstance(node, dict):
         for key, value in node.items():
             s_key = str(key)
-            if _is_context_anno(s_key):
+            if _is_annotation(s_key):
                 continue
             name = _strip_parens(s_key)
             if not name:
@@ -178,17 +216,32 @@ def _load_docs(path: Path) -> "tuple[dict, list]":
 
 
 def list_components(path: Path) -> list:
-    """Return a sorted list of every unique component name in the file."""
+    """Return a sorted list of (component_name, source) tuples for every root component.
+
+    source is the @source annotation value (e.g. "shadcn/button") or "none".
+    Components that only appear as children (never as a root block) are listed
+    with source "none" and included for completeness.
+    """
     _, docs = _load_docs(path)
-    result: set = set()
+    # root_sources: only root blocks can carry @source
+    root_sources: dict = {}
+    all_names: set = set()
+
     for doc in docs:
         for root_key, value in doc.items():
             root_name = _strip_parens(str(root_key))
-            if root_name:
-                result.add(root_name)
+            if not root_name:
+                continue
+            source = _get_root_source(value)
+            root_sources[root_name] = source if source else "none"
+            all_names.add(root_name)
             if value is not None:
-                _collect(value, result)
-    return sorted(result)
+                _collect(value, all_names)
+
+    result = []
+    for name in sorted(all_names):
+        result.append((name, root_sources.get(name, "none")))
+    return result
 
 
 def list_deps(path: Path, component: str) -> list:
@@ -208,6 +261,22 @@ def list_deps(path: Path, component: str) -> list:
                 _collect(value, deps)
                 return sorted(deps)
     return []
+
+
+def get_source(path: Path, component: str) -> str:
+    """Return the @source annotation value for a root component, or 'none'.
+
+    Only root component blocks (top-level keys in a YAML document) can carry
+    a @source annotation. Returns 'none' when the component has no block or
+    no @source annotation.
+    """
+    _, docs = _load_docs(path)
+    for doc in docs:
+        for root_key, value in doc.items():
+            if _strip_parens(str(root_key)) == component:
+                source = _get_root_source(value)
+                return source if source else "none"
+    return "none"
 
 
 def get_context(path: Path, component: str) -> dict:
@@ -279,7 +348,10 @@ def main() -> None:
     group.add_argument(
         "--list-components", "-l",
         action="store_true",
-        help="List every unique component in the file.",
+        help=(
+            "List every unique component in the file with its source annotation. "
+            "Output is tab-separated: ComponentName<TAB>shadcn/<id> or none."
+        ),
     )
     group.add_argument(
         "--deps", "-d",
@@ -295,6 +367,14 @@ def main() -> None:
             "with its full path trace."
         ),
     )
+    group.add_argument(
+        "--source", "-s",
+        metavar="COMPONENT",
+        help=(
+            "Print the @source annotation value for a root component "
+            "(e.g. 'shadcn/button'), or 'none' if absent."
+        ),
+    )
 
     args = parser.parse_args()
     path = Path(args.file)
@@ -305,12 +385,14 @@ def main() -> None:
 
     if args.list_components:
         components = list_components(path)
-        for name in components:
-            print(name)
+        for name, source in components:
+            print(f"{name}\t{source}")
     elif args.deps:
         deps = list_deps(path, args.deps)
         for name in deps:
             print(name)
+    elif args.source:
+        print(get_source(path, args.source))
     else:
         print_context(path, args.context)
 

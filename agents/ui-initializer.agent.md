@@ -15,6 +15,7 @@ tools:
   - execute
   - vscode/askQuestions
   - agent
+  - shadcn/*
 agents:
   - UI Explore
 ---

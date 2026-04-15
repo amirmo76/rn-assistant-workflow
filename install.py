@@ -42,6 +42,7 @@ MANAGED_ENTRIES = {
         "rn-storybook-setup",
         "web-testing-setup",
         "web-storybook-setup",
+        "shadcn",
     },
 }
 

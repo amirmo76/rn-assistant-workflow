@@ -1,0 +1,181 @@
+_Context_:
+  MainLayout: "the main layout a nav and footer and the main content as children the Homepage will be rendered inside the main content"
+  Homepage: "a presenter only component for the homepage"
+  GridBG: "a component that will render a grid for the background. It will be used by sections. sections will create a mask over them if needed. the grid itself renders a fixed size squares with strokes. and an optional seed number and scatter number to fill some of the squares randomly but determenstically using the seed number. the grid should also be able to render only a part of the screen to optimize performance"
+  LoopedScrollHorizontal: "a component that will create a looped horizontal scroll of its children. custom speed, offset (px offset), autoscroll feilds. you can also drag to scroll and it will snap back to the loop when you release. it should also pause autoscroll on hover and resume on mouse leave"
+  Rating: "renders 5 stars with a decimal value as a prop to determine how many stars are filled. the decimal value will not be rendered. the parent can render if it needs. all the instances in this page are readonly"
+  BrokerSlider: "a wrapper which composites the Slider for the homepage use"
+  Slider: "the container the logic and context provider."
+  SliderTrigger: "selecting this will change the active slide. it will have a selected state as well"
+  SliderContent: "the container for the slides. it will handle animation for items when they pop in and out"
+  SliderContentItem: "some container with a customr bg image and a button on the bottom. an active slide will have multiple of these. they pop and fade in and out staggeringly"
+  Card: "just a wrapper"
+  CardHeader: "just a wrapper"
+  CardContent: "just a wrapper"
+  CardFooter: "just a wrapper"
+  AccordianGroup: "logic and context provider for the accordians inside. it will handle the state of which accordian is open"
+  AccordianGroupItem: "each accordian item knows how to display if open/close. do not handles internally passes to AccordianGroup and reads from that. using context"
+---
+MainLayout:
+  - Nav
+  - Footer
+---
+Homepage:
+  - HeroSection
+  - Section:
+    - "@context: borkers section"
+    - SectionHeader:
+      - SectionTitle
+      - SectionDescription
+      - SectionActions:
+         - Button:
+           - "@context: ghost button variant"
+           - Icon
+    - SectionContent:
+      - "@context: a gird of broker cards. responsive"
+      - BrokerCard
+    - SectionFooter:
+      - Button:
+        - "@context: ghost button variant"
+  - Section:
+    - "@context: 'skip the comparison section', same composition used, custom layout and bg color for this one. nothing should bleed out of it. overlap should be hidden. two circular blured on top of the grid in right and left side"
+    - GridBG:
+      - "@context: with seed and scatter to fill some of the squares."
+    - CircularBlurredDiv:
+      - "@context: one of the circular blured divs on the right side and one on the left side"
+  - Section:
+    - "@context: the slider section. same composition for section"
+    - BrokerSlider
+  - Section:
+    - "@context: the testimonials section. with two looped horizontal scrolls with same speed but different offset to create a parallax effect. each scroll will have testimonial cards as children"
+    - LoopedScrollHorizontal:
+      - TestimonialCard
+    - LoopedScrollHorizontal:
+      - TestimonialCard
+  - Section:
+    - "@context: the accordian section. same composition but a horizontal layout for the header and content."
+    - AccordianGroup:
+      - AccordianGroupItem
+---
+Nav:
+  - Logo
+  - NavList:
+    - NavListItem
+    - DropdownMenu:
+      - DropdownMenuTrigger:
+        - NavListItem
+        - Icon
+      - DropdownMenuContent:
+        - DropdownMenuItem:
+          - NavListItem
+  - NavActions:
+    - Button:
+      - "@context: icon button variant"
+      - Icon
+    - DropdownMenu:
+      - DropdownMenuTrigger:
+        - Button:
+          - "@context: ghost button variant"
+          - CountryAvatar
+          - Icon
+      - DropdownMenuContent:
+        - DropdownMenuItem:
+          - CountryAvatar
+    - Button:
+      - "@context: primary button variant"
+---
+HeroSection:
+  - "@context: it will use GridBG and a circular blured div at the top right corner below the grid to create a fading circular bg for the grid in the top right corner of the section."
+  - CircularBlurredDiv
+  - GridBG:
+    - "@context: stroke color is background color so only the circular blured div will make the grid visible in the top right corner"
+  - Button:
+    - "@context: primary button variant"
+  - Button:
+    - "@context: ghost button variant"
+  - FindMyMatchCard
+---
+FindMyMatchCard:
+  - Card:
+    - CardHeader:
+      - CardTitle
+    - CardContent:
+      - Fieldset:
+        - Label
+        - Select:
+          - SelectTrigger:
+            - SelectValue
+            - Icon
+          - SelectContent:
+            - SelectItem
+    - CardFooter:
+      - Button:
+        - "@context: primary button variant"
+---
+Footer:
+  - FooterHeader:
+    - Logo
+  - FooterContent:
+    - FooterColumn:
+      - FooterColumnTitle
+      - FooterLink
+---
+BrokerCard:
+  - Card:
+    - "@context: card with a custom styling override for bg, border, and shadow to match the design"
+    - CardHeader:
+      - BrokerAvatar
+      - RankingBadge
+      - CardTitle
+      - CardDescription
+      - Rating
+    - Seperator
+    - CardContent:
+      - InfoList:
+        - InfoListItem:
+          - InfoListLabel
+          - InfoListValue:
+            - "@context: normal text and in one instance a Badge is passed as children to it"
+            - Badge:
+              - "@context: outline variant"
+              - Icon
+              - CountryAvatar
+    - CardFooter:
+      - Button:
+        - "@context: outline button variant"
+      - Button:
+        - "@context: primary button variant"
+---
+Badge
+---
+Rating:
+  - StarIcon
+---
+AccordianGroupItem:
+  - AccordianGroupItemTrigger:
+    - AccrodianGroupItemTitle
+    - AccordianGroupItemIcon
+  - AccordianGroupItemContent
+---
+TestimonialCard:
+  - Card:
+    - CardHeader:
+      - Icon
+    - CardContent
+    - CardFooter:
+      - Avatar
+      - Rating
+---
+BrokerSlider:
+  - Slider:
+    - SliderTrigger
+    - SliderContent:
+      - SliderContentItem:
+        - Button:
+          - "@context: custom override for colors and shadow"
+---
+GridBG
+---
+CircularBlurredDiv
+---
+LoopedScrollHorizontal

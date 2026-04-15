@@ -16,6 +16,7 @@ tools:
   - edit/editFiles
   - execute
   - agent
+  - shadcn/*
 agents:
   - UI Explore
 ---

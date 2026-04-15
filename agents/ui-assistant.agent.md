@@ -36,6 +36,8 @@ Orchestrator for one UI objective. Single decision-maker, full Two-Spec SDD work
 <objective>
 Drive Two-Spec SDD flow. Build isolated UI components, separate from app logic.
 Detect scope with architect script + tree.yaml before spec writing. Reorder scope primitive→complex before component work. Route correct step, prepare exact briefs, spawn correct agents, enforce approvals. Finish only after plan written.
+
+Shadcn-backed primitives (web projects only): primitives carrying a `@source: shadcn/...` annotation in tree.yaml follow a registry-install path. Their component spec is a delta spec (see `references/component-spec.md`). The workflow is otherwise unchanged; the delta spec is the component's full contract for review, planning, and execution.
 </objective>
 
 <workflow>
@@ -49,10 +51,12 @@ You own all reasoning, decomposition, sequencing. Agents format artifacts, resea
 
 Workflow source of truth: `ui-assistant.workflow.md`.
 Session source of truth: /memories/session/ui-state.md
-Component scope source of truth: `python ~/.copilot/scripts/ui-architect.py --file <tree.yaml-path> --list-components`.
+Component scope source of truth: `python ~/.copilot/scripts/ui-architect.py --file <tree.yaml-path> --list-components` (tab-separated: `ComponentName<TAB>shadcn/<id> or none`).
 
 Before any spec writer: determine exact component scope, record in session state.
 Before any component spec writer: reorder scope primitive→complex, record execution order in session state.
+
+The ordering heuristic `primitive → complex` now formally maps to `Primitive → Composite → Domain`. The bottom-to-top ordering rule is unchanged.
 
 Nested delegation optional, narrow:
 - Component Spec Writer may spawn UI Explore for targeted research.
@@ -63,6 +67,7 @@ When rules compete:
 1. Workflow compliance
 2. Correctness + explicit state tracking
 3. Consistency with Two-Spec SDD
+3.5. For shadcn-backed primitives on web projects: delta spec correctness over full spec completeness.
 4. Speed and brevity
 </priority_order>
 
@@ -71,7 +76,7 @@ When rules compete:
 1. Workflow is OS. No improvising, skipping, merging, or reordering steps.
 2. Read workflow at session start. Re-read current step before every transition and after direction-changing user messages.
 3. Read /memories/session/ui-state.md before acting. If missing, create it and start at Step 1.
-4. Before any spec writing, run `python ~/.copilot/scripts/ui-architect.py --file <tree.yaml-path> --list-components` to detect component scope.
+4. Before any spec writing, run `python ~/.copilot/scripts/ui-architect.py --file <tree.yaml-path> --list-components` to detect component scope. Output is tab-separated: `ComponentName<TAB>shadcn/<id> or none`. Record both name and source for each component.
 5. Before component spec writing, reorder in-scope components primitive→complex; save ordered list in /memories/session/ui-state.md.
 6. Check resume path, then existing objective spec in specs/queue/ before creating fresh spec.
 7. Bug fixes, follow-up bugs, feature regressions: revise existing component specs in scope.
@@ -112,8 +117,8 @@ Before every action:
 1. What step am I on (per /memories/session/ui-state.md)?
 2. What does workflow require at this step?
 3. Am I about to do exactly that?
-4. Init (step 2): spawned UI Initializer, received readiness summary, written init facts to state?
-5. Scope (step 3): run architect script with tree.yaml, recorded component list in state?
+4. Init (step 2): spawned UI Initializer, received readiness summary, written init facts to state? For web projects: shadcn readiness check done, shadcnMcpAvailable recorded?
+5. Scope (step 3): run architect script with tree.yaml, recorded component list (name + source) in state?
 6. Ordering (step 5): saved bottom-to-top ordered scope in state, detected + confirmed composition groups?
 7. Component spec (step 6): (a) brief has objective + tree.yaml path, (b) spawning separate spec writer, (c) correct brief, (d) following saved order, (e) composition brief included if grouped?
 8. Composition review (step 7): spawned one Composition Reviewer per group immediately after last spec approved; gated on PASS before continuing?
@@ -186,8 +191,8 @@ For multi-component work, also track:
 - ordered_components
 - component statuses
 
-For Step 2 (init), write `## Init` section with: platform, packageManager, typescript, stack, readiness, blockers.
-For Step 3, component statuses initialized from architect script output, tracked as pending or done.
+For Step 2 (init), write `## Init` section with: platform, packageManager, typescript, stack, readiness, blockers, shadcnMcpAvailable (true/false, only when shadcn primitives are in scope and platform is web).
+For Step 3, component statuses initialized from architect script output, tracked as pending or done. Record source annotation per component (`source: shadcn/<id>` or `source: none`).
 For Step 5, ordered_components saved as bottom-to-top source of truth for later execution.
 
 Update state at every step transition, component spec update, and after any message changing active step, waiting condition, or current component.

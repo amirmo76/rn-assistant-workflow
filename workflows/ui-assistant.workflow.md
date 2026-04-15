@@ -43,16 +43,25 @@ One UI objective moves through these steps at a time.
 
 **Exit criteria:** project is ready, testing and storybook is setup, and for the workflow and init facts are persisted in `/memories/session/ui-state.md`.
 
+### Shadcn Readiness Check (web projects only)
+
+After the UI Initializer completes, run a shadcn readiness check:
+
+1. Run `python ~/.copilot/scripts/ui-architect.py --file <tree.yaml-path> --list-components` and scan the source column for any `shadcn/...` entries.
+2. If any are found: check whether `shadcn MCP` tools are available in the current session. Record `shadcnMcpAvailable: true` or `shadcnMcpAvailable: false` in `/memories/session/ui-state.md` under the `## Init` section.
+3. If shadcn primitives are in scope and `shadcnMcpAvailable: false`: warn the user via `vscode/askQuestions` — they can continue (spec writer will fall back to full spec) or pause to configure the MCP.
+4. If the project platform is React Native / Expo, skip this check entirely — shadcn does not apply.
+
 ---
 
 ## Step 3 — Detect Scope
 
-- Call `python @~/.copilot/scripts/ui-architect.py --file <tree.yaml-path> --list-components` to get a full list of all the components in the scope of this objective.
+- Call `python @~/.copilot/scripts/ui-architect.py --file <tree.yaml-path> --list-components` to get a full list of all the components in the scope of this objective. The output is tab-separated: `ComponentName<TAB>shadcn/<id> or none`. Record both the component name and its source annotation.
 - For each component in the list, also call `python @~/.copilot/scripts/ui-architect.py --file <tree.yaml-path> --context <component-name>` to collect any available context. If the output is "No context found", skip silently — this is expected when no context annotations exist for that component.
 - Fully internalize both the component list and any context output.
-- Save the list in /memories/session/ui-state.md with a status indicator for each component (`pending` / `done`). If context was found for a component, note it briefly beside its entry so spec writers can reference it without re-running the script.
+- Save the list in /memories/session/ui-state.md with a status indicator for each component (`pending` / `done`). Record the source annotation per component (e.g. `source: shadcn/button` or `source: none`). If context was found for a component, note it briefly beside its entry so spec writers can reference it without re-running the script.
 
-**Exit criteria:** component scope is clear, context is gathered, and /memories/session/ui-state.md knows the exact list and proper status.
+**Exit criteria:** component scope is clear, context is gathered, and /memories/session/ui-state.md knows the exact list, source annotations, and proper status for each component.
 
 ---
 
@@ -111,6 +120,7 @@ Present proposed composition groups to the user via `vscode/askQuestions` for ap
     - each member's distinct responsibility within the composition (draft; spec writer may refine)
     - any known shared contracts: shared React Context, shared design tokens, shared spacing or border strategy
   - if session state records a sibling conflict for this component: include it in the brief so it is addressed during spec writing
+  - **shadcn source check:** before spawning each spec writer, look up the component's source from session state (populated during Step 3 from `--list-components` output). If `shadcnMcpAvailable: true` in session state AND the component source is `shadcn/<id>`, add `shadcnSource: <component-id>` to the brief and note it is a delta spec. Otherwise the brief is unchanged and the full spec process applies.
 - The spec writer creates or updates `specs/components/[component-name]/spec.md` and `changelog.md`.
 - If the spec writer reports a **sibling conflict** in its output:
   - **Sibling not yet spec'd** (upcoming in order): record the conflict in session state beside the sibling's entry. Include it in the sibling's spec writer brief when its turn arrives.
@@ -154,7 +164,7 @@ If there are no composition groups in scope, this step is a no-op; proceed direc
 - On **FAIL**: return to Step 6 for each failed component. Then re-run Step 8.
 - On **PASS**: proceed to Step 9.
 
-**Exit criteria:** `RN Review` returns PASS.
+**Exit criteria:** `UI Review` returns PASS.
 
 ---
 
@@ -186,6 +196,11 @@ Read the `Execution Map` from `plan.md`. Execute the plan phase by phase in stri
    - path to objective spec
    - the phase's work items from `plan.md` scoped to that component
    - project init facts from `/memories/session/ui-state.md` (package manager, stack)
+   - **for shadcn-backed primitives** (web only): if the component spec has a **Registry Source** section, the worker must:
+     1. Run the install command from the spec: `npx shadcn@latest add <component-id>`.
+     2. After install, apply only the local overrides listed in the **Local Overrides** section of the delta spec.
+     3. If the install command fails: surface the error to the user via `vscode/askQuestions` before continuing. Do not guess or proceed silently.
+     4. If the component spec has no Registry Source section, proceed with the standard worker process unchanged.
 2. Wait for all workers in the phase to report `done` or `blocked`.
 3. After all workers complete, ask the user to verify the phase via `vscode/askQuestions`:
    - **Approved** → update phase status in `/memories/session/ui-state.md`, proceed to next phase.
