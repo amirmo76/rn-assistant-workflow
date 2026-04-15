@@ -18,22 +18,22 @@ One UI objective moves through these steps at a time.
 
 ## Step 1 — Receive Objective
 
-- Accept the UI objective from the user along with any supporting visuals, files, or Figma URLs.
-- Read /memories/session/ui-state.md to detect a resume path.
-  - If resuming: re-anchor to the correct step and continue.
-  - If fresh: create the state file and proceed to Step 2.
-- Ask clarifying questions with `vscode/askQuestions` only when the objective is ambiguous.
+- Accept objective + any visuals, files, or Figma URLs from user.
+- Read /memories/session/ui-state.md to detect resume path.
+  - If resuming: re-anchor to correct step and continue.
+  - If fresh: create state file and proceed to Step 2.
+- Ask clarifying questions via `vscode/askQuestions` only when objective is ambiguous.
 
-**Exit criteria:** objective is clear and the route (fresh or resume) is decided.
+**Exit criteria:** objective is clear and route (fresh or resume) is decided.
 
 ---
 
 ## Step 2 — Initialize Project
 
-- Spawn `UI Initializer` with the project root (infer from `tree.yaml` location or ask if ambiguous).
-- Wait for the initializer to complete and return its readiness summary.
-- If the initializer reports a blocker that cannot be auto-resolved, surface it to the user via `vscode/askQuestions` before continuing.
-- Write the following key facts from the initializer brief into `/memories/session/ui-state.md` under an `## Init` section:
+- Spawn `UI Initializer` with project root (infer from `tree.yaml` location or ask if ambiguous).
+- Wait for initializer to complete and return its readiness summary.
+- If initializer reports a blocker that can't be auto-resolved, surface it via `vscode/askQuestions` before continuing.
+- Write key init facts to `/memories/session/ui-state.md` under an `## Init` section:
   - `platform` (e.g. React Native / Expo, Next.js, React)
   - `packageManager` (e.g. yarn, npm, pnpm)
   - `typescript` (true/false)
@@ -41,27 +41,27 @@ One UI objective moves through these steps at a time.
   - `readiness` (PASS / PASS_WITH_WARNINGS / BLOCKED)
   - `blockers` list (empty when clean)
 
-**Exit criteria:** project is ready, testing and storybook is setup, and for the workflow and init facts are persisted in `/memories/session/ui-state.md`.
+**Exit criteria:** project is ready, testing and storybook setup, init facts persisted in `/memories/session/ui-state.md`.
 
 ### Shadcn Readiness Check (web projects only)
 
-After the UI Initializer completes, run a shadcn readiness check:
+After UI Initializer completes:
 
-1. Run `python ~/.copilot/scripts/ui-architect.py --file <tree.yaml-path> --list-components` and scan the source column for any `shadcn/...` entries.
-2. If any are found: check whether `shadcn MCP` tools are available in the current session. Record `shadcnMcpAvailable: true` or `shadcnMcpAvailable: false` in `/memories/session/ui-state.md` under the `## Init` section.
-3. If shadcn primitives are in scope and `shadcnMcpAvailable: false`: warn the user via `vscode/askQuestions` — they can continue (spec writer will fall back to full spec) or pause to configure the MCP.
-4. If the project platform is React Native / Expo, skip this check entirely — shadcn does not apply.
+1. Run `python ~/.copilot/scripts/ui-architect.py --file <tree.yaml-path> --list-components` and scan source column for `shadcn/...` entries.
+2. If found: check whether `shadcn MCP` tools are available. Record `shadcnMcpAvailable: true` or `shadcnMcpAvailable: false` in `/memories/session/ui-state.md` under `## Init`.
+3. If shadcn primitives in scope and `shadchnMcpAvailable: false`: warn user via `vscode/askQuestions` — they can continue (spec writer falls back to full spec) or pause to configure MCP.
+4. If platform is React Native / Expo, skip this check entirely.
 
 ---
 
 ## Step 3 — Detect Scope
 
-- Call `python @~/.copilot/scripts/ui-architect.py --file <tree.yaml-path> --list-components` to get a full list of all the components in the scope of this objective. The output is tab-separated: `ComponentName<TAB>shadcn/<id> or none`. Record both the component name and its source annotation.
-- For each component in the list, also call `python @~/.copilot/scripts/ui-architect.py --file <tree.yaml-path> --context <component-name>` to collect any available context. If the output is "No context found", skip silently — this is expected when no context annotations exist for that component.
-- Fully internalize both the component list and any context output.
-- Save the list in /memories/session/ui-state.md with a status indicator for each component (`pending` / `done`). Record the source annotation per component (e.g. `source: shadcn/button` or `source: none`). If context was found for a component, note it briefly beside its entry so spec writers can reference it without re-running the script.
+- Call `python @~/.copilot/scripts/ui-architect.py --file <tree.yaml-path> --list-components` to get all components in scope. Output is tab-separated: `ComponentName<TAB>shadcn/<id> or none`. Record component name and source annotation for each.
+- For each component, call `python @~/.copilot/scripts/ui-architect.py --file <tree.yaml-path> --context <component-name>` to collect available context. If output is "No context found", skip silently.
+- Internalize both component list and context output.
+- Save list in /memories/session/ui-state.md with status indicator per component (`pending` / `done`). Record source annotation per component. If context found, note it briefly beside the entry.
 
-**Exit criteria:** component scope is clear, context is gathered, and /memories/session/ui-state.md knows the exact list, source annotations, and proper status for each component.
+**Exit criteria:** component scope is clear, context gathered, and /memories/session/ui-state.md has exact list, source annotations, and status for each component.
 
 ---
 
@@ -73,95 +73,95 @@ After the UI Initializer completes, run a shadcn readiness check:
   - component scope
   - `tree.yaml` path
   - relevant visuals or Figma URLs
-- The spec writer creates or updates `specs/queue/[objective-name]/spec.md`.
+- Spec writer creates or updates `specs/queue/[objective-name]/spec.md`.
 - Gate on explicit user approval.
 
-**Exit criteria:** objective spec is approved by the user.
+**Exit criteria:** objective spec is approved by user.
 
 ---
 
 ## Step 5 — Order Components
 
-- Reorder the in-scope components from most primitive to most complex before any component spec writing begins.
-- Use a bottom-to-top dependency view: lower-level building blocks first, composition layers after.
-- Save the ordered list in /memories/session/ui-state.md and mark it as the required execution order for Step 6 and Step 8.
-- Keep both the original detected scope and the ordered scope in state when useful, but the ordered scope is the source of truth for downstream execution.
+- Reorder in-scope components from most primitive to most complex before any component spec writing.
+- Use bottom-to-top dependency view: lower-level building blocks first, composition layers after.
+- Save ordered list in /memories/session/ui-state.md as required execution order for Steps 6 and 8.
+- Keep both original detected scope and ordered scope in state when useful; ordered scope is source of truth for downstream execution.
 
 ### Composition Group Detection
 
-After the bottom-to-top order is determined, detect composition groups within the in-scope components before spec writing begins.
+After bottom-to-top order is determined, detect composition groups before spec writing.
 
-**Detection method:** infer groups from component naming patterns (shared prefix, e.g. `Card`, `CardHeader`, `CardFooter`, `CardBody`). Also use the component list and any available `--context` output to reason about likely groupings.
+**Detection method:** infer groups from naming patterns (shared prefix, e.g. `Card`, `CardHeader`, `CardFooter`, `CardBody`). Also use component list and `--context` output.
 
-Present proposed composition groups to the user via `vscode/askQuestions` for approval. The user can accept, edit, or reject any grouping. Components not part of any group remain in the individual order unchanged.
+Present proposed groups via `vscode/askQuestions` for approval. User can accept, edit, or reject any grouping. Components not in any group stay in individual order unchanged.
 
-**Restructure the ordered list in `/memories/session/ui-state.md`:**
+**Restructure ordered list in `/memories/session/ui-state.md`:**
 
-- The **overall order remains bottom-to-top**, driven by hard dependencies — the same rule as before.
-- A composition group is treated as a **unit** placed at the position of its most foundational member.
-- **Within a composition group**, members are ordered foundational-first: the container or root member first, then members that depend on or extend it.
-- Groups are listed under a named group header in session state so the boundary is visually clear.
+- **Overall order remains bottom-to-top**, driven by hard dependencies.
+- Composition group treated as a **unit** placed at position of its most foundational member.
+- **Within a group**, members ordered foundational-first: container/root first, then members that depend on or extend it.
+- Groups listed under named group header in session state.
 
-**Exit criteria:** composition groups are approved by the user and recorded in `/memories/session/ui-state.md`. The ordered list (including groups) is the source of truth for Step 6.
+**Exit criteria:** composition groups approved and recorded in `/memories/session/ui-state.md`. Ordered list (including groups) is source of truth for Step 6.
 
 ---
 
 ## Step 6 — Specify Components
 
-- For each component in the ordered objective scope, spawn exactly one `Component Spec Writer` with a complete brief:
+- For each component in ordered scope, spawn exactly one `Component Spec Writer` with a complete brief:
   - mode: `component`
   - component name and file path
   - overall objective description
   - `tree.yaml` path
   - relevant visuals or Figma URLs
-  - if the component belongs to a composition group: a **composition brief** containing:
-    - the name of the composition group
-    - the list of all member components in the group
-    - each member's distinct responsibility within the composition (draft; spec writer may refine)
-    - any known shared contracts: shared React Context, shared design tokens, shared spacing or border strategy
-  - if session state records a sibling conflict for this component: include it in the brief so it is addressed during spec writing
-  - **shadcn source check:** before spawning each spec writer, look up the component's source from session state (populated during Step 3 from `--list-components` output). If `shadcnMcpAvailable: true` in session state AND the component source is `shadcn/<id>`, add `shadcnSource: <component-id>` to the brief and note it is a delta spec. Otherwise the brief is unchanged and the full spec process applies.
-- The spec writer creates or updates `specs/components/[component-name]/spec.md` and `changelog.md`.
-- If the spec writer reports a **sibling conflict** in its output:
-  - **Sibling not yet spec'd** (upcoming in order): record the conflict in session state beside the sibling's entry. Include it in the sibling's spec writer brief when its turn arrives.
-  - **Sibling already spec'd** (turn already passed): after the current spec is user-approved, immediately spawn a spec writer for the sibling — out of normal order — to apply the specific adjustment. Gate on user approval of the updated spec. Then resume the original order. Track resolution in session state.
-- Follow the saved bottom-to-top order strictly.
-- After all component specs in a composition group are approved, proceed to Step 7 (Composition Review) for that group before continuing to the next group.
-- Gate on explicit user approval for each component spec before moving to the next.
-- After approval update /memories/session/ui-state.md.
-- Do not proceed to Step 8 until all component specs are approved and all composition groups have passed Step 7.
+  - if component belongs to composition group: a **composition brief** containing:
+    - name of the composition group
+    - list of all member components
+    - each member's distinct responsibility (draft; spec writer may refine)
+    - any known shared contracts: shared React Context, design tokens, spacing or border strategy
+  - if session state records sibling conflict: include in brief so it is addressed during spec writing
+  - **shadcn source check:** look up component source from session state. If `shadchnMcpAvailable: true` AND source is `shadcn/<id>`, add `shadchnSource: <component-id>` to brief and note it is a delta spec. Otherwise full spec process applies.
+- Spec writer creates or updates `specs/components/[component-name]/spec.md` and `changelog.md`.
+- If spec writer reports **sibling conflict**:
+  - **Sibling not yet spec'd** (upcoming): record conflict in session state beside sibling's entry. Include in sibling brief when its turn arrives.
+  - **Sibling already spec'd** (turn passed): after current spec approved, immediately spawn spec writer for sibling out of order. Gate on approval, then resume original order. Track in session state.
+- Follow saved bottom-to-top order strictly.
+- After all specs in a composition group approved, proceed to Step 7 for that group before next group.
+- Gate on explicit user approval for each component spec before moving to next.
+- After approval, update /memories/session/ui-state.md.
+- Don't proceed to Step 8 until all component specs approved and all composition groups passed Step 7.
 
-**Exit criteria:** every component in scope has an approved spec and updated changelog; every composition group conflict is resolved and recorded in session state.
+**Exit criteria:** every component has approved spec and updated changelog; every composition group conflict resolved and recorded in session state.
 
 ---
 
 ## Step 7 — Composition Review
 
-After all component specs in a composition group are approved, spawn a `Composition Reviewer` for that group before moving to the next group or to the global review step.
+After all component specs in a composition group are approved, spawn `Composition Reviewer` for that group before moving to next group or global review.
 
-**Trigger:** immediately after the last component spec in a composition group is user-approved.
+**Trigger:** immediately after last component spec in a group is user-approved.
 
 - Spawn `Composition Reviewer` with:
-  - the name of the composition group
+  - name of the composition group
   - paths to all member component specs
-  - the objective spec path
-- Wait for the result: `PASS` or `FAIL` with a specific, actionable list of issues keyed to component name and spec section.
-- On **FAIL**: route failing components back through Step 6 (spec writing), then re-run Step 7 for that group.
-- On **PASS**: continue to the next group, or to Step 8 once all groups have passed.
+  - objective spec path
+- Wait for result: `PASS` or `FAIL` with actionable issues keyed to component name and spec section.
+- On **FAIL**: route failing components back through Step 6, then re-run Step 7 for that group.
+- On **PASS**: continue to next group, or Step 8 once all groups passed.
 
-If there are no composition groups in scope, this step is a no-op; proceed directly to Step 8.
+No composition groups in scope: skip to Step 8.
 
-**Exit criteria:** every composition group has a `PASS` from the Composition Reviewer.
+**Exit criteria:** every composition group has `PASS` from Composition Reviewer.
 
 ---
 
 ## Step 8 — Review
 
 - Spawn `UI Review` with:
-  - path to the objective spec
+  - path to objective spec
   - paths to all affected component specs and their changelogs
-- `UI Review` checks that every required change listed in the objective spec is explicitly present in the matching component spec.
-- On **FAIL**: return to Step 6 for each failed component. Then re-run Step 8.
+- `UI Review` checks every required change in objective spec is explicitly present in matching component spec.
+- On **FAIL**: return to Step 6 for each failed component. Re-run Step 8.
 - On **PASS**: proceed to Step 9.
 
 **Exit criteria:** `UI Review` returns PASS.
@@ -171,64 +171,64 @@ If there are no composition groups in scope, this step is a no-op; proceed direc
 ## Step 9 — Plan Implementation
 
 - Spawn `UI Planner` with:
-  - path to the approved objective spec
+  - path to approved objective spec
   - ordered bottom-to-top component scope from /memories/session/ui-state.md
   - paths to all affected component changelogs
 - `UI Planner` writes `plan.md` beside the objective `spec.md`.
-- The plan must consider the objective spec and every affected component changelog in scope.
-- The plan must flow from primitive components upward.
-- Components or workstreams that do not depend on each other must be batched into parallel phases or parallel work within a phase.
+- Plan must consider objective spec and every affected component changelog in scope.
+- Plan must flow from primitive components upward.
+- Independent components or workstreams must be batched into parallel phases or parallel work within a phase.
 
-**Exit criteria:** `plan.md` exists beside the approved objective spec and reflects bottom-to-top, dependency-aware execution with justified parallel batching.
+**Exit criteria:** `plan.md` exists beside approved objective spec, reflects bottom-to-top dependency-aware execution with justified parallel batching.
 
 ---
 
 ## Step 10 — Execute
 
-Read the `Execution Map` from `plan.md`. Execute the plan phase by phase in strict sequence.
+Read `Execution Map` from `plan.md`. Execute plan phase by phase in strict sequence.
 
 ### Per Phase
 
-1. Spawn one `UI Worker` per component listed in the phase — all in parallel.
+1. Spawn one `UI Worker` per component in the phase — all in parallel.
    Each worker receives:
    - component name
    - path to component spec (`specs/components/[component-name]/spec.md`)
    - path to objective spec
-   - the phase's work items from `plan.md` scoped to that component
+   - phase's work items from `plan.md` scoped to that component
    - project init facts from `/memories/session/ui-state.md` (package manager, stack)
-   - **for shadcn-backed primitives** (web only): if the component spec has a **Registry Source** section, the worker must:
-     1. Run the install command from the spec: `npx shadcn@latest add <component-id>`.
-     2. After install, apply only the local overrides listed in the **Local Overrides** section of the delta spec.
-     3. If the install command fails: surface the error to the user via `vscode/askQuestions` before continuing. Do not guess or proceed silently.
-     4. If the component spec has no Registry Source section, proceed with the standard worker process unchanged.
-2. Wait for all workers in the phase to report `done` or `blocked`.
-3. After all workers complete, ask the user to verify the phase via `vscode/askQuestions`:
+   - **for shadcn-backed primitives** (web only): if component spec has a **Registry Source** section, worker must:
+     1. Run install command from spec: `npx shadcn@latest add <component-id>`.
+     2. After install, apply only local overrides from **Local Overrides** section.
+     3. If install fails: surface error via `vscode/askQuestions` before continuing. Don't guess or proceed silently.
+     4. If no Registry Source section, proceed with standard worker process.
+2. Wait for all workers to report `done` or `blocked`.
+3. After all workers complete, ask user to verify phase via `vscode/askQuestions`:
    - **Approved** → update phase status in `/memories/session/ui-state.md`, proceed to next phase.
-   - **Change requested** → apply the requested change directly, then re-present for approval. Loop until explicit approval.
+   - **Change requested** → apply change, re-present for approval. Loop until explicit approval.
 
 ### After All Phases
 
-- Update `/memories/session/ui-state.md` to mark the objective as complete.
-- Announce completion to the user.
+- Update `/memories/session/ui-state.md` to mark objective as complete.
+- Announce completion to user.
 
-**Exit criteria:** every phase in the Execution Map is complete and approved by the user.
+**Exit criteria:** every phase in Execution Map is complete and approved by user.
 
 ---
 
 ## Rules
 
-- Initialize the project (Step 2) before doing any scope detection or spec work.
-- First thing after init is to detect component scope and context using the architect script (`--list-components` then `--context` per component).
-- The workflow is not done unless all phases of execution are approved and complete.
-- Objective spec is written before the component specs.
-- Component ordering must be decided before component spec writing starts.
-- Composition group detection (Step 5) must run after ordering and before spec writing (Step 6).
-- Component spec writing and planning both follow the saved bottom-to-top order.
-- Component Spec Writer must never modify sibling spec files. Sibling conflicts must be reported in the spec writer's output and routed by the assistant.
-- Composition Review (Step 7) fires per group after the group's last spec is approved. It does not replace the global Review step (Step 8).
-- Component specs describe the current contract. Rewrite them cleanly; do not append loose notes.
-- Never pause the workflow with plain-text approval requests or questions. All questions and approvals must go through `vscode/askQuestions`.
+- Initialize project (Step 2) before any scope detection or spec work.
+- After init, detect component scope and context using architect script (`--list-components` then `--context` per component).
+- Workflow is not done until all execution phases are approved and complete.
+- Write objective spec before component specs.
+- Decide component ordering before component spec writing starts.
+- Composition group detection (Step 5) runs after ordering and before spec writing (Step 6).
+- Spec writing and planning both follow saved bottom-to-top order.
+- Component Spec Writer must never modify sibling spec files. Sibling conflicts reported in spec writer output and routed by assistant.
+- Composition Review (Step 7) fires per group after group's last spec approved. Doesn't replace global Review (Step 8).
+- Component specs describe current contract. Rewrite cleanly; don't append loose notes.
+- Never pause workflow with plain-text questions or approvals. All questions and approvals via `vscode/askQuestions`.
 - Execution begins directly after planning — no intermediate tasking step.
 - One worker per component per phase; workers within a phase run in parallel.
-- Phases run strictly sequentially; no phase begins until the previous is user-approved.
-- The workflow runs continuously until all execution phases are approved and complete.
+- Phases run strictly sequentially; no phase begins until previous is user-approved.
+- Workflow runs continuously until all execution phases are approved and complete.

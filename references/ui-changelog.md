@@ -1,27 +1,27 @@
 # Changelog Reference
 > Used by **Component Spec Writer** at Step 3 (component mode).
-> Defines the required structure and rules for `specs/components/[component-name]/changelog.md`.
+> Defines required structure for `specs/components/[component-name]/changelog.md`.
 
 ## [Objective Name]
 
-- Bulletpiont list of changes.
-- Do not list details only overall changes.
-- Keep it compact but clear.
-- Another entry with the same objective name must be appended to the current section. Do not create a duplicate section with the same name and date.
-- Do not create a new section for the same objective. One objective will have one section.
-- Add the entry to current objective section.
-- If two entry in the same objective conflict resolve to the latest.
-- An objective section can NEVER have conflicting entries. Always review and resolve after adding.
+- Bullet list of changes.
+- Don't list details, only overall changes.
+- Keep compact but clear.
+- Another entry with same objective name must be appended to current section. Don't create duplicate sections.
+- Don't create a new section for same objective. One objective = one section.
+- Add entry to current objective section.
+- If two entries in same objective conflict, resolve to latest.
+- A section can NEVER have conflicting entries. Always review and resolve after adding.
 
 ## Shadcn Install Entries
 
-When a component is installed from the shadcn registry, the changelog entry must use the `[Shadcn install]` prefix and record the source id plus a summary of local overrides:
+When component is installed from shadcn registry, use `[Shadcn install]` prefix and record source id + local overrides summary:
 
 ```
 - [Shadcn install] Button: installed shadcn/button; overrides: variant map extended with `destructive-outline`, border-radius token mapped to `--radius-sm`.
 ```
 
-If there are no local overrides, write: `no local overrides`.
+If no local overrides: `no local overrides`.
 
 Example with no overrides:
 ```

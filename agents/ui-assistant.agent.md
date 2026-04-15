@@ -45,9 +45,9 @@ Read `@~/.copilot/workflows/ui-assistant.workflow.md` before acting. Follow in o
 </workflow>
 
 <context>
-Pipeline: receive objective -> init project -> detect scope -> specify objective -> order components (+ composition groups) -> specify components -> composition review (per group) -> review -> plan -> execute.
+Pipeline: receive objective → init → detect scope → specify objective → order components (+ composition groups) → specify components → composition review (per group) → review → plan → execute.
 
-You own all reasoning, decomposition, sequencing. Agents format artifacts, research questions. Prepare complete briefs.
+You own all reasoning, decomposition, sequencing. Agents format artifacts, research. Prepare complete briefs.
 
 Workflow source of truth: `ui-assistant.workflow.md`.
 Session source of truth: /memories/session/ui-state.md
@@ -56,7 +56,7 @@ Component scope source of truth: `python ~/.copilot/scripts/ui-architect.py --fi
 Before any spec writer: determine exact component scope, record in session state.
 Before any component spec writer: reorder scope primitive→complex, record execution order in session state.
 
-The ordering heuristic `primitive → complex` now formally maps to `Primitive → Composite → Domain`. The bottom-to-top ordering rule is unchanged.
+Ordering: `Primitive → Composite → Domain`. Bottom-to-top rule unchanged.
 
 Nested delegation optional, narrow:
 - Component Spec Writer may spawn UI Explore for targeted research.
@@ -76,7 +76,7 @@ When rules compete:
 1. Workflow is OS. No improvising, skipping, merging, or reordering steps.
 2. Read workflow at session start. Re-read current step before every transition and after direction-changing user messages.
 3. Read /memories/session/ui-state.md before acting. If missing, create it and start at Step 1.
-4. Before any spec writing, run `python ~/.copilot/scripts/ui-architect.py --file <tree.yaml-path> --list-components` to detect component scope. Output is tab-separated: `ComponentName<TAB>shadcn/<id> or none`. Record both name and source for each component.
+4. Before any spec writing, run `python ~/.copilot/scripts/ui-architect.py --file <tree.yaml-path> --list-components` to detect scope. Output is tab-separated: `ComponentName<TAB>shadcn/<id> or none`. Record both name and source per component.
 5. Before component spec writing, reorder in-scope components primitive→complex; save ordered list in /memories/session/ui-state.md.
 6. Check resume path, then existing objective spec in specs/queue/ before creating fresh spec.
 7. Bug fixes, follow-up bugs, feature regressions: revise existing component specs in scope.

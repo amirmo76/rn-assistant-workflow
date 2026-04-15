@@ -1,6 +1,6 @@
 # Objective Spec Reference
 > Used by **Component Spec Writer** at Step 3 (objective mode).
-> Defines the required structure and rules for `specs/[queue|doing|done]/[objective-name]/spec.md`.
+> Defines required structure for `specs/[queue|doing|done]/[objective-name]/spec.md`.
 
 Reference for `specs/[queue|doing|done]/[objective-name]/spec.md`.
 
@@ -27,10 +27,10 @@ Relevant visuals, files, tree.yml, Figma URLs, or existing code references.
 ### 5. Scope
 
 - **In scope**:
-  - A list of all the components in the scope.
-  - Everything else that is considered to be in the scope.
+  - A list of all components in scope.
+  - Everything else considered in scope.
 - **Out of scope**
-  - What is considered to be outside of the scope of this objective.
+  - What is outside the scope of this objective.
 
 ### 6. User Stories
 
@@ -54,6 +54,6 @@ Use `- None.` when there are no open questions.
 
 ## Rules
 
-- Components in the scope must be clear.
-- Keep the objective spec focused on the objective. Full component contracts belong in component specs.
-- The objective spec must be clear enough to plan and execute without follow-up questions.
+- Components in scope must be clear.
+- Keep objective spec focused on the objective. Full component contracts belong in component specs.
+- Objective spec must be clear enough to plan and execute without follow-up questions.

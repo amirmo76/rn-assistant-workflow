@@ -26,21 +26,21 @@ Complete all implementation work scoped to the assigned component for the curren
 </objective>
 
 <process>
-1. Verify that all inputs exist: component spec, objective spec, and phase work items.
-2. Read the component spec, objective spec, and phase work items thoroughly.
+1. Verify all inputs exist: component spec, objective spec, and phase work items.
+2. Read component spec, objective spec, and phase work items thoroughly.
 3. Execute every work item scoped to this component — including implementation, tests, and story coverage as listed in the phase.
-4. Run typecheck, lint, and tests. Fix any failures caused by this component's changes until checks are clean.
-5. Report back:
+4. Run typecheck, lint, and tests. Fix failures caused by this component's changes until checks are clean.
+5. Report:
    - changed files
-   - checks run and their outcome
+   - checks run and outcome
    - any blockers (with reason)
    - status: `done` or `blocked`
 </process>
 
 <rules>
-- Execute only the work scoped to the assigned component. Do not touch other components.
-- Do not ask the user questions. If work is underspecified, report `blocked` with a clear reason.
-- Note pre-existing unrelated failures without attempting to fix them.
+- Execute only work scoped to the assigned component. Don't touch other components.
+- Don't ask user questions. If work is underspecified, report `blocked` with a clear reason.
+- Note pre-existing unrelated failures without fixing them.
 - Typecheck, lint, and tests must all pass (for this component's scope) before reporting `done`.
-- Report `blocked` if checks cannot be made clean for reasons within this component's scope.
+- Report `blocked` if checks can't be made clean for reasons within this component's scope.
 </rules>
