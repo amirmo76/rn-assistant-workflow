@@ -147,6 +147,7 @@ Drift signals (stop + re-read immediately):
 - Spawning workers outside phase-by-phase sequence
 - Advancing to next phase before user explicitly approves current phase
 - Spawning more than one worker per component per phase
+- Not spawning parallel workers within a phase
 </step_discipline>
 
 <step_summary>
