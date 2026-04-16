@@ -18,7 +18,7 @@ Specs live in `specs/doing/` while active, move to `specs/done/` when archived.
 
 Check `specs/doing/` for an active spec.
 
-**Resume path:** if a spec exists and is related, ask via `vscode/askQuestions` whether to resume it or start fresh. On resume, load the spec, identify what has been done, the current step and what to do next.
+**Resume path:** if a spec exists and is related, ask via `vscode/askQuestions` whether to resume it or start fresh. On resume, load the spec and read `## State` first — it holds `Current Step`, `Last Action`, `Next`, and `Remaining this step`. Use these to orient immediately without re-reading the full history.
 
 **Fresh path:** if no spec exists, or the user chooses to start fresh, continue to Step 1.
 
@@ -54,7 +54,13 @@ Write `specs/doing/[objective-name]/spec.md` using `~/.copilot/references/spec.m
 
 Present spec to user via `vscode/askQuestions` and loop until approved.
 
-**Exit criteria:** spec approved and saved, component order determined.
+Once approved, write the initial `## State`:
+- `Current Step`: Step 2 — Implement Loop
+- `Last Action`: Spec created and approved
+- `Next`: Implement [first component]
+- `Remaining this step`: [all components, comma-separated]
+
+**Exit criteria:** spec approved and saved, component order determined, State written.
 
 ---
 
@@ -66,7 +72,11 @@ Work through components one at a time in the order recorded in the spec.
 
 **2a — Mark In Progress**
 
-Update spec: set component status to `implementing`.
+Update spec: set component status to `implementing`. Update `## State`:
+- `Current Step`: Step 2 — Implement Loop
+- `Last Action`: [previous component] — done (or "Spec approved" if first)
+- `Next`: Implement [this component]
+- `Remaining this step`: [this component + all remaining after it, comma-separated]
 
 **2b — Build**
 
@@ -98,7 +108,12 @@ Present verification results via `vscode/askQuestions`:
 - Visual comparison result
 - Prompt user to verify in Storybook, then approve or give feedback
 
-On approval: run checkers to make sure user changes did not break, if so loop. if not update spec, set component status to `done`. Move to next component.
+On approval: run checkers to make sure user changes did not break, if so loop. If not, update spec: set component status to `done`. Update `## State`:
+- `Last Action`: [this component] — done
+- `Next`: Implement [next component] (or "Archive spec" if last)
+- `Remaining this step`: [remaining components after this one] (or `none` if last)
+
+Move to next component.
 
 **Repeat for every component in the spec order.**
 
@@ -107,6 +122,12 @@ On approval: run checkers to make sure user changes did not break, if so loop. i
 ---
 
 ## Step 3 — Cleanup
+
+Update `## State` before moving:
+- `Current Step`: Step 3 — Cleanup
+- `Last Action`: All components done
+- `Next`: Archive spec
+- `Remaining this step`: none
 
 Move spec from `specs/doing/[objective-name]/` to `specs/done/[objective-name]/`.
 Update spec stage field to `done`.
@@ -120,6 +141,7 @@ Announce completion to user.
 ## Rules
 
 - Spec is the single source of truth for the work status. Keep it updated at every status change.
+- `## State` must be updated after every action — it is the handoff record for agents and user to agree on what comes next.
 - Component order (primitive → composite) is set in Step 1 and never changed.
 - Never gate with plain text — always use `vscode/askQuestions`.
 - Never end the session to ask for feedback. Stay in chat and ask inline.
