@@ -14,6 +14,18 @@ Specs live in `specs/doing/` while active, move to `specs/done/` when archived.
 
 ---
 
+## Step 0 — Start or Resume
+
+Check `specs/doing/` for an active spec.
+
+**Resume path:** if a spec exists and is related, ask via `vscode/askQuestions` whether to resume it or start fresh. On resume, load the spec, identify what has been done, the current step and what to do next.
+
+**Fresh path:** if no spec exists, or the user chooses to start fresh, continue to Step 1.
+
+**Exit criteria:** mode determined — either continue with spec loaded, or start fresh with a new spec.
+
+---
+
 ## Step 1 — Objective
 
 Accept the objective from the user. Inputs may include free-text description, Figma URLs, images or screenshots, and a `tree.yaml` path.
@@ -94,7 +106,7 @@ On approval: run checkers to make sure user changes did not break, if so loop. i
 
 ---
 
-## Step 3 — Archive
+## Step 3 — Cleanup
 
 Move spec from `specs/doing/[objective-name]/` to `specs/done/[objective-name]/`.
 Update spec stage field to `done`.

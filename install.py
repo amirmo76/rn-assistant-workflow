@@ -22,7 +22,6 @@ MANAGED_ENTRIES = {
     "agents": {
         "ui-assistant.agent.md",
         "ui-explore.agent.md",
-        "ui-initializer.agent.md",
         "ui-worker.agent.md",
     },
     "references": {
