@@ -23,17 +23,10 @@ MANAGED_ENTRIES = {
         "ui-assistant.agent.md",
         "ui-explore.agent.md",
         "ui-initializer.agent.md",
-        "ui-planner.agent.md",
-        "ui-review.agent.md",
-        "ui-spec-writer.agent.md",
         "ui-worker.agent.md",
-        "ui-composition-reviewer.agent.md"
     },
     "references": {
-        "component-spec.md",
-        "objective-spec.md",
-        "plan.md",
-        "ui-changelog.md",
+        "spec.md",
     },
     "workflows": {"ui-assistant.workflow.md"},
     "scripts": {"ui-architect.py", "detect-project.py", "ui-lint.py"},

@@ -2,7 +2,7 @@
 name: UI Initializer
 description: >
   Prepares a project for the workflow by ensuring git, tests,
-  typecheck, lint, Storybook, and required scripts are set up and working.
+  typecheck, lint, Storybook, and Playwright are set up and working.
   Supports React Native (Expo) and web (React / Next.js) projects.
 user-invocable: true
 argument-hint: >
@@ -22,12 +22,12 @@ agents:
 
 <platform_skills>
 Load the correct skill files after detecting the platform in step 1:
-- React Native (Expo): `@~/.copilot/skills/rn-testing-setup/SKILL.md` and `@~/.copilot/skills/rn-storybook-setup/SKILL.md`
-- Web: `@~/.copilot/skills/web-testing-setup/SKILL.md` and `@~/.copilot/skills/web-storybook-setup/SKILL.md`
+- React Native (Expo): `~/.copilot/skills/rn-testing-setup/SKILL.md` and `~/.copilot/skills/rn-storybook-setup/SKILL.md`
+- Web: `~/.copilot/skills/web-testing-setup/SKILL.md` and `~/.copilot/skills/web-storybook-setup/SKILL.md`
 </platform_skills>
 
 <objective>
-Make target project ready for this workflow.
+Make the target project ready for this workflow. All checks must pass before returning.
 </objective>
 
 <process>
@@ -44,8 +44,12 @@ Make target project ready for this workflow.
 4. Ensure test runner setup, smoke test, and test scripts using platform skill as source of truth.
 5. Ensure `typecheck` and `lint` scripts exist and pass.
 6. Ensure Storybook setup, smoke story, and Storybook scripts using platform skill as source of truth.
-7. Run typecheck, lint, and test until clean or a real decision is required.
-8. Return short readiness summary, changed files, platform detected, and any blocker.
+7. Ensure Playwright is installed and configured for screenshot testing against Storybook.
+   - Install `@playwright/test` if not present.
+   - Ensure a `playwright.config` exists pointing to the Storybook URL (default: `http://localhost:6006`).
+   - Run a smoke screenshot test to confirm Playwright can reach Storybook.
+8. Run typecheck, lint, and tests until clean or a real decision is required.
+9. Return short readiness summary, changed files, platform detected, and any blocker.
 </process>
 
 <rules>
@@ -53,5 +57,5 @@ Make target project ready for this workflow.
 - Ask only when a decision is required.
 - Don't stop on first failure; fix and re-run.
 - Always follow the platform-specific skill; don't mix React Native and web tooling.
-- Don't return until testing and storybook are fully setup with smoke test and smoke story, and passing.
+- Don't return until testing, storybook, and playwright are fully set up with smoke checks passing.
 </rules>
