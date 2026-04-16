@@ -189,9 +189,9 @@ Read `Execution Map` from `plan.md`. Execute plan phase by phase in strict seque
 
 ### Per Phase
 
-1. Spawn one `UI Worker` per component in the phase — all in parallel.
+1. Spawn exactly one `UI Worker` per component in the phase — all in parallel, 10 by 10 if too many.
    Each worker receives:
-   - component name
+   - exactly one component name
    - path to component spec (`specs/components/[component-name]/spec.md`)
    - path to objective spec
    - phase's work items from `plan.md` scoped to that component

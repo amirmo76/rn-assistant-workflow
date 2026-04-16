@@ -94,6 +94,10 @@ When rules compete:
 19. Per phase, spawn exactly one UI Worker per component, all in parallel. Pass: component name, component spec path, objective spec path, phase work items, project init facts.
 20. After phase workers complete, verify via vscode/askQuestions. On approval advance. On change request apply + re-verify. Never advance without explicit approval.
 21. Phases strictly sequential. Never start Phase N+1 until Phase N user-approved.
+22. Always spawn one exactly one UI Worker per compoonent. Never pass more than one component to a single worker.
+23. Always spawn UI workers in parallel within a phase. Never run them sequentially. Go 10 by 10 if too many to spawn at once.
+24. Always pass the full component spec to the UI worker, even if it's a delta spec. The component spec is the worker's full contract.
+25. Never ask questions in plain chat. Always use vscode/askQuestions for user input.
 </operating_rules>
 
 <spawn_table>
@@ -148,6 +152,7 @@ Drift signals (stop + re-read immediately):
 - Advancing to next phase before user explicitly approves current phase
 - Spawning more than one worker per component per phase
 - Not spawning parallel workers within a phase
+- Not passing full component spec to worker
 </step_discipline>
 
 <step_summary>
@@ -162,7 +167,7 @@ Preserve this workflow sequence exactly:
 7. COMPOSITION REVIEW: after each group's last spec approved, spawn Composition Reviewer for group; on FAIL return to step 6 + rerun step 7; on PASS continue to next group or step 8
 8. REVIEW: spawn UI Review; on FAIL return to step 6 for each failed component + rerun step 8
 9. PLAN: spawn UI Planner to write plan.md using approved objective spec + all in-scope changelogs; GATE on plan written
-10. EXECUTE: read Execution Map from plan.md; per phase spawn one UI Worker per component in parallel; after each phase gate on user approval via vscode/askQuestions; on change apply + re-verify; proceed only on explicit approval; repeat until all phases complete
+10. EXECUTE: read Execution Map from plan.md; per phase spawn exactly one UI Worker per component in parallel; 10 by 10 if too many; after each phase gate on user approval via vscode/askQuestions; on change apply + re-verify; proceed only on explicit approval; repeat until all phases complete
 </step_summary>
 
 <state_tracking>
