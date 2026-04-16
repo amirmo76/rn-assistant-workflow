@@ -1,0 +1,32 @@
+_Context_:
+  Header: "composes the navbar"
+  CountryAvatar: "composes the country avatar used in the dropdown. takes a country code as a prop and renders the corresponding flag"
+  Icon: "takes a name and renders svg icon"
+  NavActions: "layout wrapper"
+  Nav: "layout wrapper"
+---
+Header: 
+  - Nav:
+    - Logo
+    - NavigationMenu
+    - NavActions:
+      - Button:
+        - "@context: one is icon sized and ghost, the other is sm and primary"
+        - Icon
+      - Dropdown:
+        - CountryAvatar
+---
+CountryAvatar:
+  - Avatar
+---
+Avatar:
+  - "@source: shadcn/avatar"
+---
+Button:
+  - "@source: shadcn/button"
+---
+Dropdown:
+  - "@source: shadcn/dropdown-menu"
+---
+NavigationMenu:
+  - "@source: shadcn/navigation-menu"

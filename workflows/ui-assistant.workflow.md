@@ -14,24 +14,6 @@ Specs live in `specs/doing/` while active, move to `specs/done/` when archived.
 
 ---
 
-## Step 0 — Init
-
-Check `specs/doing/` for an active spec. If one exists, read it and resume from where the component statuses show.
-
-If no active spec exists, this is a fresh start — proceed to Step 1.
-
-Spawn `UI Initializer` to ensure the project is ready:
-- tests set up and passing
-- Storybook set up and running
-- typecheck and lint scripts passing
-- Playwright set up
-
-Surface any blocker via `vscode/askQuestions` before continuing.
-
-**Exit criteria:** project ready, route (resume or fresh) decided.
-
----
-
 ## Step 1 — Objective
 
 Accept the objective from the user. Inputs may include free-text description, Figma URLs, images or screenshots, and a `tree.yaml` path.
@@ -125,8 +107,6 @@ Announce completion to user.
 
 ## Rules
 
-- Always check `specs/doing/` for an active spec at session start.
-- Never skip init (Step 0) — project must be ready before any work.
 - Spec is the single source of truth for the work status. Keep it updated at every status change.
 - Component order (primitive → composite) is set in Step 1 and never changed.
 - Never gate with plain text — always use `vscode/askQuestions`.
