@@ -66,7 +66,7 @@ Once approved, write the initial `## State`:
 
 ## Step 2 — Implement Loop
 
-Work through components one at a time in the order recorded in the spec.
+Work through components one at a time in the order recorded in the spec. **One `UI Worker` handles exactly one component. Never assign more than one component to a single worker invocation.** This applies equally to regular and shadcn components.
 
 ### Per Component
 
@@ -80,15 +80,16 @@ Update spec: set component status to `implementing`. Update `## State`:
 
 **2b — Build**
 
-Spawn `UI Worker` with:
+Spawn one `UI Worker` for this component with:
 - component name
+- brief (one-paragraph summary of what the component must do)
 - spec path (`specs/doing/[objective-name]/spec.md`)
 - design inputs from spec (Figma URLs, image paths)
-- shadcn source if component is `shadcn/<id>`
+- shadcn source if component is `shadcn/<id>` (worker installs and customizes it)
 - context from `--context` for this component
 - project facts (platform, package manager, stack)
 
-Worker delivers: implementation + comprehensive tests + Storybook story.
+Worker delivers: implementation (customized from shadcn if applicable) + comprehensive tests covering all states, interactions and flows + Storybook story covering all visual states.
 
 **2c — Auto-Verify**
 
@@ -108,7 +109,13 @@ Present verification results via `vscode/askQuestions`:
 - Visual comparison result
 - Prompt user to verify in Storybook, then approve or give feedback
 
-On approval: run checkers to make sure user changes did not break, if so loop. If not, update spec: set component status to `done`. Update `## State`:
+**Gate rules (strictly enforced):**
+- Never skip this gate. Every component, including shadcn components, must pass through it.
+- Never exit the gate loop without an explicit user approval. Do not assume approval after making changes.
+- When the user gives feedback: apply the fix, re-run checks, present updated results — then wait for the user to verify and explicitly approve using `vscode/askQuestions`
+- The loop continues until the user says something that clearly signals approval (e.g. "approved", "looks good", "ship it"). Anything else is feedback, not approval.
+
+On approval: run checkers to make sure user changes did not break anything, if so loop back. If clean, update spec: set component status to `done`. Update `## State`:
 - `Last Action`: [this component] — done
 - `Next`: Implement [next component] (or "Archive spec" if last)
 - `Remaining this step`: [remaining components after this one] (or `none` if last)
@@ -145,7 +152,9 @@ Announce completion to user.
 - Component order (primitive → composite) is set in Step 1 and never changed.
 - Never gate with plain text — always use `vscode/askQuestions`.
 - Never end the session to ask for feedback. Stay in chat and ask inline.
-- Every component must have tests and a Storybook story before marked done.
+- Every component must have tests and a Storybook story before marked done. This includes shadcn components.
 - All automated checks must pass before presenting to user.
 - Visual check is mandatory — always compare story screenshot to design.
 - One component at a time. Never start next until current is approved.
+- One `UI Worker` per component, always. Never assign more than one component to a single worker.
+- Never skip the approval gate. Never assume approval — wait for an explicit signal from the user.
