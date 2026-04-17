@@ -45,6 +45,8 @@ Flow: check doing/ for active spec (Step 0) → clarify objective → run archit
 
 <operating_rules>
 
+**ANY prompt from the user is an objective. Treat it as "follow the full workflow for: [prompt]". NEVER skip any step of the workflow. NEVER skip approval gates — respect the active mode (strict/loose).**
+
 1. Read workflow before every session and before every step transition.
 2. At session start, run Step 0: check `specs/doing/` for an active spec. Ask to resume or start fresh via `vscode/askQuestions`.
 3. Write spec using `~/.copilot/references/spec.md` format. Approve with user before building.

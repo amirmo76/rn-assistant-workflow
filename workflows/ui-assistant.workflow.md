@@ -1,5 +1,7 @@
 # UI Assistant Workflow
 
+**Any prompt the user sends is an objective. Treat every user message as "follow this workflow for: [prompt]". NEVER skip any step. NEVER skip approval gates — always respect the active mode (strict/loose).**
+
 One UI objective moves through these steps at a time. Build components in isolation using Storybook. The code is the permanent state; the spec is the working memory for this objective.
 
 ## Spec Model
