@@ -245,17 +245,13 @@ Use the Base UI headless primitives via the shadcn registry instead of Radix UI.
 
 ## Project conventions
 
-### Component structure
-- Keep each component in its own directory.
-- Co-locate the component implementation, its tests, and its Storybook stories in the same component directory.
-- Use kebab-case folder names for component directories and keep file names consistent with the component.
+### structure
+- shadcn components go under `src/components/ui`.
 - Preferred layout:
-  - `components/button/button.tsx`
-  - `components/button/button.test.tsx`
-  - `components/button/button.stories.tsx`
-  - `components/button/index.ts` (re-export)
-- Place reusable UI in a top-level `components/` directory.
-- Group related component directories in a group directory, e.g. `components/alert/` for `Alert`, `AlertTitle`, and `AlertDescription`.
+  - `components/ui` for shared UI primitive components (e.g. `Button`, `Avatar`).
+  - `components/` for domain-specific components
+  - `stories/[component].stories.tsx` for stories.
+  - `__tests__/[component].test.tsx` for tests.
 
 ### Implementation guidelines
 - Prefer the simplest implementation that solves the requirement correctly.

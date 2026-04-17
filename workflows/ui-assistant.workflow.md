@@ -89,7 +89,7 @@ Spawn one `UI Worker` for this component with:
 - context from `--context` for this component
 - project facts (platform, package manager, stack)
 
-Worker delivers: implementation (customized from shadcn if applicable) + comprehensive tests covering all states, interactions and flows + Storybook story covering all visual states.
+Worker delivers: implementation (customized from shadcn if applicable) + comprehensive tests covering all states, interactions and flows + Storybook story covering all visual states. All files placed according to project instruction files. Playwright screenshots saved to `specs/doing/[objective-name]/screenshots/`.
 
 **2c — Auto-Verify**
 
@@ -139,6 +139,8 @@ Update `## State` before moving:
 Move spec from `specs/doing/[objective-name]/` to `specs/done/[objective-name]/`.
 Update spec stage field to `done`.
 
+All artifacts generated during the objective (screenshots, diffs) remain inside the spec directory and are archived with it.
+
 Announce completion to user.
 
 **Exit criteria:** spec archived under `specs/done/`.
@@ -153,6 +155,9 @@ Announce completion to user.
 - Never gate with plain text — always use `vscode/askQuestions`.
 - Never end the session to ask for feedback. Stay in chat and ask inline.
 - Every component must have tests and a Storybook story before marked done. This includes shadcn components.
+- All component files, tests, and stories must be placed in locations required by the project's instruction files. Verify placement before marking done.
+- shadcn installs must target the project-mandated path (read `components.json` and project instruction files first).
+- All temporary artifacts (Playwright screenshots, diffs) must be saved inside the spec directory (`specs/doing/[objective-name]/`), never scattered elsewhere.
 - All automated checks must pass before presenting to user.
 - Visual check is mandatory — always compare story screenshot to design.
 - One component at a time. Never start next until current is approved.
