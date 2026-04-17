@@ -64,9 +64,25 @@ Once approved, write the initial `## State`:
 
 ---
 
+## Step 1b — Select Implementation Mode
+
+Ask the user via `vscode/askQuestions` to choose a mode before entering the implementation loop:
+
+- **strict** — gate after every component; loop continues only on explicit approval.
+- **loose** — implement all components without per-component gates, then gate at the end when all are done, loop on explicit approval
+
+Record the chosen mode in `## State`:
+- `Mode`: strict | loose
+
+**Exit criteria:** mode recorded in State.
+
+---
+
 ## Step 2 — Implement Loop
 
 Work through components one at a time in the order recorded in the spec. **One `UI Worker` handles exactly one component. Never assign more than one component to a single worker invocation.** This applies equally to regular and shadcn components.
+
+Read `Mode` from `## State` before entering the loop. All gate rules apply in both modes — the only difference is when the gate occurs.
 
 ### Per Component
 
@@ -102,7 +118,9 @@ Worker runs and reports:
 
 If tests/typecheck/lint/build fail, worker fixes and re-runs before reporting. Visual diff if obvious is fixed by the agent if not reported for user judgment.
 
-**2d — User Gate**
+**2d — User Gate (strict mode only)**
+
+_Skip this section entirely when mode is **loose**. Proceed directly to the next component._
 
 Present verification results via `vscode/askQuestions`:
 - Automated checks summary
@@ -124,7 +142,30 @@ Move to next component.
 
 **Repeat for every component in the spec order.**
 
-**Exit criteria:** all components are `done` in the spec.
+**Exit criteria (strict):** all components are `done` in the spec.
+
+---
+
+**2e — Bulk Gate (loose mode only)**
+
+_Run this section only when mode is **loose**, after all components have been built and auto-verified._
+
+Present a combined results summary via `vscode/askQuestions`:
+- Automated checks summary for each component
+- Visual comparison results for each component
+- Prompt user to verify all stories in Storybook, then approve or give feedback
+
+**Gate rules (strictly enforced — identical to strict mode):**
+- Never exit the gate loop without an explicit user approval. Do not assume approval after making changes.
+- When the user gives feedback: apply fixes, re-run all checks, present updated results — then wait for the user to explicitly approve using `vscode/askQuestions`.
+- The loop continues until the user says something that clearly signals approval (e.g. "approved", "looks good", "ship it"). Anything else is feedback, not approval.
+
+On approval: run all checkers to make sure no changes broke anything, if so loop back. If clean, update all component statuses to `done` in the spec. Update `## State`:
+- `Last Action`: All components approved
+- `Next`: Archive spec
+- `Remaining this step`: none
+
+**Exit criteria (loose):** all components are `done` in the spec.
 
 ---
 
@@ -163,3 +204,6 @@ Announce completion to user.
 - One component at a time. Never start next until current is approved.
 - One `UI Worker` per component, always. Never assign more than one component to a single worker.
 - Never skip the approval gate. Never assume approval — wait for an explicit signal from the user.
+- In **strict** mode: gate after every individual component before moving to the next.
+- In **loose** mode: skip per-component gates; gate once at the end after all components are built. The gate is equally strict — no implicit approval, loop until explicit signal.
+- Mode is set once in Step 1b and never changed mid-objective.
