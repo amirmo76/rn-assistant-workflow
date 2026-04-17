@@ -41,7 +41,14 @@ Once clear, run the architect script to gather scope and context:
    Outputs: global role description and instance-level annotations. Use for context and edge cases. Skip silently when "No context found".
 
 3. For each component: `python ~/.copilot/scripts/ui-architect.py --file <tree.yaml> --deps <name>`
-   Outputs: direct dependencies. Use to determine primitive → composite ordering.
+   Outputs: direct dependencies. Use to determine primitive → composite ordering. Also cross-reference each dependency against the codebase — record whether it already exists so the worker knows to import it rather than reimplement it.
+
+4. For each component listed, scan the codebase to classify it:
+   - `new` — component does not exist in the codebase; must be implemented from scratch.
+   - `update` — component exists but the spec or design requires changes to it.
+   - `unchanged` — component exists and no changes are required by the spec or design; skip it entirely.
+
+   Only `new` and `update` components proceed to implementation. Record the classification alongside each component in the spec. Do not spawn a worker for `unchanged` components.
 
 Order components bottom-up by dependency: primitives (no custom component dependencies) first, composites after.
 
