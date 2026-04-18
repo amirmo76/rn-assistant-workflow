@@ -1,6 +1,11 @@
 ---
 name: shadcn
-description: A collection of beautifully-designed, accessible components and a code distribution platform built with TypeScript, Tailwind CSS, and Radix UI primitives. Easily customizable.
+description: >
+  Use when installing, customizing, or referencing shadcn/ui components
+  (registry, CLI, theming, components.json, dark mode, RTL, registries, MCP).
+  Reference index for the shadcn/ui documentation. Triggers: "shadcn",
+  "shadcn/ui", "npx shadcn", "components.json", "registry", "shadcn init",
+  "shadcn add".
 ---
 # shadcn/ui
 

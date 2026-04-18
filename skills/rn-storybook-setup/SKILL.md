@@ -1,6 +1,10 @@
 ---
 name: rn-storybook-setup
-description: Set up Storybook for an Expo React Native project, including Expo Router projects.
+description: >
+  Use when setting up or repairing Storybook for an Expo React Native project
+  (including Expo Router). Covers install, environment bridge, entry gating,
+  scripts, and a smoke story. Triggers: "storybook expo", "storybook react native",
+  "rn storybook", "expo storybook", "sb-rn-get-stories".
 ---
 
 # RN Storybook Setup

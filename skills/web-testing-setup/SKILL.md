@@ -1,6 +1,10 @@
 ---
 name: web-testing-setup
-description: Set up Vitest and React Testing Library for a React or Next.js web project.
+description: >
+  Use when setting up or repairing Vitest + React Testing Library (or Jest as
+  fallback) for a React or Next.js web project. Covers install, vitest.config,
+  setup file, scripts, and a smoke test. Triggers: "vitest setup",
+  "rtl setup", "web testing", "@testing-library/react", "jest cra".
 ---
 
 # Web Testing Setup

@@ -16,14 +16,22 @@ The spec is the working memory for one objective. It is created in Step 1, updat
 
 ## State
 
-- **Current Step:** Step 1 — Objective
+- **Current Step:** Step 2 — Implement Loop
 - **Last Action:** Spec created and approved
 - **Next:** Implement Button
 - **Remaining this step:** Button, Card, CardList
+- **Mode:** strict
 
 ## Objective
 
 One short paragraph describing the UI outcome.
+
+## Project
+
+- **Platform:** web | react-native
+- **Stack:** next | vite | cra | remix | gatsby | astro | react | expo | react-native-cli
+- **Package manager:** npm | yarn | pnpm | bun
+- **TypeScript:** true | false
 
 ## Design Inputs
 
@@ -33,13 +41,17 @@ One short paragraph describing the UI outcome.
 
 ## Components
 
-Ordered primitive → composite. Statuses: `pending` | `implementing` | `done`.
+Ordered primitive → composite. Only `new` and `update` components are implemented; `unchanged` are listed for completeness but skipped.
 
-| Order | Component   | Source        | Status        |
-|-------|-------------|---------------|---------------|
-| 1     | Button      | shadcn/button | done          |
-| 2     | Card        | none          | implementing  |
-| 3     | CardList    | none          | pending       |
+- **Classification:** `new` | `update` | `unchanged`
+- **Status:** `pending` | `implementing` | `done` (always `done` for `unchanged`)
+
+| Order | Component   | Source        | Classification | Status        |
+|-------|-------------|---------------|----------------|---------------|
+| 1     | Button      | shadcn/button | new            | done          |
+| 2     | Card        | none          | update         | implementing  |
+| 3     | CardList    | none          | new            | pending       |
+| —     | Icon        | none          | unchanged      | done          |
 
 ## Edge Cases
 
@@ -65,16 +77,17 @@ Notes added during implementation. One section per component as needed.
 
 ## Rules
 
-- Keep stage field accurate: `doing` while active, `done` after archive.
+- Keep the `Stage` field accurate: `doing` while active, `done` after archive.
 - **Update `## State` after every action and at every step transition.** It is the primary handoff record.
 - `Current Step` — the active workflow step name and number (e.g. `Step 2 — Implement Loop`).
 - `Last Action` — one-line summary of the last completed action (e.g. `Button — done`, `Spec approved`).
 - `Next` — the immediate next action (e.g. `Implement Card`, `Archive spec`).
-- `Remaining this step` — comma-separated list of what is left to complete in the current step (e.g. `Card, CardList`). Write `none` when the step is finished.
+- `Remaining this step` — comma-separated list of what is left in the current step. Write `none` when the step is finished.
+- `Mode` — `strict` or `loose`, set once in Step 1b and never changed.
 - On resume (Step 0), an agent reads `## State` first to determine exactly where to pick up.
-- Update component status at every transition (`pending` → `implementing` → `done`).
+- Update component `Status` at every transition (`pending` → `implementing` → `done`).
+- `Classification` is set once in Step 1 and does not change. `unchanged` components are not implemented and keep `Status: done` from the start.
 - Do not remove components from the table. Status is the record.
 - Implementation notes are additive. Add; never rewrite history.
 - Acceptance criteria must be observable facts, not implementation details.
 - Open questions must be resolved before implementation of the affected component.
-

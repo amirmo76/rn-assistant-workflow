@@ -36,6 +36,7 @@ MANAGED_ENTRIES = {
         "web-storybook-setup",
         "shadcn",
         "init-next",
+        "init-rn",
     },
 }
 

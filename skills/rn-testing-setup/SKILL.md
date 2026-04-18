@@ -1,6 +1,10 @@
 ---
 name: rn-testing-setup
-description: Set up Jest and React Native Testing Library for an Expo React Native project.
+description: >
+  Use when setting up or repairing Jest + React Native Testing Library for an
+  Expo React Native project. Covers install, jest-expo preset, scripts, and a
+  smoke test. Triggers: "jest expo", "rn testing", "react native test setup",
+  "jest-expo", "@testing-library/react-native".
 ---
 
 # RN Testing Setup

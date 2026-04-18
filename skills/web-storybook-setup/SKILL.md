@@ -1,6 +1,7 @@
 ---
 name: web-storybook-setup
-description: Set up Storybook for a React or Next.js web project.
+description: >
+  Use when setting up or repairing Storybook for a React or Next.js web project (Vite or Next). Covers install, main.ts, scripts, and a smoke story. Triggers: "storybook next", "storybook vite", "web storybook", "@storybook/nextjs", "@storybook/react-vite".
 ---
 
 # Web Storybook Setup
@@ -36,13 +37,13 @@ npm install --save-dev @storybook/react-vite @storybook/addon-essentials @storyb
 Create `.storybook/main.ts`:
 
 ```ts
-import type { StorybookConfig } from '@storybook/react-vite';
+import type { StorybookConfig } from "@storybook/react-vite";
 
 const config: StorybookConfig = {
-  stories: ['../src/**/*.stories.@(ts|tsx)'],
-  addons: ['@storybook/addon-essentials'],
+  stories: ["../src/**/*.stories.@(ts|tsx)"],
+  addons: ["@storybook/addon-essentials"],
   framework: {
-    name: '@storybook/react-vite',
+    name: "@storybook/react-vite",
     options: {},
   },
 };
@@ -64,14 +65,14 @@ Add to `package.json`:
 
 ## Smoke Story
 
-Create one simple story when the repo has none, for example `src/components/Button/Button.stories.tsx`:
+Create one simple story:
 
 ```tsx
-import type { Meta, StoryObj } from '@storybook/react';
+import type { Meta, StoryObj } from "@storybook/react";
 
 const meta: Meta = {
-  title: 'Example/Placeholder',
-  component: () => <div>Placeholder story</div>,
+  title: "Smoke/Smoke",
+  component: () => <div>Smoke is working</div>,
 };
 export default meta;
 
