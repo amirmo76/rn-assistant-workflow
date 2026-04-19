@@ -26,7 +26,6 @@ Look for `package.json` in the current directory.
     --tailwind \
     --eslint \
     --app \
-    --src-dir \
     --import-alias "@/*"
   ```
 
@@ -49,7 +48,45 @@ Check for a `.git` directory.
 
 ---
 
-### 3 — Testing (Vitest + React Testing Library)
+### 3 — Copilot instructions
+
+Establish project conventions before any tooling is added so subsequent steps can follow them.
+
+1. Create `.github/` if it does not exist.
+
+2. Create `.github/copilot-instructions.md` only if it does not already exist:
+
+   ```md
+   # Copilot Instructions — Next.js Project
+
+   ## Project conventions
+
+   ### Structure
+
+   - shadcn components go under `components/ui/`.
+   - Domain-specific components: `components/`.
+   - Stories: `stories/<Name>.stories.tsx`.
+   - Tests: `__tests__/<Name>.test.tsx`.
+
+   ### Implementation guidelines
+
+   - Prefer the simplest implementation that solves the requirement correctly.
+   - Reuse existing patterns, helpers, and tokens before introducing new abstractions.
+   - Preserve accessibility, performance, and maintainability over cleverness.
+   - Use `class-variance-authority` for complex Tailwind class combinations and conditional variants.
+   - Use the `cn` utility (from `@/lib/utils`) for Tailwind class combinations.
+
+   ### Tooling
+
+   - Test runner: Vitest + React Testing Library.
+   - Stories: Storybook (`@storybook/nextjs`).
+   - E2E / visual: Playwright against Storybook.
+   - Styling: Tailwind CSS (v4 if installed, otherwise v3) + `class-variance-authority` + `cn`.
+   ```
+
+---
+
+### 4 — Testing (Vitest + React Testing Library)
 
 Read `~/.copilot/skills/web-testing-setup/SKILL.md` and follow it exactly.
 
@@ -57,7 +94,7 @@ Run `npm test` — must pass before continuing.
 
 ---
 
-### 4 — Storybook
+### 5 — Storybook
 
 Read `~/.copilot/skills/web-storybook-setup/SKILL.md` and follow it exactly. The CLI auto-detects Next.js and installs `@storybook/nextjs`.
 
@@ -65,7 +102,7 @@ Run the build-storybook script — must succeed before continuing.
 
 ---
 
-### 5 — Playwright (against Storybook)
+### 6 — Playwright (against Storybook)
 
 1. Install:
 
@@ -113,7 +150,7 @@ Run the build-storybook script — must succeed before continuing.
 
 ---
 
-### 6 — shadcn
+### 7 — shadcn
 
 Read `~/.copilot/skills/shadcn/SKILL.md` for full reference.
 
@@ -127,43 +164,7 @@ When prompted, choose the **Default** style and a base color (Slate is a good de
 
 ---
 
-### 7 — Copilot instructions
-
-1. Create `.github/` if it does not exist.
-
-2. Create `.github/copilot-instructions.md` only if it does not already exist:
-
-   ```md
-   # Copilot Instructions — Next.js Project
-
-   ## Project conventions
-
-   ### Structure
-
-   - shadcn components go under `src/components/ui/`.
-   - Domain-specific components: `src/components/`.
-   - Stories live next to the component: `src/components/<Name>/<Name>.stories.tsx`.
-   - Tests live next to the component: `src/components/<Name>/<Name>.test.tsx`.
-
-   ### Implementation guidelines
-
-   - Prefer the simplest implementation that solves the requirement correctly.
-   - Reuse existing patterns, helpers, and tokens before introducing new abstractions.
-   - Preserve accessibility, performance, and maintainability over cleverness.
-   - Use `class-variance-authority` for complex Tailwind class combinations and conditional variants.
-   - Use the `cn` utility (from `@/lib/utils`) for Tailwind class combinations.
-
-   ### Tooling
-
-   - Test runner: Vitest + React Testing Library.
-   - Stories: Storybook (`@storybook/nextjs`).
-   - E2E / visual: Playwright against Storybook.
-   - Styling: Tailwind CSS (v4 if installed, otherwise v3) + `class-variance-authority` + `cn`.
-   ```
-
----
-
-### 8 — Typecheck and lint
+### 9 — Typecheck and lint
 
 `create-next-app` already adds `lint`. Ensure `typecheck` exists:
 
@@ -180,7 +181,7 @@ Run both and fix any errors before returning.
 
 ---
 
-### 9 — Final verification
+### 10 — Final verification
 
 Run the full check suite in order:
 
