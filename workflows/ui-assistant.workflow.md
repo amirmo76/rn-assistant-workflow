@@ -53,7 +53,7 @@ Gather facts, in order:
 
    Only `new` and `update` components proceed to implementation.
 
-Order the implementation list bottom-up by dependency: primitives first, composites after.
+Order the implementation list: **shadcn-sourced components always go first** — they have no dependencies on custom components by definition, making them the most primitive. Within the shadcn group, preserve the order they were listed. After the shadcn group, order remaining components bottom-up by dependency: primitives first, composites after.
 
 Write `specs/doing/[objective-name]/spec.md` using `~/.copilot/references/spec.md` as the format. The spec must contain:
 - The objective
@@ -91,6 +91,21 @@ Record in `## State` → `Mode`: `strict | loose`.
 ## Step 2 — Implement Loop
 
 Work through components one at a time in the spec order. **One `UI Worker` handles exactly one component. Never assign more than one component to a single worker invocation.** This applies equally to regular and shadcn components.
+
+### 2-pre — Loose mode: parallel shadcn batch (loose mode only)
+
+_Skip this section entirely when mode is **strict**._
+
+Before starting the per-component loop, take advantage of the fact that shadcn-sourced components are already at the front of the spec order and share no dependencies:
+
+1. Mark all shadcn-sourced components `Status: implementing` in the spec simultaneously.
+2. Spawn exactly one `UI Worker` per shadcn component **in parallel** — all workers run at the same time. Each worker receives the same brief inputs as described in 2b.
+3. Wait for all workers to finish and collect their reports.
+4. Continue to the per-component loop for the remaining (non-shadcn) components. Do not re-run 2-pre for those.
+
+**Exit criteria:** all shadcn-sourced components built and reported; remaining component list contains only non-shadcn entries.
+
+---
 
 ### Per Component
 
