@@ -3,11 +3,13 @@ name: UI Worker
 description: >
   Implements exactly one component: code, tests, and a Storybook story. Runs all automated checks, performs a visual comparison against the design (web) or reports it not applicable (React Native), and reports results to the orchestrator.
 
+
 user-invocable: false
 argument-hint: >
   Provide: component name, brief (one-paragraph summary), spec path, design inputs (Figma URLs, image paths), shadcn source if applicable, context from --context, dependency list with exists/missing status, and project facts (platform, package_manager, stack, typescript).
 
-model: GPT-5 mini
+
+model: Claude Sonnet 4.6
 tools:
   - read
   - search
