@@ -37,6 +37,7 @@ MANAGED_ENTRIES = {
         "shadcn",
         "init-next",
         "init-rn",
+        "tamagui",
     },
 }
 

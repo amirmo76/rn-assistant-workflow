@@ -10,7 +10,7 @@ Usage:
 
 Four modes:
   --list-components       Print every unique component name with its source annotation
-                          (tab-separated: ComponentName<TAB>shadcn/<id> or none).
+                          (tab-separated: ComponentName<TAB>shadcn/<id>, tamagui/<id>, or none).
   --deps COMPONENT        Print the direct dependencies of COMPONENT (all unique
                           components that are imported and used by it, as declared
                           in its composition block).
@@ -18,7 +18,7 @@ Four modes:
                           the optional _Context_ front-matter block, and every
                           instance-level @context annotation with its path trace.
   --source COMPONENT      Print the @source value for COMPONENT if declared on its
-                          root block (e.g. "shadcn/button"), or "none" if absent.
+                          root block (e.g. "shadcn/button", "tamagui/dialog"), or "none" if absent.
 
 YAML format rules:
   • The optional first document may be a global front-matter block whose single
@@ -30,10 +30,11 @@ YAML format rules:
     direct dependency of the root component, not of intermediate nodes.
   • A `@context: ...` string inside a component's children list is an
     instance-level annotation for that component and is NOT a component name.
-  • A `@source: shadcn/<id>` string inside a root component's children list
-    declares that the component is installed from the shadcn registry. It is
-    metadata only and does not affect the dependency list. Only valid on root
-    component blocks (the top-level key of a YAML document).
+  • A `@source: <prefix>/<id>` string inside a root component's children list
+    declares the component's library source (e.g. "shadcn/button" for web,
+    "tamagui/dialog" for React Native). It is metadata only and does not affect
+    the dependency list. Only valid on root component blocks (the top-level key
+    of a YAML document).
   • Parentheses after a component name are contextual annotations and do not
     change the component identity.
   • If a component appears multiple times it is still one dependency.
@@ -58,7 +59,7 @@ _PAREN_RE = re.compile(r"\s*\([^)]*\)\s*$")
 # Matches @context annotations, e.g. "@context: variant=primary, size=lg"
 _CONTEXT_ANNO_RE = re.compile(r"^@context:\s*(.*)", re.IGNORECASE)
 
-# Matches @source annotations, e.g. "@source: shadcn/button"
+# Matches @source annotations, e.g. "@source: shadcn/button" or "@source: tamagui/dialog"
 _SOURCE_ANNO_RE = re.compile(r"^@source:\s*(.*)", re.IGNORECASE)
 
 
@@ -218,7 +219,7 @@ def _load_docs(path: Path) -> "tuple[dict, list]":
 def list_components(path: Path) -> list:
     """Return a sorted list of (component_name, source) tuples for every root component.
 
-    source is the @source annotation value (e.g. "shadcn/button") or "none".
+    source is the @source annotation value (e.g. "shadcn/button", "tamagui/dialog") or "none".
     Components that only appear as children (never as a root block) are listed
     with source "none" and included for completeness.
     """
@@ -350,7 +351,7 @@ def main() -> None:
         action="store_true",
         help=(
             "List every unique component in the file with its source annotation. "
-            "Output is tab-separated: ComponentName<TAB>shadcn/<id> or none."
+            "Output is tab-separated: ComponentName<TAB>shadcn/<id>, tamagui/<id>, or none."
         ),
     )
     group.add_argument(
@@ -372,7 +373,7 @@ def main() -> None:
         metavar="COMPONENT",
         help=(
             "Print the @source annotation value for a root component "
-            "(e.g. 'shadcn/button'), or 'none' if absent."
+            "(e.g. 'shadcn/button', 'tamagui/dialog'), or 'none' if absent."
         ),
     )
 

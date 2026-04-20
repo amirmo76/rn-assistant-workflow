@@ -38,7 +38,7 @@ Gather facts, in order:
 2. **Lint the tree.** If a `tree.yaml` was provided, run `python ~/.copilot/scripts/ui-lint.py --file <tree.yaml>`. If it reports errors, ask the user to fix them before continuing — do not try to parse a malformed tree.
 
 3. **List components.** `python ~/.copilot/scripts/ui-architect.py --file <tree.yaml> --list-components`
-   Output: `ComponentName<TAB>shadcn/<id> or none` per component.
+   Output: `ComponentName<TAB><source> or none` per component, where `<source>` is `shadcn/<id>` (web) or `tamagui/<id>` (React Native).
 
 4. **Gather context.** For each component: `python ~/.copilot/scripts/ui-architect.py --file <tree.yaml> --context <name>`
    Output: global role description and instance-level annotations. Use for edge cases. Skip silently when "No context found".
@@ -53,7 +53,7 @@ Gather facts, in order:
 
    Only `new` and `update` components proceed to implementation.
 
-Order the implementation list: **shadcn-sourced components always go first** — they have no dependencies on custom components by definition, making them the most primitive. Within the shadcn group, preserve the order they were listed. After the shadcn group, order remaining components bottom-up by dependency: primitives first, composites after.
+Order the implementation list: **library-sourced components always go first** (`shadcn/*` on web, `tamagui/*` on React Native) — they have no dependencies on custom components by definition, making them the most primitive. Within the library-sourced group, preserve the order they were listed. After the library-sourced group, order remaining components bottom-up by dependency: primitives first, composites after.
 
 Write `specs/doing/[objective-name]/spec.md` using `~/.copilot/references/spec.md` as the format. The spec must contain:
 - The objective
@@ -90,20 +90,20 @@ Record in `## State` → `Mode`: `strict | loose`.
 
 ## Step 2 — Implement Loop
 
-Work through components one at a time in the spec order. **One `UI Worker` handles exactly one component. Never assign more than one component to a single worker invocation.** This applies equally to regular and shadcn components.
+Work through components one at a time in the spec order. **One `UI Worker` handles exactly one component. Never assign more than one component to a single worker invocation.** This applies equally to regular and library-sourced components.
 
-### 2-pre — Loose mode: parallel shadcn batch (loose mode only)
+### 2-pre — Loose mode: parallel library-sourced batch (loose mode only)
 
 _Skip this section entirely when mode is **strict**._
 
-Before starting the per-component loop, take advantage of the fact that shadcn-sourced components are already at the front of the spec order and share no dependencies:
+Before starting the per-component loop, take advantage of the fact that library-sourced components (`shadcn/*` on web, `tamagui/*` on RN) are already at the front of the spec order and share no dependencies:
 
-1. Mark all shadcn-sourced components `Status: implementing` in the spec simultaneously.
-2. Spawn exactly one `UI Worker` per shadcn component **in parallel** — all workers run at the same time. Each worker receives the same brief inputs as described in 2b.
+1. Mark all library-sourced components `Status: implementing` in the spec simultaneously.
+2. Spawn exactly one `UI Worker` per library-sourced component **in parallel** — all workers run at the same time. Each worker receives the same brief inputs as described in 2b.
 3. Wait for all workers to finish and collect their reports.
-4. Continue to the per-component loop for the remaining (non-shadcn) components. Do not re-run 2-pre for those.
+4. Continue to the per-component loop for the remaining (non-library-sourced) components. Do not re-run 2-pre for those.
 
-**Exit criteria:** all shadcn-sourced components built and reported; remaining component list contains only non-shadcn entries.
+**Exit criteria:** all library-sourced components built and reported; remaining component list contains only non-library-sourced entries.
 
 ---
 
@@ -124,12 +124,12 @@ Spawn one `UI Worker` with:
 - brief (one-paragraph summary of what the component must do)
 - spec path (`specs/doing/[objective-name]/spec.md`)
 - design inputs from spec (Figma URLs, image paths)
-- shadcn source if the spec lists `shadcn/<id>` for this component
+- library source if the spec lists `shadcn/<id>` (web) or `tamagui/<id>` (RN) for this component
 - context from `--context` for this component
 - dependency list from `--deps` and their codebase status (exists / missing)
 - project facts (`platform`, `package_manager`, `stack`, `typescript`)
 
-Worker delivers: implementation (customized from shadcn if applicable) + tests for all states/interactions + Storybook story covering all visual states. Files placed according to project instruction files. Visual-check artifacts saved to `specs/doing/[objective-name]/screenshots/`.
+Worker delivers: implementation (customized from shadcn or tamagui as applicable) + tests for all states/interactions + Storybook story covering all visual states. Files placed according to project instruction files. Visual-check artifacts saved to `specs/doing/[objective-name]/screenshots/`.
 
 **2c — Auto-Verify**
 
@@ -180,7 +180,7 @@ On approval: re-run all automated checks; if any broke, loop back. If clean, set
 
 Identical in strict and loose mode. The only difference is *when* the gate runs.
 
-- Never skip the gate. Every `new`/`update` component, including shadcn-sourced ones, passes through it.
+- Never skip the gate. Every `new`/`update` component, including library-sourced ones (shadcn or tamagui), passes through it.
 - Never exit the gate loop without an explicit user approval. Do not assume approval after making changes.
 - When the user gives feedback: apply the fix, re-run checks, present updated results — then wait for the user to verify and explicitly approve via `vscode/askQuestions`.
 - The loop continues until the user says something that clearly signals approval (e.g. "approved", "looks good", "ship it"). Anything else is feedback, not approval.
@@ -213,9 +213,10 @@ Announce completion to the user.
 - Mode is set once in Step 1b and never changed mid-objective.
 - Never gate with plain text — always use `vscode/askQuestions`.
 - Never end the session to ask for feedback. Stay in chat and ask inline.
-- Every `new`/`update` component must have tests and a Storybook story before it is marked done, including shadcn components.
+- Every `new`/`update` component must have tests and a Storybook story before it is marked done, including library-sourced components (shadcn or tamagui).
 - All component files, tests, and stories must be placed in locations required by the project's instruction files. Verify placement before marking done.
-- shadcn installs must target the project-mandated path (read `components.json` and project instruction files first).
+- **Web (shadcn):** installs must target the project-mandated path (read `components.json` and project instruction files first).
+- **React Native (tamagui):** verify the `tamagui` package is installed. Create a `styled()` wrapper in the project's component directory that imports the Tamagui primitive and customizes it. Read the Tamagui skill (`~/.copilot/skills/tamagui/SKILL.md`) to load the relevant component sub-file before implementing.
 - All temporary artifacts (screenshots, diffs) must be saved inside the spec directory — never scattered elsewhere.
 - All automated checks must pass before presenting to the user.
 - Visual check is mandatory on web; on React Native it is recorded as "not applicable on RN" and the user verifies on-device.

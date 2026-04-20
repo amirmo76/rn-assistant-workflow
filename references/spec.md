@@ -49,6 +49,7 @@ Ordered primitive → composite. Only `new` and `update` components are implemen
 | Order | Component   | Source        | Classification | Status        |
 |-------|-------------|---------------|----------------|---------------|
 | 1     | Button      | shadcn/button | new            | done          |
+| 1     | Dialog      | tamagui/dialog| new            | pending       |
 | 2     | Card        | none          | update         | implementing  |
 | 3     | CardList    | none          | new            | pending       |
 | —     | Icon        | none          | unchanged      | done          |
