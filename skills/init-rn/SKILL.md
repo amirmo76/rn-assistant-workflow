@@ -21,56 +21,7 @@ All checks must pass before returning.
 
 ## Process
 
-### 1 — Detect or create the project
-
-Look for `package.json` in the current directory.
-
-- **Found and contains `expo` in dependencies** → project exists, continue to step 2.
-- **Found but no `expo`** → ask via `vscode/askQuestions` whether to add Expo to the
-  existing project or abort.
-- **Not found** → scaffold a new project with the default Expo template:
-
-  ```bash
-  npx create-expo-app@latest . --template default
-  ```
-
-  Accept all defaults.
-
----
-
-### 2 — Git
-
-Check for a `.git` directory.
-
-- **Exists** → skip.
-- **Missing** → run:
-
-  ```bash
-  git init
-  git add -A
-  git commit -m "chore: initial commit"
-  ```
-
----
-
-### 3 — Testing (Jest + React Native Testing Library)
-
-Read `~/.copilot/skills/rn-testing-setup/SKILL.md` and follow it exactly.
-
-Run `npm test` — must pass before continuing.
-
----
-
-### 4 — Storybook (on-device)
-
-Read `~/.copilot/skills/rn-storybook-setup/SKILL.md` and follow it exactly.
-
-Run `npm run storybook:generate` — must succeed before continuing. Do not start the
-Metro server from this skill; the developer launches it interactively.
-
----
-
-### 5 — Copilot instructions
+### 1 — Copilot instructions
 
 1. Create `.github/` if it does not exist.
 
@@ -82,11 +33,10 @@ Metro server from this skill; the developer launches it interactively.
    ## Project conventions
 
    ### Structure
-   - Domain-specific components: `components/`.
-   - Shared primitive components: `components/ui/`.
-   - Stories live next to the component: `components/<Name>/<Name>.stories.tsx`.
-   - Tests live next to the component: `components/<Name>/<Name>.test.tsx` or
-     `__tests__/<Name>-test.tsx` (jest-expo recognises both `.test.*` and `-test.*`).
+   - Domain-specific components: `src/components/`.
+   - Shared primitive components: `src/components/ui/`.
+   - Stories: `src/stories/<Name>.stories.tsx`.
+   - Tests: `src/__tests__/<Name>.test.tsx`.
 
    ### Implementation guidelines
    - Prefer the simplest implementation that solves the requirement correctly.
@@ -103,6 +53,55 @@ Metro server from this skill; the developer launches it interactively.
    - Stories: on-device Storybook, gated by `STORYBOOK_ENABLED=true`.
    - Visual verification: manual on-device (no Playwright).
    ```
+
+---
+
+### 2 — Detect or create the project
+
+Look for `package.json` in the current directory.
+
+- **Found and contains `expo` in dependencies** → project exists, continue to step 2.
+- **Found but no `expo`** → ask via `vscode/askQuestions` whether to add Expo to the
+  existing project or abort.
+- **Not found** → scaffold a new project with the default Expo template:
+
+  ```bash
+  npx create-expo-app@latest . --template default
+  ```
+
+  Accept all defaults.
+
+---
+
+### 3 — Git
+
+Check for a `.git` directory.
+
+- **Exists** → skip.
+- **Missing** → run:
+
+  ```bash
+  git init
+  git add -A
+  git commit -m "chore: initial commit"
+  ```
+
+---
+
+### 4 — Testing (Jest + React Native Testing Library)
+
+Read `~/.copilot/skills/rn-testing-setup/SKILL.md` and follow it exactly.
+
+Run `npm test` — must pass before continuing.
+
+---
+
+### 5 — Storybook (on-device)
+
+Read `~/.copilot/skills/rn-storybook-setup/SKILL.md` and follow it exactly.
+
+Run `npm run storybook:generate` — must succeed before continuing. Do not start the
+Metro server from this skill; the developer launches it interactively.
 
 ---
 
