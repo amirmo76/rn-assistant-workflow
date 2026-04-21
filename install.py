@@ -38,6 +38,7 @@ MANAGED_ENTRIES = {
         "init-next",
         "init-rn",
         "tamagui",
+        "tamagui-compound"
     },
 }
 
