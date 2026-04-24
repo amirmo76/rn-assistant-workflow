@@ -20,6 +20,7 @@ tools:
   - figma/get_screenshot
   - shadcn/*
   - playwright/*
+  - context7/*
 agents:
   - UI Explore
   - UI Worker

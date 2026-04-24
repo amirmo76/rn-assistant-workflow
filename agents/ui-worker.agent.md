@@ -21,6 +21,7 @@ tools:
   - figma/get_screenshot
   - shadcn/*
   - playwright/*
+  - context7/*
 agents:
   - UI Explore
 ---
@@ -31,7 +32,7 @@ Implement exactly one assigned component: write code, tests for all states/inter
 
 <process>
 
-1. **Read inputs.** Read the brief, spec, and all design inputs (Figma URLs, images) thoroughly.
+1. **Read inputs.** Read the brief, spec, and all design inputs (Figma URLs, images) thoroughly. If you are about to use any 3rd-party libary or component, use `context7 mcp` and get the latest API.
 
 2. **Read project conventions once.** Read the project's instruction files (e.g. `.github/copilot-instructions.md`, `CLAUDE.md`, `COPILOT.md`, any root `*.instructions.md`) plus `components.json` if present for web projects, or `tamagui.config.ts` if present for RN projects. From these, derive: the component directory, the test file location and naming convention, the story file location and naming convention, the shadcn install target path (via `components.json`) on web, and any styling/utility conventions (e.g. `cn`, `cva`, design tokens on web; Tamagui tokens, themes, shorthands on RN). Keep these in mind for steps 3, 4, 5, and the final placement check.
 
@@ -83,6 +84,8 @@ Implement exactly one assigned component: write code, tests for all states/inter
 - If the spec is underspecified for a decision, use best judgment based on design inputs. Do not ask questions — record any assumptions in the report.
 - shadcn components (web) must install to the project-mandated path and be customized in their source file (not via story-level overrides).
 - tamagui components (RN) must be wrapped via `styled()` in the project's component directory and customized in that wrapper file. Read the Tamagui skill's relevant component sub-file before implementing.
+- If using any 3rd-party library or component, use `context7 mcp` to get the latest API.
+- Using Shadcn or Tamagui you must use context7 to get the latest API.
 - Tests and a Storybook story are mandatory for every component, including library-sourced ones (shadcn or tamagui).
 - All files must live in the locations required by the project's instruction files. Verify before reporting done.
 - Note pre-existing unrelated failures without fixing them.
